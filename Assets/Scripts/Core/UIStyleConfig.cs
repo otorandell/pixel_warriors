@@ -30,6 +30,10 @@ namespace PixelWarriors
         public static readonly Color TabActive = PanelBorder;
         public static readonly Color TabInactive = TextDimmed;
 
+        // Highlight colors
+        public static readonly Color TargetHighlight = AccentCyan;
+        public static readonly Color ActiveTurnHighlight = AccentGreen;
+
         // --- Font Sizes ---
         public const float FontSizeLarge = 24f;
         public const float FontSizeMedium = 18f;

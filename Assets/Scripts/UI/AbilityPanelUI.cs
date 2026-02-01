@@ -70,7 +70,7 @@ namespace PixelWarriors
             RefreshAbilities();
         }
 
-        private void RefreshAbilities()
+        public void RefreshAbilities()
         {
             // Clear existing ability buttons
             foreach (Button btn in _abilityButtons)

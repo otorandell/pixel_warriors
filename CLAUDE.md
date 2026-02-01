@@ -189,13 +189,70 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ---
 
-## Current State
-- Fresh Unity project initialized
-- No gameplay code yet
-- Next: build UI skeleton and core data structures
+## Current State (2026-02-01)
+
+### What's Built
+- **Core layer:** Enums, CharacterStats, GameplayConfig, UIStyleConfig, GameEvents (event bus), StatCalculator (all stat/damage formulas)
+- **Character system:** CharacterData, BattleCharacter (runtime combat state with action points), ClassDefinitions (6 classes with base stats, basic abilities, passives, generic abilities), EquipmentData
+- **Ability system:** AbilityData with factory methods (CreateAttack, CreateSkill, CreateSpell, CreateQuickAction)
+- **Enemy system:** EnemyDefinitions (Ratman, Goblin Archer, Minotaur)
+- **Battle engine:**
+  - BattleManager (MonoBehaviour, coroutine-driven state machine: Setup → TurnStart → AwaitingInput/ExecutingAction → TurnEnd → Victory/Defeat)
+  - TurnOrderCalculator (priority groups → initiative sorting)
+  - ActionExecutor (per-hit resolution: accuracy → dodge → damage → crit, multi-hit, healing, combat logging)
+  - TargetSelector (valid targets by TargetType, aggro-weighted selection for AI)
+  - EnemyAI (random ability pick + aggro targeting)
+  - HitResult (readonly struct for hit outcomes)
+- **UI framework (all code-first, TextMeshPro):**
+  - PanelBuilder (panels, borders, text, bars, buttons)
+  - BattleScreenUI (canvas + EventSystem + layout assembly)
+  - BattleGridUI (2x2 enemy/player grids with positioning rules)
+  - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support)
+  - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, dynamic ability buttons)
+  - CombatLogUI (scrolling combat log)
+  - FontManager (loads Press Start 2P TMP asset from Resources)
+- **Bootstrap:** GameBootstrap creates everything in code, launches test battle (4 players vs 4 enemies)
+
+### What Works
+- Full battle loop: turns cycle based on initiative/priority
+- Player can select abilities and tap enemy/ally cards as targets
+- Enemies auto-act with random ability + aggro-weighted targeting
+- Damage resolution with accuracy, dodge, crit, armor (flat), magic resist (%)
+- Combat log shows all actions
+- Active character highlighted green, targetable cards highlighted cyan
+- Victory/defeat detection
+
+### What's NOT Built Yet
+- DOTween integration (bar animations, damage feedback, transitions)
+- Cancel target selection (once ability is chosen, must pick target)
+- Turn order display panel
+- Death visuals (defeated characters still show in grid)
+- XP/leveling system (formulas exist but not wired)
+- Roguelike loop (map, nodes, shops, encounters)
+- Equipment system (data exists but no equip/unequip/inventory UI)
+- Status effects / buffs / debuffs
+- Ability effects beyond raw damage/healing (Mark, shields, Anticipate/Prepare behavior)
+- Sound/audio
+- Save system
+
+### Known Issues
+- No cancel during target selection
+- Generic abilities (Swap, Anticipate, Prepare, Protect, Hide) don't have behavior implementations yet — they execute but do nothing
+- Warlock's Ritual (HP→Mana) not implemented in ActionExecutor
+- Wizard's Magic Bolt element-tracking not implemented
+- Enemies with no usable abilities pass by zeroing their action points (works but is a workaround)
 
 ## Decisions Made
 - All UI built in code (code-first)
 - Landscape mobile orientation
 - Terminal retro aesthetic (black/white + terminal accent colors)
-- Press Start 2P font
+- Press Start 2P font (TMP, RASTER_HINTED rendering)
+- New Input System (`InputSystemUIInputModule`) for touch/click
+- Coroutine-based battle loop with boolean guards for input waiting
+- Static utility classes for ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator
+- Healing determined by TargetType (ally-targeting + BasePower > 0 = healing)
+- Event-driven communication between systems via static GameEvents
+
+## Scene Setup
+- SampleScene with a single empty GameObject named "Game" with the `GameBootstrap` component
+- Everything else is created in code at runtime

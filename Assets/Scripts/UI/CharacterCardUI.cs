@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -7,6 +8,9 @@ namespace PixelWarriors
     public class CharacterCardUI
     {
         public RectTransform Root { get; private set; }
+        public BattleCharacter Character => _character;
+
+        public event Action<BattleCharacter> OnCardClicked;
 
         private TextMeshProUGUI _nameText;
         private Image _hpFill;
@@ -16,12 +20,22 @@ namespace PixelWarriors
         private RectTransform _energyBarBg;
         private RectTransform _manaBarBg;
         private BattleCharacter _character;
+        private Button _button;
+        private Image[] _borderImages;
 
         public void Build(Transform parent, BattleCharacter character)
         {
             _character = character;
 
             Root = PanelBuilder.CreatePanel("Card_" + character.Data.Name, parent);
+
+            // Add button component (disabled by default)
+            _button = Root.gameObject.AddComponent<Button>();
+            _button.interactable = false;
+            _button.onClick.AddListener(() => OnCardClicked?.Invoke(_character));
+
+            // Cache border images for highlighting
+            _borderImages = Root.GetComponentsInChildren<Image>();
 
             float padding = UIStyleConfig.PanelPadding;
             RectTransform content = PanelBuilder.CreateContainer("Content", Root);
@@ -61,6 +75,30 @@ namespace PixelWarriors
             SetBarFill(_hpFill, _character.CurrentHP, _character.MaxHP);
             SetBarFill(_energyFill, _character.CurrentEnergy, _character.MaxEnergy);
             SetBarFill(_manaFill, _character.CurrentMana, _character.MaxMana);
+        }
+
+        public void SetTargetable(bool targetable)
+        {
+            _button.interactable = targetable;
+            SetBorderColor(targetable ? UIStyleConfig.TargetHighlight : UIStyleConfig.PanelBorder);
+        }
+
+        public void SetHighlight(bool highlighted)
+        {
+            SetBorderColor(highlighted ? UIStyleConfig.ActiveTurnHighlight : UIStyleConfig.PanelBorder);
+        }
+
+        private void SetBorderColor(Color color)
+        {
+            if (_borderImages == null) return;
+
+            foreach (Image img in _borderImages)
+            {
+                if (img.gameObject.name.StartsWith("Border_"))
+                {
+                    img.color = color;
+                }
+            }
         }
 
         private void SetBarFill(Image fill, int current, int max)

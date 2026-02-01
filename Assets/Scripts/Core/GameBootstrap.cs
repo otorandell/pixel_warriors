@@ -6,6 +6,7 @@ namespace PixelWarriors
     public class GameBootstrap : MonoBehaviour
     {
         private BattleScreenUI _battleScreen;
+        private BattleManager _battleManager;
 
         private void Start()
         {
@@ -28,7 +29,6 @@ namespace PixelWarriors
 
         private void LoadTestBattle()
         {
-            // Create test player party
             List<BattleCharacter> players = new List<BattleCharacter>
             {
                 new BattleCharacter(
@@ -45,7 +45,6 @@ namespace PixelWarriors
                     TeamSide.Player, GridRow.Back, GridColumn.Right),
             };
 
-            // Create test enemy group
             List<BattleCharacter> enemies = new List<BattleCharacter>
             {
                 new BattleCharacter(
@@ -62,14 +61,8 @@ namespace PixelWarriors
                     TeamSide.Enemy, GridRow.Back, GridColumn.Right),
             };
 
-            // Populate UI
-            _battleScreen.BattleGrid.SetEnemies(enemies);
-            _battleScreen.BattleGrid.SetPlayers(players);
-            _battleScreen.AbilityPanel.SetCharacter(players[0]);
-
-            // Test log messages
-            GameEvents.RaiseCombatLogMessage("Battle begins!");
-            GameEvents.RaiseCombatLogMessage("Aldric's party vs Ratmen and Goblins!");
+            _battleManager = gameObject.AddComponent<BattleManager>();
+            _battleManager.StartBattle(players, enemies, _battleScreen);
         }
     }
 }

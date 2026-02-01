@@ -7,6 +7,8 @@ namespace PixelWarriors
     public class BattleGridUI
     {
         public RectTransform Root { get; private set; }
+        public IReadOnlyList<CharacterCardUI> EnemyCards => _enemyCards;
+        public IReadOnlyList<CharacterCardUI> PlayerCards => _playerCards;
 
         private RectTransform _enemyGrid;
         private RectTransform _playerGrid;
@@ -47,6 +49,29 @@ namespace PixelWarriors
             PlaceCharacters(players, _playerGrid, _playerCards, invertRows: false);
         }
 
+        public void SetHighlight(BattleCharacter character, bool highlighted)
+        {
+            CharacterCardUI card = FindCard(character);
+            card?.SetHighlight(highlighted);
+        }
+
+        public void ClearAllHighlights()
+        {
+            foreach (CharacterCardUI card in _enemyCards) card.SetHighlight(false);
+            foreach (CharacterCardUI card in _playerCards) card.SetHighlight(false);
+            foreach (CharacterCardUI card in _enemyCards) card.SetTargetable(false);
+            foreach (CharacterCardUI card in _playerCards) card.SetTargetable(false);
+        }
+
+        public CharacterCardUI FindCard(BattleCharacter character)
+        {
+            foreach (CharacterCardUI card in _enemyCards)
+                if (card.Character == character) return card;
+            foreach (CharacterCardUI card in _playerCards)
+                if (card.Character == character) return card;
+            return null;
+        }
+
         private void PlaceCharacters(List<BattleCharacter> characters, RectTransform grid,
             List<CharacterCardUI> cards, bool invertRows)
         {
@@ -71,8 +96,6 @@ namespace PixelWarriors
         private void GetCellBounds(GridRow row, GridColumn column, int totalCount, bool invertRows,
             out float xMin, out float yMin, out float xMax, out float yMax)
         {
-            // For players: Front = top of their grid, Back = bottom
-            // For enemies (invertRows=true): Front = bottom of their grid (near divider), Back = top
             bool isTopRow;
             if (invertRows)
                 isTopRow = row == GridRow.Back;

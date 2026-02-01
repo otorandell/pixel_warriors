@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
 namespace PixelWarriors
@@ -16,8 +18,18 @@ namespace PixelWarriors
 
         private void Awake()
         {
+            EnsureEventSystem();
             BuildCanvas();
             BuildLayout();
+        }
+
+        private void EnsureEventSystem()
+        {
+            if (FindAnyObjectByType<EventSystem>() != null) return;
+
+            GameObject esGo = new GameObject("EventSystem");
+            esGo.AddComponent<EventSystem>();
+            esGo.AddComponent<InputSystemUIInputModule>();
         }
 
         private void BuildCanvas()

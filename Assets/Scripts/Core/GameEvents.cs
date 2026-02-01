@@ -22,6 +22,7 @@ namespace PixelWarriors
         // --- UI ---
         public static event Action<BattleCharacter> OnCharacterSelected;
         public static event Action<AbilityData> OnAbilitySelected;
+        public static event Action<BattleCharacter> OnTargetSelected;
         public static event Action<string> OnCombatLogMessage;
 
         public static void RaiseBattleStarted() => OnBattleStarted?.Invoke();
@@ -47,6 +48,9 @@ namespace PixelWarriors
 
         public static void RaiseAbilitySelected(AbilityData ability)
             => OnAbilitySelected?.Invoke(ability);
+
+        public static void RaiseTargetSelected(BattleCharacter target)
+            => OnTargetSelected?.Invoke(target);
 
         public static void RaiseCombatLogMessage(string message)
             => OnCombatLogMessage?.Invoke(message);
