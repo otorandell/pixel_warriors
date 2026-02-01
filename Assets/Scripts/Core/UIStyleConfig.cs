@@ -1,0 +1,54 @@
+using UnityEngine;
+
+namespace PixelWarriors
+{
+    public static class UIStyleConfig
+    {
+        // --- Colors ---
+        public static readonly Color Background = Color.black;
+        public static readonly Color PanelBorder = Color.white;
+        public static readonly Color PanelBackground = new Color(0.05f, 0.05f, 0.05f, 1f);
+        public static readonly Color TextPrimary = Color.white;
+        public static readonly Color TextDimmed = new Color(0.6f, 0.6f, 0.6f, 1f);
+
+        // Terminal accent colors
+        public static readonly Color AccentCyan = new Color(0f, 1f, 1f, 1f);
+        public static readonly Color AccentMagenta = new Color(1f, 0f, 1f, 1f);
+        public static readonly Color AccentGreen = new Color(0f, 1f, 0f, 1f);
+        public static readonly Color AccentYellow = new Color(1f, 1f, 0f, 1f);
+        public static readonly Color AccentRed = new Color(1f, 0.2f, 0.2f, 1f);
+
+        // Resource bar colors
+        public static readonly Color HPBarColor = AccentRed;
+        public static readonly Color EnergyBarColor = AccentYellow;
+        public static readonly Color ManaBarColor = AccentCyan;
+        public static readonly Color HPBarBackground = new Color(0.3f, 0.05f, 0.05f, 1f);
+        public static readonly Color EnergyBarBackground = new Color(0.3f, 0.3f, 0.05f, 1f);
+        public static readonly Color ManaBarBackground = new Color(0.05f, 0.2f, 0.3f, 1f);
+
+        // Tab colors
+        public static readonly Color TabActive = PanelBorder;
+        public static readonly Color TabInactive = TextDimmed;
+
+        // --- Font Sizes ---
+        public const float FontSizeLarge = 24f;
+        public const float FontSizeMedium = 18f;
+        public const float FontSizeSmall = 14f;
+        public const float FontSizeTiny = 10f;
+
+        // --- Spacing ---
+        public const float PanelPadding = 8f;
+        public const float ElementSpacing = 4f;
+        public const float BarHeight = 6f;
+        public const float BarSpacing = 2f;
+
+        // --- Border ---
+        public const float BorderWidth = 2f;
+        public const float BorderRadius = 4f;
+
+        // --- Layout Ratios ---
+        public const float BattleGridWidthRatio = 0.45f;   // Left side
+        public const float AbilityPanelWidthRatio = 0.55f;  // Right side
+        public const float CombatLogHeightRatio = 0.15f;    // Bottom strip
+    }
+}
