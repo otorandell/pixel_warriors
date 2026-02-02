@@ -32,7 +32,16 @@ namespace PixelWarriors
             // Add button component (disabled by default)
             _button = Root.gameObject.AddComponent<Button>();
             _button.interactable = false;
-            _button.onClick.AddListener(() => OnCardClicked?.Invoke(_character));
+
+            // Long press detection (works regardless of button interactable state)
+            LongPressHandler longPress = Root.gameObject.AddComponent<LongPressHandler>();
+            longPress.OnLongPress += () => GameEvents.RaiseCharacterDetailRequested(_character);
+
+            _button.onClick.AddListener(() =>
+            {
+                if (longPress.WasLongPress) return;
+                OnCardClicked?.Invoke(_character);
+            });
 
             // Cache border images for highlighting
             _borderImages = Root.GetComponentsInChildren<Image>();
@@ -86,6 +95,11 @@ namespace PixelWarriors
         public void SetHighlight(bool highlighted)
         {
             SetBorderColor(highlighted ? UIStyleConfig.ActiveTurnHighlight : UIStyleConfig.PanelBorder);
+        }
+
+        public void SetStagedHighlight(bool staged)
+        {
+            SetBorderColor(staged ? UIStyleConfig.StagedHighlight : UIStyleConfig.PanelBorder);
         }
 
         private void SetBorderColor(Color color)

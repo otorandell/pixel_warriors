@@ -105,4 +105,11 @@ namespace PixelWarriors
         AllAllies,
         All
     }
+
+    public enum PlayerInputPhase
+    {
+        SelectingAbility,
+        SelectingTarget,
+        AwaitingConfirmation
+    }
 }

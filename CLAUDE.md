@@ -189,7 +189,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ---
 
-## Current State (2026-02-01)
+## Current State (2026-02-02)
 
 ### What's Built
 - **Core layer:** Enums, CharacterStats, GameplayConfig, UIStyleConfig, GameEvents (event bus), StatCalculator (all stat/damage formulas)
@@ -197,7 +197,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - **Ability system:** AbilityData with factory methods (CreateAttack, CreateSkill, CreateSpell, CreateQuickAction)
 - **Enemy system:** EnemyDefinitions (Ratman, Goblin Archer, Minotaur)
 - **Battle engine:**
-  - BattleManager (MonoBehaviour, coroutine-driven state machine: Setup → TurnStart → AwaitingInput/ExecutingAction → TurnEnd → Victory/Defeat)
+  - BattleManager (MonoBehaviour, coroutine-driven state machine with PlayerInputPhase staging: SelectingAbility → SelectingTarget → AwaitingConfirmation)
   - TurnOrderCalculator (priority groups → initiative sorting)
   - ActionExecutor (per-hit resolution: accuracy → dodge → damage → crit, multi-hit, healing, combat logging)
   - TargetSelector (valid targets by TargetType, aggro-weighted selection for AI)
@@ -207,24 +207,35 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - PanelBuilder (panels, borders, text, bars, buttons)
   - BattleScreenUI (canvas + EventSystem + layout assembly)
   - BattleGridUI (2x2 enemy/player grids with positioning rules)
-  - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support)
-  - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, dynamic ability buttons)
+  - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support, long-press detail popup)
+  - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, dynamic ability buttons, staged ability highlight, long-press detail popup)
+  - DetailPopupUI (centered overlay popup for character/ability details, built dynamically)
+  - LongPressHandler (MonoBehaviour input component: distinguishes hold vs tap on UI elements)
+  - ActionBarUI (bottom strip: Cancel button + CombatLogUI + Confirm button, contextual prompts)
   - CombatLogUI (scrolling combat log)
   - FontManager (loads Press Start 2P TMP asset from Resources)
 - **Bootstrap:** GameBootstrap creates everything in code, launches test battle (4 players vs 4 enemies)
 
 ### What Works
 - Full battle loop: turns cycle based on initiative/priority
-- Player can select abilities and tap enemy/ally cards as targets
+- Confirmation-based action staging: tap ability → tap target → Confirm/Cancel
+- Cancel at any point returns to previous selection step
+- Ability re-selection mid-flow works (tap different ability restarts staging)
+- Auto-target abilities (Self, All) skip target selection, go straight to confirm
+- Staged ability highlighted yellow in ability panel, staged target highlighted yellow on grid
+- Contextual prompts in action bar ("Select an ability" / "Select a target" / "Crushing Blow > Ratman")
 - Enemies auto-act with random ability + aggro-weighted targeting
 - Damage resolution with accuracy, dodge, crit, armor (flat), magic resist (%)
-- Combat log shows all actions
+- Combat log shows all actions (hidden during player input, shows prompts instead)
 - Active character highlighted green, targetable cards highlighted cyan
+- Long-press (hold) on character cards shows detail popup (stats, resources, abilities)
+- Long-press on ability buttons shows ability detail popup (description, costs, properties)
+- Long-press works on disabled/unaffordable abilities and non-targetable cards
+- Popup dismisses on tap anywhere (blocker or popup itself)
 - Victory/defeat detection
 
 ### What's NOT Built Yet
 - DOTween integration (bar animations, damage feedback, transitions)
-- Cancel target selection (once ability is chosen, must pick target)
 - Turn order display panel
 - Death visuals (defeated characters still show in grid)
 - XP/leveling system (formulas exist but not wired)
@@ -236,7 +247,6 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Save system
 
 ### Known Issues
-- No cancel during target selection
 - Generic abilities (Swap, Anticipate, Prepare, Protect, Hide) don't have behavior implementations yet — they execute but do nothing
 - Warlock's Ritual (HP→Mana) not implemented in ActionExecutor
 - Wizard's Magic Bolt element-tracking not implemented
@@ -248,7 +258,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Terminal retro aesthetic (black/white + terminal accent colors)
 - Press Start 2P font (TMP, RASTER_HINTED rendering)
 - New Input System (`InputSystemUIInputModule`) for touch/click
-- Coroutine-based battle loop with boolean guards for input waiting
+- Coroutine-based battle loop with PlayerInputPhase enum for staged confirmation flow
 - Static utility classes for ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator
 - Healing determined by TargetType (ally-targeting + BasePower > 0 = healing)
 - Event-driven communication between systems via static GameEvents

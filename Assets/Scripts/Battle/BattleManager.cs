@@ -13,11 +13,16 @@ namespace PixelWarriors
         private BattleScreenUI _battleScreen;
         private Queue<BattleCharacter> _turnQueue;
         private BattleCharacter _activeCharacter;
-        private AbilityData _selectedAbility;
-        private BattleCharacter _selectedTarget;
-        private bool _waitingForAbilitySelection;
-        private bool _waitingForTargetSelection;
         private int _roundNumber;
+
+        // Staging fields
+        private PlayerInputPhase _inputPhase;
+        private AbilityData _stagedAbility;
+        private BattleCharacter _stagedTarget;
+        private List<BattleCharacter> _resolvedTargets;
+        private bool _confirmed;
+        private bool _cancelled;
+        private bool _abilityJustSelected;
 
         public void StartBattle(List<BattleCharacter> players, List<BattleCharacter> enemies,
             BattleScreenUI battleScreen)
@@ -28,6 +33,8 @@ namespace PixelWarriors
 
             GameEvents.OnAbilitySelected += HandleAbilitySelected;
             GameEvents.OnTargetSelected += HandleTargetSelected;
+            GameEvents.OnActionConfirmed += HandleActionConfirmed;
+            GameEvents.OnActionCancelled += HandleActionCancelled;
 
             StartCoroutine(BattleLoop());
         }
@@ -36,6 +43,8 @@ namespace PixelWarriors
         {
             GameEvents.OnAbilitySelected -= HandleAbilitySelected;
             GameEvents.OnTargetSelected -= HandleTargetSelected;
+            GameEvents.OnActionConfirmed -= HandleActionConfirmed;
+            GameEvents.OnActionCancelled -= HandleActionCancelled;
         }
 
         private IEnumerator BattleLoop()
@@ -120,48 +129,126 @@ namespace PixelWarriors
             SetState(BattleState.AwaitingInput);
             _battleScreen.AbilityPanel.SetCharacter(_activeCharacter);
 
-            // Wait for ability selection
-            _selectedAbility = null;
-            _waitingForAbilitySelection = true;
+            _stagedAbility = null;
+            _stagedTarget = null;
+            _resolvedTargets = null;
+            _confirmed = false;
+            _cancelled = false;
+            _abilityJustSelected = false;
 
-            while (_waitingForAbilitySelection)
+            TransitionToPhase(PlayerInputPhase.SelectingAbility);
+
+            while (true)
+            {
+                switch (_inputPhase)
+                {
+                    case PlayerInputPhase.SelectingAbility:
+                        yield return WaitForAbilitySelection();
+                        break;
+
+                    case PlayerInputPhase.SelectingTarget:
+                        yield return WaitForTargetSelection();
+                        break;
+
+                    case PlayerInputPhase.AwaitingConfirmation:
+                        yield return WaitForConfirmation();
+                        if (_confirmed)
+                        {
+                            ClearAllStagingVisuals();
+                            SetState(BattleState.ExecutingAction);
+                            ActionExecutor.ExecuteAbility(_activeCharacter, _stagedAbility, _resolvedTargets);
+                            _battleScreen.AbilityPanel.SetCharacter(_activeCharacter);
+                            yield break;
+                        }
+                        break;
+                }
+            }
+        }
+
+        private IEnumerator WaitForAbilitySelection()
+        {
+            _stagedAbility = null;
+            _stagedTarget = null;
+            _resolvedTargets = null;
+            _confirmed = false;
+            _cancelled = false;
+            _abilityJustSelected = false;
+
+            _battleScreen.AbilityPanel.ClearStagedHighlight();
+            _battleScreen.BattleGrid.ClearStagedHighlights();
+
+            while (!_abilityJustSelected)
             {
                 yield return null;
             }
 
-            // Determine targets
-            List<BattleCharacter> targets;
+            // HandleAbilitySelected already set _stagedAbility, _inputPhase, and highlight
+        }
 
-            if (TargetSelector.RequiresManualTargetSelection(_selectedAbility.TargetType))
+        private IEnumerator WaitForTargetSelection()
+        {
+            _stagedTarget = null;
+            _confirmed = false;
+            _cancelled = false;
+            _abilityJustSelected = false;
+
+            List<BattleCharacter> validTargets = TargetSelector.GetValidTargets(
+                _activeCharacter, _stagedAbility, _players, _enemies);
+            EnableTargetSelection(validTargets);
+
+            while (_stagedTarget == null && !_cancelled && !_abilityJustSelected)
             {
-                List<BattleCharacter> validTargets = TargetSelector.GetValidTargets(
-                    _activeCharacter, _selectedAbility, _players, _enemies);
+                yield return null;
+            }
 
-                EnableTargetSelection(validTargets);
+            DisableTargetSelection();
 
-                _selectedTarget = null;
-                _waitingForTargetSelection = true;
+            if (_cancelled)
+            {
+                _cancelled = false;
+                _battleScreen.AbilityPanel.ClearStagedHighlight();
+                TransitionToPhase(PlayerInputPhase.SelectingAbility);
+            }
+            else if (_abilityJustSelected)
+            {
+                // HandleAbilitySelected already set new _stagedAbility and _inputPhase
+            }
+            // else: target was selected, HandleTargetSelected set _stagedTarget and transitioned
+        }
 
-                while (_waitingForTargetSelection)
+        private IEnumerator WaitForConfirmation()
+        {
+            _confirmed = false;
+            _cancelled = false;
+            _abilityJustSelected = false;
+
+            ShowStagedTargetHighlights();
+
+            while (!_confirmed && !_cancelled && !_abilityJustSelected)
+            {
+                yield return null;
+            }
+
+            ClearStagedTargetHighlights();
+
+            if (_cancelled)
+            {
+                _cancelled = false;
+                if (TargetSelector.RequiresManualTargetSelection(_stagedAbility.TargetType))
                 {
-                    yield return null;
+                    TransitionToPhase(PlayerInputPhase.SelectingTarget);
                 }
-
-                DisableTargetSelection();
-                targets = new List<BattleCharacter> { _selectedTarget };
+                else
+                {
+                    _battleScreen.AbilityPanel.ClearStagedHighlight();
+                    TransitionToPhase(PlayerInputPhase.SelectingAbility);
+                }
             }
-            else
+            else if (_abilityJustSelected)
             {
-                targets = TargetSelector.GetValidTargets(
-                    _activeCharacter, _selectedAbility, _players, _enemies);
+                // HandleAbilitySelected already set new _stagedAbility and _inputPhase
             }
-
-            // Execute
-            SetState(BattleState.ExecutingAction);
-            ActionExecutor.ExecuteAbility(_activeCharacter, _selectedAbility, targets);
-
-            // Refresh ability panel for remaining actions
-            _battleScreen.AbilityPanel.SetCharacter(_activeCharacter);
+            // else: _confirmed stays true, caller will execute
         }
 
         private IEnumerator EnemyTurn()
@@ -179,11 +266,12 @@ namespace PixelWarriors
             else
             {
                 Log($"{_activeCharacter.Data.Name} passes!");
-                // Force end of turn when no abilities available
                 _activeCharacter.LongActionsRemaining = 0;
                 _activeCharacter.ShortActionsRemaining = 0;
             }
         }
+
+        // --- Target Selection UI ---
 
         private void EnableTargetSelection(List<BattleCharacter> validTargets)
         {
@@ -203,12 +291,34 @@ namespace PixelWarriors
             _battleScreen.BattleGrid.ClearAllHighlights();
             _battleScreen.BattleGrid.SetHighlight(_activeCharacter, true);
 
-            // Unsubscribe from all cards
             foreach (CharacterCardUI card in _battleScreen.BattleGrid.EnemyCards)
                 card.OnCardClicked -= HandleCardClicked;
             foreach (CharacterCardUI card in _battleScreen.BattleGrid.PlayerCards)
                 card.OnCardClicked -= HandleCardClicked;
         }
+
+        // --- Staging Visuals ---
+
+        private void ShowStagedTargetHighlights()
+        {
+            if (_resolvedTargets == null) return;
+
+            _battleScreen.BattleGrid.SetStagedHighlightAll(_resolvedTargets, true);
+        }
+
+        private void ClearStagedTargetHighlights()
+        {
+            _battleScreen.BattleGrid.ClearStagedHighlights();
+        }
+
+        private void ClearAllStagingVisuals()
+        {
+            _battleScreen.BattleGrid.ClearAllHighlights();
+            _battleScreen.BattleGrid.SetHighlight(_activeCharacter, true);
+            _battleScreen.AbilityPanel.ClearStagedHighlight();
+        }
+
+        // --- Event Handlers ---
 
         private void HandleCardClicked(BattleCharacter target)
         {
@@ -217,20 +327,74 @@ namespace PixelWarriors
 
         private void HandleAbilitySelected(AbilityData ability)
         {
-            if (!_waitingForAbilitySelection) return;
+            if (_currentState != BattleState.AwaitingInput) return;
             if (_activeCharacter == null) return;
             if (!_activeCharacter.CanUseAbility(ability)) return;
 
-            _selectedAbility = ability;
-            _waitingForAbilitySelection = false;
+            _stagedAbility = ability;
+            _stagedTarget = null;
+            _resolvedTargets = null;
+            _abilityJustSelected = true;
+
+            _battleScreen.AbilityPanel.SetStagedHighlight(ability);
+
+            if (TargetSelector.RequiresManualTargetSelection(ability.TargetType))
+            {
+                TransitionToPhase(PlayerInputPhase.SelectingTarget);
+            }
+            else
+            {
+                _resolvedTargets = TargetSelector.GetValidTargets(
+                    _activeCharacter, ability, _players, _enemies);
+                UpdateStagedActionDescription();
+                TransitionToPhase(PlayerInputPhase.AwaitingConfirmation);
+            }
         }
 
         private void HandleTargetSelected(BattleCharacter target)
         {
-            if (!_waitingForTargetSelection) return;
+            if (_inputPhase != PlayerInputPhase.SelectingTarget) return;
 
-            _selectedTarget = target;
-            _waitingForTargetSelection = false;
+            _stagedTarget = target;
+            _resolvedTargets = new List<BattleCharacter> { target };
+            UpdateStagedActionDescription();
+            TransitionToPhase(PlayerInputPhase.AwaitingConfirmation);
+        }
+
+        private void HandleActionConfirmed()
+        {
+            if (_inputPhase != PlayerInputPhase.AwaitingConfirmation) return;
+            _confirmed = true;
+        }
+
+        private void HandleActionCancelled()
+        {
+            if (_currentState != BattleState.AwaitingInput) return;
+            _cancelled = true;
+        }
+
+        // --- Helpers ---
+
+        private void TransitionToPhase(PlayerInputPhase phase)
+        {
+            _inputPhase = phase;
+            GameEvents.RaisePlayerInputPhaseChanged(phase);
+        }
+
+        private void UpdateStagedActionDescription()
+        {
+            if (_stagedAbility == null || _resolvedTargets == null || _resolvedTargets.Count == 0)
+            {
+                GameEvents.RaiseStagedActionChanged("Confirm?");
+                return;
+            }
+
+            string targetNames = _resolvedTargets.Count == 1
+                ? _resolvedTargets[0].Data.Name
+                : string.Join(", ", _resolvedTargets.Select(t => t.Data.Name));
+
+            string description = $"{_stagedAbility.Name} > {targetNames}";
+            GameEvents.RaiseStagedActionChanged(description);
         }
 
         private void SetState(BattleState newState)

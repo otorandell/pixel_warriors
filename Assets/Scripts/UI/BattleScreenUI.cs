@@ -10,11 +10,12 @@ namespace PixelWarriors
         private Canvas _canvas;
         private BattleGridUI _battleGrid;
         private AbilityPanelUI _abilityPanel;
-        private CombatLogUI _combatLog;
+        private ActionBarUI _actionBar;
+        private DetailPopupUI _detailPopup;
 
         public BattleGridUI BattleGrid => _battleGrid;
         public AbilityPanelUI AbilityPanel => _abilityPanel;
-        public CombatLogUI CombatLog => _combatLog;
+        public CombatLogUI CombatLog => _actionBar.CombatLog;
 
         private void Awake()
         {
@@ -79,11 +80,24 @@ namespace PixelWarriors
             PanelBuilder.SetAnchored(_abilityPanel.Root, UIStyleConfig.BattleGridWidthRatio, 0, 1, 1,
                 2, 0, 0, 0);
 
-            // Combat log (bottom strip)
-            _combatLog = new CombatLogUI();
-            _combatLog.Build(canvasTransform);
-            PanelBuilder.SetAnchored(_combatLog.Root, 0, 0, 1, UIStyleConfig.CombatLogHeightRatio,
+            // Action bar (bottom strip: Cancel + Combat Log + Confirm)
+            _actionBar = new ActionBarUI();
+            _actionBar.Build(canvasTransform);
+            PanelBuilder.SetAnchored(_actionBar.Root, 0, 0, 1, UIStyleConfig.CombatLogHeightRatio,
                 4, 4, -4, -2);
+
+            // Detail popup (overlays everything, hidden by default, created last for z-order)
+            _detailPopup = new DetailPopupUI();
+            _detailPopup.Build(canvasTransform);
+
+            GameEvents.OnCharacterDetailRequested += _detailPopup.ShowCharacterPopup;
+            GameEvents.OnAbilityDetailRequested += _detailPopup.ShowAbilityPopup;
+        }
+
+        private void OnDestroy()
+        {
+            GameEvents.OnCharacterDetailRequested -= _detailPopup.ShowCharacterPopup;
+            GameEvents.OnAbilityDetailRequested -= _detailPopup.ShowAbilityPopup;
         }
     }
 }

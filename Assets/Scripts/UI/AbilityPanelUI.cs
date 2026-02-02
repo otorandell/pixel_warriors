@@ -11,10 +11,12 @@ namespace PixelWarriors
 
         private readonly List<Button> _tabButtons = new();
         private readonly List<Button> _abilityButtons = new();
+        private readonly List<AbilityData> _abilityDataForButtons = new();
         private RectTransform _tabBar;
         private RectTransform _abilityList;
         private BattleCharacter _activeCharacter;
         private AbilityTab _activeTab = AbilityTab.Attacks;
+        private AbilityData _stagedAbility;
 
         public void Build(Transform parent)
         {
@@ -78,6 +80,7 @@ namespace PixelWarriors
                 Object.Destroy(btn.gameObject);
             }
             _abilityButtons.Clear();
+            _abilityDataForButtons.Clear();
 
             if (_activeCharacter == null) return;
 
@@ -105,11 +108,20 @@ namespace PixelWarriors
                 btn.interactable = _activeCharacter.CanUseAbility(ability);
 
                 AbilityData capturedAbility = ability;
-                btn.onClick.AddListener(() => GameEvents.RaiseAbilitySelected(capturedAbility));
+                LongPressHandler longPress = btn.gameObject.AddComponent<LongPressHandler>();
+                longPress.OnLongPress += () => GameEvents.RaiseAbilityDetailRequested(capturedAbility);
+
+                btn.onClick.AddListener(() =>
+                {
+                    if (longPress.WasLongPress) return;
+                    GameEvents.RaiseAbilitySelected(capturedAbility);
+                });
 
                 _abilityButtons.Add(btn);
+                _abilityDataForButtons.Add(ability);
             }
 
+            ApplyStagedHighlight();
             UpdateTabHighlights();
         }
 
@@ -123,6 +135,41 @@ namespace PixelWarriors
                 if (label != null)
                 {
                     label.color = tabs[i] == _activeTab ? UIStyleConfig.AccentCyan : UIStyleConfig.TextDimmed;
+                }
+            }
+        }
+
+        public void SetStagedHighlight(AbilityData ability)
+        {
+            _stagedAbility = ability;
+            ApplyStagedHighlight();
+        }
+
+        public void ClearStagedHighlight()
+        {
+            _stagedAbility = null;
+            ApplyStagedHighlight();
+        }
+
+        private void ApplyStagedHighlight()
+        {
+            for (int i = 0; i < _abilityButtons.Count; i++)
+            {
+                TextMeshProUGUI label = _abilityButtons[i].GetComponentInChildren<TextMeshProUGUI>();
+                if (label == null) continue;
+
+                bool isStaged = _stagedAbility != null && i < _abilityDataForButtons.Count
+                    && _abilityDataForButtons[i] == _stagedAbility;
+
+                if (isStaged)
+                {
+                    label.color = UIStyleConfig.StagedHighlight;
+                }
+                else
+                {
+                    label.color = _activeCharacter != null && _activeCharacter.CanUseAbility(_abilityDataForButtons[i])
+                        ? UIStyleConfig.TextPrimary
+                        : UIStyleConfig.TextDimmed;
                 }
             }
         }

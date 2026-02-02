@@ -61,6 +61,28 @@ namespace PixelWarriors
             foreach (CharacterCardUI card in _playerCards) card.SetHighlight(false);
             foreach (CharacterCardUI card in _enemyCards) card.SetTargetable(false);
             foreach (CharacterCardUI card in _playerCards) card.SetTargetable(false);
+            foreach (CharacterCardUI card in _enemyCards) card.SetStagedHighlight(false);
+            foreach (CharacterCardUI card in _playerCards) card.SetStagedHighlight(false);
+        }
+
+        public void SetStagedHighlight(BattleCharacter character, bool staged)
+        {
+            CharacterCardUI card = FindCard(character);
+            card?.SetStagedHighlight(staged);
+        }
+
+        public void SetStagedHighlightAll(List<BattleCharacter> characters, bool staged)
+        {
+            foreach (BattleCharacter character in characters)
+            {
+                SetStagedHighlight(character, staged);
+            }
+        }
+
+        public void ClearStagedHighlights()
+        {
+            foreach (CharacterCardUI card in _enemyCards) card.SetStagedHighlight(false);
+            foreach (CharacterCardUI card in _playerCards) card.SetStagedHighlight(false);
         }
 
         public CharacterCardUI FindCard(BattleCharacter character)

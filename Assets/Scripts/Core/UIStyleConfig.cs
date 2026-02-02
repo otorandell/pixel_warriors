@@ -33,6 +33,7 @@ namespace PixelWarriors
         // Highlight colors
         public static readonly Color TargetHighlight = AccentCyan;
         public static readonly Color ActiveTurnHighlight = AccentGreen;
+        public static readonly Color StagedHighlight = AccentYellow;
 
         // --- Font Sizes ---
         public const float FontSizeLarge = 24f;
@@ -54,5 +55,15 @@ namespace PixelWarriors
         public const float BattleGridWidthRatio = 0.45f;   // Left side
         public const float AbilityPanelWidthRatio = 0.55f;  // Right side
         public const float CombatLogHeightRatio = 0.15f;    // Bottom strip
+        public const float ActionBarButtonWidthRatio = 0.15f; // Cancel/Confirm button width
+
+        // --- Popup ---
+        public const float PopupWidthRatio = 0.70f;
+        public const float PopupHeightRatio = 0.75f;
+        public static readonly Color PopupBlockerColor = new Color(0f, 0f, 0f, 0.6f);
+        public const float PopupPadding = 12f;
+
+        // --- Long Press ---
+        public const float LongPressThreshold = 0.4f;
     }
 }

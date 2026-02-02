@@ -25,6 +25,16 @@ namespace PixelWarriors
         public static event Action<BattleCharacter> OnTargetSelected;
         public static event Action<string> OnCombatLogMessage;
 
+        // --- Detail Popups ---
+        public static event Action<BattleCharacter> OnCharacterDetailRequested;
+        public static event Action<AbilityData> OnAbilityDetailRequested;
+
+        // --- Staging / Confirmation ---
+        public static event Action OnActionConfirmed;
+        public static event Action OnActionCancelled;
+        public static event Action<PlayerInputPhase> OnPlayerInputPhaseChanged;
+        public static event Action<string> OnStagedActionChanged;
+
         public static void RaiseBattleStarted() => OnBattleStarted?.Invoke();
         public static void RaiseBattleEnded() => OnBattleEnded?.Invoke();
         public static void RaiseBattleStateChanged(BattleState state) => OnBattleStateChanged?.Invoke(state);
@@ -54,5 +64,20 @@ namespace PixelWarriors
 
         public static void RaiseCombatLogMessage(string message)
             => OnCombatLogMessage?.Invoke(message);
+
+        public static void RaiseActionConfirmed() => OnActionConfirmed?.Invoke();
+        public static void RaiseActionCancelled() => OnActionCancelled?.Invoke();
+
+        public static void RaisePlayerInputPhaseChanged(PlayerInputPhase phase)
+            => OnPlayerInputPhaseChanged?.Invoke(phase);
+
+        public static void RaiseStagedActionChanged(string description)
+            => OnStagedActionChanged?.Invoke(description);
+
+        public static void RaiseCharacterDetailRequested(BattleCharacter character)
+            => OnCharacterDetailRequested?.Invoke(character);
+
+        public static void RaiseAbilityDetailRequested(AbilityData ability)
+            => OnAbilityDetailRequested?.Invoke(ability);
     }
 }
