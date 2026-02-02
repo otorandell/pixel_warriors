@@ -24,7 +24,7 @@ Assets/
     Equipment/      # Items, gear, inventory
     Enemies/        # Enemy definitions, AI behavior
     UI/             # All UI construction, panels, popups
-    Audio/          # Sound manager (future)
+    Audio/          # Audio manager, SFX library, audio config
     Input/          # Input handling
   Prefabs/          # Only when visual complexity justifies it
   Fonts/            # Press Start 2P
@@ -69,7 +69,7 @@ Landscape orientation. Three vertical zones:
 - **Right (~55%):** Ability panel. Full height of main area. Tabs: Attacks, Skills, Spells, Items, Generic. Scrollable ability list.
 - **Bottom-left (~55%):** Combat log. Scrollable sequential "Pokemon-style" text feedback. Always visible.
 - **Bottom-right (~45%):** Selection panel. Cancel/Confirm buttons + contextual prompts ("Select an ability", "Crushing Blow > Ratman").
-- **Popups:** Character details, ability details. Centered overlay partially covering screen.
+- **Popups:** Character details, ability details, turn order details. Centered overlay partially covering screen. All triggered by long-press (hold).
 
 ### Grid Positioning Rules
 - 4 characters: fill all 4 cells
@@ -221,14 +221,15 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - AbilityPopupUI (extends PopupBase, ability detail: description, costs, properties)
   - UIFormatUtil (shared formatting: GetClassColor, FormatAbilityCost, FormatTargetType)
   - LongPressHandler (MonoBehaviour input component: distinguishes hold vs tap on UI elements)
-  - TurnInfoPanelUI (top strip: round number, active character, turn order sequence)
+  - TurnInfoPanelUI (top strip: round number, active character, turn order sequence, long-press for detail popup)
+  - TurnOrderPopupUI (extends PopupBase, full turn order with HP and class colors)
   - SelectionPanelUI (bottom-right: Cancel/Confirm buttons + phase prompts + staged action display)
-    - CombatLogUI (scrollable combat log, bottom-left, always visible, manual scroll management)
+  - CombatLogUI (scrollable combat log, bottom-left, always visible, manual scroll management)
   - FontManager (loads Press Start 2P TMP asset from Resources)
 - **Audio system (procedural, no assets):**
   - AudioConfig (static config: volumes, sample rate, pool size, pitch variation)
   - SFXLibrary (generates and caches 16 chiptune AudioClips at startup via waveform math)
-  - AudioManager (MonoBehaviour, subscribes to GameEvents, round-robin AudioSource pool)
+  - AudioManager (MonoBehaviour, subscribes to GameEvents, round-robin AudioSource pool, dedicated music source)
 - **Bootstrap:** GameBootstrap creates everything in code, launches test battle (4 players vs 4 enemies)
 
 ### What Works
@@ -248,22 +249,16 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Long-press (hold) on character cards shows detail popup (stats, resources, abilities)
 - Long-press on ability buttons shows ability detail popup (description, costs, properties)
 - Long-press works on disabled/unaffordable abilities and non-targetable cards
+- Long-press on turn info panel shows full turn order popup (character names, HP, class colors)
 - Popup dismisses on tap anywhere (blocker or popup itself)
 - Victory/defeat detection
+- Looping battle theme music (loaded from Resources/Music/BattleTheme), stops on victory/defeat
 - Procedural chiptune SFX: UI clicks/confirms/cancels, combat hits (physical/magical/crit/miss/dodge), heal, defeat, battle start/victory/defeat jingles, turn notification
 - Per-hit audio via OnHitResolved event (branches on miss/dodge/crit/damage type)
 - Pitch variation on combat hits to avoid repetition
 
 ### What's NOT Built Yet
-- Music system (user will add manually)
-- DOTween integration (bar animations, damage feedback, transitions)
-- Death visuals (defeated characters still show in grid)
-- XP/leveling system (formulas exist but not wired)
-- Roguelike loop (map, nodes, shops, encounters)
-- Equipment system (data exists but no equip/unequip/inventory UI)
-- Status effects / buffs / debuffs
-- Ability effects beyond raw damage/healing (Mark, shields, Anticipate/Prepare behavior)
-- Save system
+See Roadmap below for prioritized order.
 
 ### Known Issues
 - Generic abilities (Swap, Anticipate, Prepare, Protect, Hide) don't have behavior implementations yet — they execute but do nothing
@@ -287,6 +282,42 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - EnemyType enum instead of string keys for enemy creation
 - Procedural audio via AudioClip.Create() with waveform math — no external audio assets, fits retro aesthetic
 - OnHitResolved event for per-hit audio/visual feedback (carries HitResult + DamageType)
+
+## Roadmap
+
+### Phase 1: Complete Battle
+1. Death visuals — fade/grey out defeated characters, prevent interaction
+2. Status effects system — buff/debuff framework (duration, stacking, tick effects)
+3. Generic ability implementations — Swap Position, Anticipate, Prepare, Protect, Hide
+4. Class ability fixes — Warlock Ritual (HP→Mana), Wizard Magic Bolt (element tracking)
+5. Advanced abilities & gameplay — shields, marks, DoTs, more complex effects
+6. **Polish pass** — battle feel, edge cases, visual consistency
+
+### Phase 2: Visual Feedback (DOTween)
+7. Damage numbers — floating text on hit/heal/miss
+8. Bar animations — smooth HP/energy/mana bar transitions
+9. Hit flashes & transitions — screen shake on crit, flash on damage, turn transitions
+10. **Polish pass** — timing, animation feel, mobile performance
+
+### Phase 3: Progression
+11. XP / Leveling — post-battle XP, stat growth, skill unlocks (Fibonacci + passives at 5s)
+12. Inventory & Equipment UI — equip/unequip, inventory management, stat previews
+13. **Polish pass** — stat balance, UI flow, equipment preview feel
+
+### Phase 4: Roguelike Loop
+14. Map system — node-based map generation, branching paths
+15. Encounter types — standard battles, elite fights, bosses, shops, rest sites
+16. Shop system — buy/sell equipment, consumables
+17. **Polish pass** — map variety, encounter balance, run pacing
+
+### Phase 5: Final Polish & Save
+18. Save system — persist run state, party, inventory
+19. Full visual/UI/balance polish pass
+
+### Next Up
+Phase 1, Step 1: Death visuals
+
+---
 
 ## Scene Setup
 - SampleScene with a single empty GameObject named "Game" with the `GameBootstrap` component
