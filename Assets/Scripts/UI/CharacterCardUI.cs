@@ -52,7 +52,7 @@ namespace PixelWarriors
 
             // Name label
             _nameText = PanelBuilder.CreateText("Name", content, character.Data.Name,
-                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft, GetClassColor(character.Data.Class));
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft, UIFormatUtil.GetClassColor(character.Data.Class));
             RectTransform nameRect = _nameText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(nameRect, 0, 0.65f, 1, 1);
 
@@ -122,18 +122,5 @@ namespace PixelWarriors
             fillRect.anchorMax = new Vector2(ratio, 1f);
         }
 
-        private Color GetClassColor(CharacterClass characterClass)
-        {
-            return characterClass switch
-            {
-                CharacterClass.Warrior => UIStyleConfig.AccentRed,
-                CharacterClass.Rogue => UIStyleConfig.AccentGreen,
-                CharacterClass.Ranger => UIStyleConfig.AccentYellow,
-                CharacterClass.Priest => UIStyleConfig.TextPrimary,
-                CharacterClass.Wizard => UIStyleConfig.AccentCyan,
-                CharacterClass.Warlock => UIStyleConfig.AccentMagenta,
-                _ => UIStyleConfig.TextPrimary
-            };
-        }
     }
 }

@@ -102,7 +102,7 @@ namespace PixelWarriors
             {
                 AbilityData ability = abilities[i];
 
-                string costText = GetCostLabel(ability);
+                string costText = UIFormatUtil.FormatAbilityCost(ability);
                 string label = ability.Name + (costText.Length > 0 ? " " + costText : "");
 
                 Color textColor = _activeCharacter.CanUseAbility(ability)
@@ -188,13 +188,5 @@ namespace PixelWarriors
             }
         }
 
-        private string GetCostLabel(AbilityData ability)
-        {
-            if (ability.EnergyCost > 0) return $"[{ability.EnergyCost}E]";
-            if (ability.ManaCost > 0) return $"[{ability.ManaCost}M]";
-            if (ability.HPCost > 0) return $"[{ability.HPCost}HP]";
-            if (ability.ActionCost == ActionPointType.Short) return "[Q]";
-            return "";
-        }
     }
 }

@@ -4,13 +4,13 @@ namespace PixelWarriors
 {
     public static class EnemyDefinitions
     {
-        public static CharacterData CreateEnemy(string enemyType)
+        public static CharacterData CreateEnemy(EnemyType enemyType)
         {
             return enemyType switch
             {
-                "GoblinArcher" => CreateGoblinArcher(),
-                "Ratman" => CreateRatman(),
-                "Minotaur" => CreateMinotaur(),
+                EnemyType.GoblinArcher => CreateGoblinArcher(),
+                EnemyType.Ratman => CreateRatman(),
+                EnemyType.Minotaur => CreateMinotaur(),
                 _ => CreateRatman()
             };
         }

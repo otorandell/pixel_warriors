@@ -21,7 +21,6 @@ namespace PixelWarriors
         public static event Action<BattleCharacter> OnCharacterDefeated;
 
         // --- UI ---
-        public static event Action<BattleCharacter> OnCharacterSelected;
         public static event Action<AbilityData> OnAbilitySelected;
         public static event Action<BattleCharacter> OnTargetSelected;
         public static event Action<string> OnCombatLogMessage;
@@ -56,9 +55,6 @@ namespace PixelWarriors
 
         public static void RaiseCharacterDefeated(BattleCharacter character)
             => OnCharacterDefeated?.Invoke(character);
-
-        public static void RaiseCharacterSelected(BattleCharacter character)
-            => OnCharacterSelected?.Invoke(character);
 
         public static void RaiseAbilitySelected(AbilityData ability)
             => OnAbilitySelected?.Invoke(ability);

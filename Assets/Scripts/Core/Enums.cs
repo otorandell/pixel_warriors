@@ -106,6 +106,13 @@ namespace PixelWarriors
         All
     }
 
+    public enum EnemyType
+    {
+        Ratman,
+        GoblinArcher,
+        Minotaur
+    }
+
     public enum PlayerInputPhase
     {
         SelectingAbility,

@@ -13,7 +13,8 @@ namespace PixelWarriors
         private TurnInfoPanelUI _turnInfoPanel;
         private CombatLogUI _combatLog;
         private SelectionPanelUI _selectionPanel;
-        private DetailPopupUI _detailPopup;
+        private CharacterPopupUI _characterPopup;
+        private AbilityPopupUI _abilityPopup;
 
         public BattleGridUI BattleGrid => _battleGrid;
         public AbilityPanelUI AbilityPanel => _abilityPanel;
@@ -104,18 +105,21 @@ namespace PixelWarriors
             PanelBuilder.SetAnchored(_selectionPanel.Root, 1 - selectionWidth, 0, 1, bottomRatio,
                 2, 4, -4, -2);
 
-            // Detail popup (overlays everything, hidden by default, created last for z-order)
-            _detailPopup = new DetailPopupUI();
-            _detailPopup.Build(canvasTransform);
+            // Detail popups (overlay everything, hidden by default, created last for z-order)
+            _characterPopup = new CharacterPopupUI();
+            _characterPopup.Build(canvasTransform);
 
-            GameEvents.OnCharacterDetailRequested += _detailPopup.ShowCharacterPopup;
-            GameEvents.OnAbilityDetailRequested += _detailPopup.ShowAbilityPopup;
+            _abilityPopup = new AbilityPopupUI();
+            _abilityPopup.Build(canvasTransform);
+
+            GameEvents.OnCharacterDetailRequested += _characterPopup.ShowCharacterPopup;
+            GameEvents.OnAbilityDetailRequested += _abilityPopup.ShowAbilityPopup;
         }
 
         private void OnDestroy()
         {
-            GameEvents.OnCharacterDetailRequested -= _detailPopup.ShowCharacterPopup;
-            GameEvents.OnAbilityDetailRequested -= _detailPopup.ShowAbilityPopup;
+            GameEvents.OnCharacterDetailRequested -= _characterPopup.ShowCharacterPopup;
+            GameEvents.OnAbilityDetailRequested -= _abilityPopup.ShowAbilityPopup;
         }
     }
 }

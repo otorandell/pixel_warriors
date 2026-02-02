@@ -49,7 +49,7 @@ namespace PixelWarriors
             _roundText.text = $"R:{roundNumber}";
 
             _activeText.text = $"{active.Data.Name}'s Turn";
-            _activeText.color = GetClassColor(active.Data.Class);
+            _activeText.color = UIFormatUtil.GetClassColor(active.Data.Class);
 
             string order = active.Data.Name;
             if (remaining.Count > 0)
@@ -75,18 +75,5 @@ namespace PixelWarriors
             }
         }
 
-        private Color GetClassColor(CharacterClass characterClass)
-        {
-            return characterClass switch
-            {
-                CharacterClass.Warrior => UIStyleConfig.AccentRed,
-                CharacterClass.Rogue => UIStyleConfig.AccentGreen,
-                CharacterClass.Ranger => UIStyleConfig.AccentYellow,
-                CharacterClass.Priest => UIStyleConfig.TextPrimary,
-                CharacterClass.Wizard => UIStyleConfig.AccentCyan,
-                CharacterClass.Warlock => UIStyleConfig.AccentMagenta,
-                _ => UIStyleConfig.TextPrimary
-            };
-        }
     }
 }

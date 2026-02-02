@@ -48,16 +48,16 @@ namespace PixelWarriors
             List<BattleCharacter> enemies = new List<BattleCharacter>
             {
                 new BattleCharacter(
-                    EnemyDefinitions.CreateEnemy("Ratman"),
+                    EnemyDefinitions.CreateEnemy(EnemyType.Ratman),
                     TeamSide.Enemy, GridRow.Front, GridColumn.Left),
                 new BattleCharacter(
-                    EnemyDefinitions.CreateEnemy("Ratman"),
+                    EnemyDefinitions.CreateEnemy(EnemyType.Ratman),
                     TeamSide.Enemy, GridRow.Front, GridColumn.Right),
                 new BattleCharacter(
-                    EnemyDefinitions.CreateEnemy("GoblinArcher"),
+                    EnemyDefinitions.CreateEnemy(EnemyType.GoblinArcher),
                     TeamSide.Enemy, GridRow.Back, GridColumn.Left),
                 new BattleCharacter(
-                    EnemyDefinitions.CreateEnemy("GoblinArcher"),
+                    EnemyDefinitions.CreateEnemy(EnemyType.GoblinArcher),
                     TeamSide.Enemy, GridRow.Back, GridColumn.Right),
             };
 

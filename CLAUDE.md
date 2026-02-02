@@ -200,9 +200,11 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - **Core layer:** Enums, CharacterStats, GameplayConfig, UIStyleConfig, GameEvents (event bus), StatCalculator (all stat/damage formulas)
 - **Character system:** CharacterData, BattleCharacter (runtime combat state with action points), ClassDefinitions (6 classes with base stats, basic abilities, passives, generic abilities), EquipmentData
 - **Ability system:** AbilityData with factory methods (CreateAttack, CreateSkill, CreateSpell, CreateQuickAction)
-- **Enemy system:** EnemyDefinitions (Ratman, Goblin Archer, Minotaur)
+- **Enemy system:** EnemyDefinitions (Ratman, Goblin Archer, Minotaur), EnemyType enum for type-safe enemy creation
 - **Battle engine:**
-  - BattleManager (MonoBehaviour, coroutine-driven state machine with PlayerInputPhase staging: SelectingAbility → SelectingTarget → AwaitingConfirmation)
+  - BattleManager (~150 lines, orchestration only: battle loop, turn cycling, state transitions, victory/defeat)
+  - PlayerInputHandler (owns player input staging: SelectingAbility → SelectingTarget → AwaitingConfirmation, event-driven)
+  - BattleVisualController (UI highlight management during battle: target selection, staged highlights)
   - TurnOrderCalculator (priority groups → initiative sorting)
   - ActionExecutor (per-hit resolution: accuracy → dodge → damage → crit, multi-hit, healing, combat logging)
   - TargetSelector (valid targets by TargetType, aggro-weighted selection for AI)
@@ -214,7 +216,10 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - BattleGridUI (2x2 enemy/player grids with positioning rules)
   - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support, long-press detail popup)
   - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, scrollable dynamic ability buttons, staged ability highlight, long-press detail popup)
-  - DetailPopupUI (centered overlay popup for character/ability details, built dynamically)
+  - PopupBase (shared popup infrastructure: build, show, hide, content management)
+  - CharacterPopupUI (extends PopupBase, character detail sheet: stats, resources, abilities)
+  - AbilityPopupUI (extends PopupBase, ability detail: description, costs, properties)
+  - UIFormatUtil (shared formatting: GetClassColor, FormatAbilityCost, FormatTargetType)
   - LongPressHandler (MonoBehaviour input component: distinguishes hold vs tap on UI elements)
   - TurnInfoPanelUI (top strip: round number, active character, turn order sequence)
   - SelectionPanelUI (bottom-right: Cancel/Confirm buttons + phase prompts + staged action display)
@@ -269,6 +274,10 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Static utility classes for ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator
 - Healing determined by TargetType (ally-targeting + BasePower > 0 = healing)
 - Event-driven communication between systems via static GameEvents
+- BattleManager split into 3 focused classes: BattleManager (orchestration), PlayerInputHandler (input staging), BattleVisualController (visual feedback)
+- Popup system uses inheritance: PopupBase → CharacterPopupUI / AbilityPopupUI
+- UIFormatUtil centralizes shared formatting (class colors, ability costs, target types) — no duplication across UI classes
+- EnemyType enum instead of string keys for enemy creation
 
 ## Scene Setup
 - SampleScene with a single empty GameObject named "Game" with the `GameBootstrap` component
