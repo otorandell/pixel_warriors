@@ -225,6 +225,10 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - SelectionPanelUI (bottom-right: Cancel/Confirm buttons + phase prompts + staged action display)
     - CombatLogUI (scrollable combat log, bottom-left, always visible, manual scroll management)
   - FontManager (loads Press Start 2P TMP asset from Resources)
+- **Audio system (procedural, no assets):**
+  - AudioConfig (static config: volumes, sample rate, pool size, pitch variation)
+  - SFXLibrary (generates and caches 16 chiptune AudioClips at startup via waveform math)
+  - AudioManager (MonoBehaviour, subscribes to GameEvents, round-robin AudioSource pool)
 - **Bootstrap:** GameBootstrap creates everything in code, launches test battle (4 players vs 4 enemies)
 
 ### What Works
@@ -246,8 +250,12 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Long-press works on disabled/unaffordable abilities and non-targetable cards
 - Popup dismisses on tap anywhere (blocker or popup itself)
 - Victory/defeat detection
+- Procedural chiptune SFX: UI clicks/confirms/cancels, combat hits (physical/magical/crit/miss/dodge), heal, defeat, battle start/victory/defeat jingles, turn notification
+- Per-hit audio via OnHitResolved event (branches on miss/dodge/crit/damage type)
+- Pitch variation on combat hits to avoid repetition
 
 ### What's NOT Built Yet
+- Music system (user will add manually)
 - DOTween integration (bar animations, damage feedback, transitions)
 - Death visuals (defeated characters still show in grid)
 - XP/leveling system (formulas exist but not wired)
@@ -255,7 +263,6 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Equipment system (data exists but no equip/unequip/inventory UI)
 - Status effects / buffs / debuffs
 - Ability effects beyond raw damage/healing (Mark, shields, Anticipate/Prepare behavior)
-- Sound/audio
 - Save system
 
 ### Known Issues
@@ -278,6 +285,8 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Popup system uses inheritance: PopupBase → CharacterPopupUI / AbilityPopupUI
 - UIFormatUtil centralizes shared formatting (class colors, ability costs, target types) — no duplication across UI classes
 - EnemyType enum instead of string keys for enemy creation
+- Procedural audio via AudioClip.Create() with waveform math — no external audio assets, fits retro aesthetic
+- OnHitResolved event for per-hit audio/visual feedback (carries HitResult + DamageType)
 
 ## Scene Setup
 - SampleScene with a single empty GameObject named "Game" with the `GameBootstrap` component

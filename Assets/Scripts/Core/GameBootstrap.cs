@@ -11,6 +11,7 @@ namespace PixelWarriors
         private void Start()
         {
             SetupCamera();
+            InitializeAudio();
             BuildBattleScreen();
             LoadTestBattle();
         }
@@ -19,6 +20,12 @@ namespace PixelWarriors
         {
             Camera.main.backgroundColor = Color.black;
             Camera.main.clearFlags = CameraClearFlags.SolidColor;
+        }
+
+        private void InitializeAudio()
+        {
+            GameObject audioGo = new GameObject("AudioManager");
+            audioGo.AddComponent<AudioManager>();
         }
 
         private void BuildBattleScreen()

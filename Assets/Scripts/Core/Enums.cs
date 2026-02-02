@@ -119,4 +119,29 @@ namespace PixelWarriors
         SelectingTarget,
         AwaitingConfirmation
     }
+
+    public enum SFXType
+    {
+        // UI
+        UIClick,
+        UIConfirm,
+        UICancel,
+        UIPopup,
+        TabClick,
+
+        // Combat
+        PhysicalHit,
+        MagicalHit,
+        CriticalHit,
+        Miss,
+        Dodge,
+        Heal,
+        Defeated,
+
+        // Battle Flow
+        BattleStart,
+        Victory,
+        BattleDefeat,
+        TurnNotify
+    }
 }

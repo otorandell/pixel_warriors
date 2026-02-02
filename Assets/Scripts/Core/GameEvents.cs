@@ -32,6 +32,15 @@ namespace PixelWarriors
         public static event Action<BattleCharacter> OnCharacterDetailRequested;
         public static event Action<AbilityData> OnAbilityDetailRequested;
 
+        // --- Hit Resolution (for audio/visual feedback) ---
+        public static event Action<BattleCharacter, HitResult, DamageType> OnHitResolved;
+
+        // --- UI Tab ---
+        public static event Action<AbilityTab> OnTabClicked;
+
+        // --- Turn Order Detail ---
+        public static event Action OnTurnOrderDetailRequested;
+
         // --- Staging / Confirmation ---
         public static event Action OnActionConfirmed;
         public static event Action OnActionCancelled;
@@ -82,5 +91,14 @@ namespace PixelWarriors
 
         public static void RaiseAbilityDetailRequested(AbilityData ability)
             => OnAbilityDetailRequested?.Invoke(ability);
+
+        public static void RaiseHitResolved(BattleCharacter target, HitResult result, DamageType damageType)
+            => OnHitResolved?.Invoke(target, result, damageType);
+
+        public static void RaiseTabClicked(AbilityTab tab)
+            => OnTabClicked?.Invoke(tab);
+
+        public static void RaiseTurnOrderDetailRequested()
+            => OnTurnOrderDetailRequested?.Invoke();
     }
 }

@@ -15,6 +15,7 @@ namespace PixelWarriors
         private SelectionPanelUI _selectionPanel;
         private CharacterPopupUI _characterPopup;
         private AbilityPopupUI _abilityPopup;
+        private TurnOrderPopupUI _turnOrderPopup;
 
         public BattleGridUI BattleGrid => _battleGrid;
         public AbilityPanelUI AbilityPanel => _abilityPanel;
@@ -112,14 +113,21 @@ namespace PixelWarriors
             _abilityPopup = new AbilityPopupUI();
             _abilityPopup.Build(canvasTransform);
 
+            _turnOrderPopup = new TurnOrderPopupUI();
+            _turnOrderPopup.Build(canvasTransform);
+            _turnOrderPopup.SubscribeEvents();
+
             GameEvents.OnCharacterDetailRequested += _characterPopup.ShowCharacterPopup;
             GameEvents.OnAbilityDetailRequested += _abilityPopup.ShowAbilityPopup;
+            GameEvents.OnTurnOrderDetailRequested += _turnOrderPopup.ShowTurnOrderPopup;
         }
 
         private void OnDestroy()
         {
             GameEvents.OnCharacterDetailRequested -= _characterPopup.ShowCharacterPopup;
             GameEvents.OnAbilityDetailRequested -= _abilityPopup.ShowAbilityPopup;
+            GameEvents.OnTurnOrderDetailRequested -= _turnOrderPopup.ShowTurnOrderPopup;
+            _turnOrderPopup.UnsubscribeEvents();
         }
     }
 }

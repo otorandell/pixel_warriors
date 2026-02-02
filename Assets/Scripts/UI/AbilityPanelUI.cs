@@ -80,6 +80,7 @@ namespace PixelWarriors
         public void SetActiveTab(AbilityTab tab)
         {
             _activeTab = tab;
+            GameEvents.RaiseTabClicked(tab);
             RefreshAbilities();
         }
 

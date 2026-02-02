@@ -48,6 +48,7 @@ namespace PixelWarriors
                 for (int hit = 0; hit < ability.HitCount; hit++)
                 {
                     HitResult result = ResolveHit(user, ability, target);
+                    GameEvents.RaiseHitResolved(target, result, ability.DamageType);
                     LogHitResult(user, target, result, hit + 1, ability.HitCount);
 
                     if (result.IsEffective)

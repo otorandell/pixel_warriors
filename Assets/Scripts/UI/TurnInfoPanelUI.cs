@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace PixelWarriors
 {
@@ -39,6 +40,12 @@ namespace PixelWarriors
             RectTransform orderRect = _orderText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(orderRect, 0.45f, 0, 1, 1);
             _orderText.overflowMode = TextOverflowModes.Ellipsis;
+
+            // Long-press for detail popup
+            Button panelButton = Root.gameObject.AddComponent<Button>();
+            panelButton.transition = Selectable.Transition.None;
+            LongPressHandler longPress = Root.gameObject.AddComponent<LongPressHandler>();
+            longPress.OnLongPress += () => GameEvents.RaiseTurnOrderDetailRequested();
 
             GameEvents.OnTurnOrderUpdated += HandleTurnOrderUpdated;
             GameEvents.OnBattleStateChanged += HandleBattleStateChanged;

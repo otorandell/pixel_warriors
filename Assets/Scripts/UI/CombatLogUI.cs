@@ -39,7 +39,6 @@ namespace PixelWarriors
 
             _logText.textWrappingMode = TextWrappingModes.Normal;
             _logText.overflowMode = TextOverflowModes.Overflow;
-            _logText.enableWordWrapping = true;
 
             GameEvents.OnCombatLogMessage += AddMessage;
         }
