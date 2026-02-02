@@ -147,6 +147,48 @@ namespace PixelWarriors
             img.raycastTarget = false;
         }
 
+        public static (ScrollRect scrollRect, RectTransform content) CreateVerticalScrollView(
+            string name, Transform parent)
+        {
+            // ScrollRect container
+            GameObject scrollGo = new GameObject(name);
+            RectTransform scrollRect = scrollGo.AddComponent<RectTransform>();
+            scrollRect.SetParent(parent, false);
+            SetFill(scrollRect);
+
+            ScrollRect scroll = scrollGo.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 20f;
+
+            // Viewport (masks content via rect clipping)
+            GameObject viewportGo = new GameObject("Viewport");
+            RectTransform viewportRect = viewportGo.AddComponent<RectTransform>();
+            viewportRect.SetParent(scrollRect, false);
+            SetFill(viewportRect);
+            viewportGo.AddComponent<RectMask2D>();
+
+            // Content (children go here)
+            GameObject contentGo = new GameObject("Content");
+            RectTransform contentRect = contentGo.AddComponent<RectTransform>();
+            contentRect.SetParent(viewportRect, false);
+            contentRect.anchorMin = new Vector2(0, 1);
+            contentRect.anchorMax = new Vector2(1, 1);
+            contentRect.pivot = new Vector2(0.5f, 1);
+            contentRect.offsetMin = new Vector2(0, 0);
+            contentRect.offsetMax = new Vector2(0, 0);
+
+            ContentSizeFitter fitter = contentGo.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            fitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            scroll.viewport = viewportRect;
+            scroll.content = contentRect;
+
+            return (scroll, contentRect);
+        }
+
         public static void SetFill(RectTransform rect, float padding = 0f)
         {
             rect.anchorMin = Vector2.zero;

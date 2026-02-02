@@ -38,16 +38,18 @@ All UI is built in code. No manual scene configuration. Style/config classes hol
 
 ## UI Layout (Battle Screen)
 
-Landscape orientation. Two major vertical sections:
+Landscape orientation. Three vertical zones:
 
 ```
 |-----------------------------------------------------|
+| R:18  |  Shade's Turn  |  Shade > Goblin > Aldric   |  ← TurnInfoPanel (~7%)
+|-----------------------------------------------------|
 |  |------------|------------|--------------------||  |
 |  | ENEMY      | ENEMY      |                    |  |
-|  | back-left  | back-right |                    |  |
-|  |------------|------------|                    |  |
-|  | ENEMY      | ENEMY      |   ABILITY PANEL    |  |
-|  | front-left | front-right|   (tabbed)         |  |
+|  | back-left  | back-right |  ABILITY PANEL     |  |
+|  |------------|------------|  (tabbed,           |  |  ← MainArea (~73%)
+|  | ENEMY      | ENEMY      |   scrollable list)  |  |
+|  | front-left | front-right|                    |  |
 |  |============|============|                    |  |
 |  | PLAYER     | PLAYER     |                    |  |
 |  | front-left | front-right|                    |  |
@@ -56,15 +58,18 @@ Landscape orientation. Two major vertical sections:
 |  | back-left  | back-right |                    |  |
 |  |------------|------------|--------------------||  |
 |-----------------------------------------------------|
-|  {COMBAT LOG}                                       |
+| > Shade attacks Goblin      |  [<<]  Confirm?  [OK] |  ← BottomArea (~20%)
+| > Goblin misses!            | "Crushing Blow > Rat" |     Left = CombatLog
+| > ...                       |                       |     Right = SelectionPanel
 |-----------------------------------------------------|
 ```
 
-- **Left (~40-50%):** Battlefield. Two 2x2 grids — enemies top, players bottom. Frontlines face each other at the `===` divider. Each cell = character card (name/class, HP/energy/mana bars). Tap-hold for details popup, tap to select target.
-- **Right (~50-60%):** Ability panel. Full height of battle area. Tabs: Attacks, Skills, Spells, Items, Generic.
-- **Bottom strip:** Combat log. Sequential "Pokemon-style" text feedback.
-- **Popups:** Inventory, character details, etc. Centered overlay partially covering screen.
-- **Minor panels:** Turn order, titles — minimal footprint, integrated into core layout.
+- **Top strip (~7%):** TurnInfoPanel. Round number, active character name (colored by class), turn order sequence.
+- **Left (~45%):** Battlefield. Two 2x2 grids — enemies top, players bottom. Frontlines face each other at the `===` divider. Each cell = character card (name/class, HP/energy/mana bars). Tap-hold for details popup, tap to select target.
+- **Right (~55%):** Ability panel. Full height of main area. Tabs: Attacks, Skills, Spells, Items, Generic. Scrollable ability list.
+- **Bottom-left (~55%):** Combat log. Scrollable sequential "Pokemon-style" text feedback. Always visible.
+- **Bottom-right (~45%):** Selection panel. Cancel/Confirm buttons + contextual prompts ("Select an ability", "Crushing Blow > Ratman").
+- **Popups:** Character details, ability details. Centered overlay partially covering screen.
 
 ### Grid Positioning Rules
 - 4 characters: fill all 4 cells
@@ -204,15 +209,16 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - EnemyAI (random ability pick + aggro targeting)
   - HitResult (readonly struct for hit outcomes)
 - **UI framework (all code-first, TextMeshPro):**
-  - PanelBuilder (panels, borders, text, bars, buttons)
+  - PanelBuilder (panels, borders, text, bars, buttons, vertical scroll views)
   - BattleScreenUI (canvas + EventSystem + layout assembly)
   - BattleGridUI (2x2 enemy/player grids with positioning rules)
   - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support, long-press detail popup)
-  - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, dynamic ability buttons, staged ability highlight, long-press detail popup)
+  - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, scrollable dynamic ability buttons, staged ability highlight, long-press detail popup)
   - DetailPopupUI (centered overlay popup for character/ability details, built dynamically)
   - LongPressHandler (MonoBehaviour input component: distinguishes hold vs tap on UI elements)
-  - ActionBarUI (bottom strip: Cancel button + CombatLogUI + Confirm button, contextual prompts)
-  - CombatLogUI (scrolling combat log)
+  - TurnInfoPanelUI (top strip: round number, active character, turn order sequence)
+  - SelectionPanelUI (bottom-right: Cancel/Confirm buttons + phase prompts + staged action display)
+    - CombatLogUI (scrollable combat log, bottom-left, always visible, manual scroll management)
   - FontManager (loads Press Start 2P TMP asset from Resources)
 - **Bootstrap:** GameBootstrap creates everything in code, launches test battle (4 players vs 4 enemies)
 
@@ -223,10 +229,12 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Ability re-selection mid-flow works (tap different ability restarts staging)
 - Auto-target abilities (Self, All) skip target selection, go straight to confirm
 - Staged ability highlighted yellow in ability panel, staged target highlighted yellow on grid
-- Contextual prompts in action bar ("Select an ability" / "Select a target" / "Crushing Blow > Ratman")
+- Contextual prompts in selection panel ("Select an ability" / "Select a target" / "Crushing Blow > Ratman")
+- Turn info panel shows round number, active character, and remaining turn order
 - Enemies auto-act with random ability + aggro-weighted targeting
 - Damage resolution with accuracy, dodge, crit, armor (flat), magic resist (%)
-- Combat log shows all actions (hidden during player input, shows prompts instead)
+- Scrollable combat log (always visible, never hidden by prompts)
+- Scrollable ability list (handles overflow when many abilities exist)
 - Active character highlighted green, targetable cards highlighted cyan
 - Long-press (hold) on character cards shows detail popup (stats, resources, abilities)
 - Long-press on ability buttons shows ability detail popup (description, costs, properties)
@@ -236,7 +244,6 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ### What's NOT Built Yet
 - DOTween integration (bar animations, damage feedback, transitions)
-- Turn order display panel
 - Death visuals (defeated characters still show in grid)
 - XP/leveling system (formulas exist but not wired)
 - Roguelike loop (map, nodes, shops, encounters)

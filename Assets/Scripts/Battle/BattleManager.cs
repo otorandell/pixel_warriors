@@ -74,6 +74,7 @@ namespace PixelWarriors
                     SetState(BattleState.TurnStart);
                     _activeCharacter.StartTurn();
                     GameEvents.RaiseTurnStarted(_activeCharacter);
+                    GameEvents.RaiseTurnOrderUpdated(_roundNumber, _activeCharacter, _turnQueue.ToList());
                     _battleScreen.BattleGrid.ClearAllHighlights();
                     _battleScreen.BattleGrid.SetHighlight(_activeCharacter, true);
                     Log($"{_activeCharacter.Data.Name}'s turn!");

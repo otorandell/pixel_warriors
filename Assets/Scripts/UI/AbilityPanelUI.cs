@@ -13,7 +13,8 @@ namespace PixelWarriors
         private readonly List<Button> _abilityButtons = new();
         private readonly List<AbilityData> _abilityDataForButtons = new();
         private RectTransform _tabBar;
-        private RectTransform _abilityList;
+        private RectTransform _abilityListContent;
+        private ScrollRect _abilityScrollRect;
         private BattleCharacter _activeCharacter;
         private AbilityTab _activeTab = AbilityTab.Attacks;
         private AbilityData _stagedAbility;
@@ -31,9 +32,19 @@ namespace PixelWarriors
             PanelBuilder.SetAnchored(_tabBar, 0, 0.90f, 1, 1);
             BuildTabs();
 
-            // Ability list below
-            _abilityList = PanelBuilder.CreateContainer("AbilityList", content);
-            PanelBuilder.SetAnchored(_abilityList, 0, 0, 1, 0.88f);
+            // Scrollable ability list below
+            RectTransform scrollArea = PanelBuilder.CreateContainer("AbilityListArea", content);
+            PanelBuilder.SetAnchored(scrollArea, 0, 0, 1, 0.88f);
+            (_abilityScrollRect, _abilityListContent) = PanelBuilder.CreateVerticalScrollView("AbilityScroll", scrollArea);
+
+            VerticalLayoutGroup layoutGroup = _abilityListContent.gameObject.AddComponent<VerticalLayoutGroup>();
+            layoutGroup.childAlignment = TextAnchor.UpperLeft;
+            layoutGroup.childControlWidth = true;
+            layoutGroup.childControlHeight = false;
+            layoutGroup.childForceExpandWidth = true;
+            layoutGroup.childForceExpandHeight = false;
+            layoutGroup.spacing = 2;
+            layoutGroup.padding = new RectOffset(2, 2, 0, 0);
         }
 
         private void BuildTabs()
@@ -85,13 +96,11 @@ namespace PixelWarriors
             if (_activeCharacter == null) return;
 
             List<AbilityData> abilities = _activeCharacter.Data.Abilities.FindAll(a => a.Tab == _activeTab && !a.IsPassive);
+            float btnHeight = UIStyleConfig.AbilityButtonHeight;
 
             for (int i = 0; i < abilities.Count; i++)
             {
                 AbilityData ability = abilities[i];
-                float slotHeight = 1f / Mathf.Max(abilities.Count, 6);
-                float yMax = 1f - i * slotHeight;
-                float yMin = yMax - slotHeight;
 
                 string costText = GetCostLabel(ability);
                 string label = ability.Name + (costText.Length > 0 ? " " + costText : "");
@@ -100,10 +109,11 @@ namespace PixelWarriors
                     ? UIStyleConfig.TextPrimary
                     : UIStyleConfig.TextDimmed;
 
-                Button btn = PanelBuilder.CreateButton("Ability_" + ability.Name, _abilityList, label,
+                Button btn = PanelBuilder.CreateButton("Ability_" + ability.Name, _abilityListContent, label,
                     textColor, UIStyleConfig.FontSizeTiny);
-                RectTransform btnRect = btn.GetComponent<RectTransform>();
-                PanelBuilder.SetAnchored(btnRect, 0, yMin, 1, yMax, 2, 1, -2, -1);
+
+                LayoutElement layout = btn.gameObject.AddComponent<LayoutElement>();
+                layout.preferredHeight = btnHeight;
 
                 btn.interactable = _activeCharacter.CanUseAbility(ability);
 
@@ -120,6 +130,10 @@ namespace PixelWarriors
                 _abilityButtons.Add(btn);
                 _abilityDataForButtons.Add(ability);
             }
+
+            // Reset scroll to top
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_abilityListContent);
+            _abilityScrollRect.verticalNormalizedPosition = 1f;
 
             ApplyStagedHighlight();
             UpdateTabHighlights();

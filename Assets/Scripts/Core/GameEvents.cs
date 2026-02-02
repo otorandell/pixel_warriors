@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace PixelWarriors
 {
@@ -24,6 +25,9 @@ namespace PixelWarriors
         public static event Action<AbilityData> OnAbilitySelected;
         public static event Action<BattleCharacter> OnTargetSelected;
         public static event Action<string> OnCombatLogMessage;
+
+        // --- Turn Order ---
+        public static event Action<int, BattleCharacter, List<BattleCharacter>> OnTurnOrderUpdated;
 
         // --- Detail Popups ---
         public static event Action<BattleCharacter> OnCharacterDetailRequested;
@@ -73,6 +77,9 @@ namespace PixelWarriors
 
         public static void RaiseStagedActionChanged(string description)
             => OnStagedActionChanged?.Invoke(description);
+
+        public static void RaiseTurnOrderUpdated(int roundNumber, BattleCharacter active, List<BattleCharacter> turnOrder)
+            => OnTurnOrderUpdated?.Invoke(roundNumber, active, turnOrder);
 
         public static void RaiseCharacterDetailRequested(BattleCharacter character)
             => OnCharacterDetailRequested?.Invoke(character);

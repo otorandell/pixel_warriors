@@ -54,8 +54,12 @@ namespace PixelWarriors
         // --- Layout Ratios ---
         public const float BattleGridWidthRatio = 0.45f;   // Left side
         public const float AbilityPanelWidthRatio = 0.55f;  // Right side
-        public const float CombatLogHeightRatio = 0.15f;    // Bottom strip
-        public const float ActionBarButtonWidthRatio = 0.15f; // Cancel/Confirm button width
+        public const float CombatLogHeightRatio = 0.15f;    // Bottom strip (legacy, unused)
+        public const float TurnInfoHeightRatio = 0.07f;       // Top turn info panel
+        public const float BottomAreaHeightRatio = 0.20f;      // Bottom area (log + selection)
+        public const float BottomSelectionWidthRatio = 0.45f;  // Right side of bottom area
+        public const float SelectionButtonWidthRatio = 0.15f;  // Cancel/Confirm button width
+        public const float AbilityButtonHeight = 40f;          // Fixed height for scrollable ability buttons
 
         // --- Popup ---
         public const float PopupWidthRatio = 0.70f;
