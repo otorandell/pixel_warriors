@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace PixelWarriors
 {
     public class BattleCharacter
@@ -21,6 +23,9 @@ namespace PixelWarriors
         public Priority Priority { get; set; }
         public bool IsAlive => CurrentHP > 0;
 
+        public List<StatusEffectInstance> StatusEffects { get; private set; } = new();
+        public Element LastSpellElement { get; set; } = Element.Arcane;
+
         public BattleCharacter(CharacterData data, TeamSide side, GridRow row, GridColumn column)
         {
             Data = data;
@@ -33,6 +38,46 @@ namespace PixelWarriors
             CurrentHP = MaxHP;
             CurrentEnergy = MaxEnergy;
             CurrentMana = MaxMana;
+        }
+
+        public bool HasEffect(StatusEffect type)
+        {
+            for (int i = 0; i < StatusEffects.Count; i++)
+                if (StatusEffects[i].Type == type) return true;
+            return false;
+        }
+
+        public StatusEffectInstance GetEffect(StatusEffect type)
+        {
+            for (int i = 0; i < StatusEffects.Count; i++)
+                if (StatusEffects[i].Type == type) return StatusEffects[i];
+            return null;
+        }
+
+        public void AddEffect(StatusEffectInstance effect)
+        {
+            // Replace existing effect of same type
+            for (int i = 0; i < StatusEffects.Count; i++)
+            {
+                if (StatusEffects[i].Type == effect.Type)
+                {
+                    StatusEffects[i] = effect;
+                    return;
+                }
+            }
+            StatusEffects.Add(effect);
+        }
+
+        public void RemoveEffect(StatusEffect type)
+        {
+            for (int i = StatusEffects.Count - 1; i >= 0; i--)
+            {
+                if (StatusEffects[i].Type == type)
+                {
+                    StatusEffects.RemoveAt(i);
+                    return;
+                }
+            }
         }
 
         public void RecalculateStats()

@@ -3,7 +3,7 @@ namespace PixelWarriors
     public static class GameplayConfig
     {
         // --- Action Points ---
-        public const int LongActionPoints = 2;
+        public const int LongActionPoints = 1;
         public const int ShortActionPoints = 1;
 
         // --- Targeting / Aggro ---
@@ -45,6 +45,19 @@ namespace PixelWarriors
         // --- XP / Leveling ---
         public const int BaseXPToLevel = 100;
         public const float XPScalingFactor = 1.25f;
+
+        // --- Status Effects ---
+        public const float MarkDamageBonus = 0.10f;
+        public const int MarkDuration = 2;
+        public const float ProtectAggroMultiplier = 2.0f;
+        public const float HideAggroMultiplier = 0.25f;
+        public const float RitualManaPerHP = 2.0f;
+
+        // --- Battle Timing ---
+        public const float BattleStartDelay = 0.5f;
+        public const float TurnStartDelay = 0.3f;
+        public const float PostActionDelay = 0.3f;
+        public const float EnemyThinkDelay = 0.5f;
 
         // --- Energy / Mana Regen ---
         public const float EnergyRegenPerTurn = 0.20f;  // 20% of max

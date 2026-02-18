@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh api:*)",
+      "Bash(git -C \"C:/Users/oscar/Documents/Repos/pixel_warriors\" init)",
+      "Bash(curl:*)"
+    ]
+  }
+}

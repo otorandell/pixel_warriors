@@ -45,8 +45,9 @@ namespace PixelWarriors
 
             _battleScreen.BattleGrid.SetPlayers(_players);
             _battleScreen.BattleGrid.SetEnemies(_enemies);
+            _battleScreen.BattleGrid.RefreshAll();
 
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(GameplayConfig.BattleStartDelay);
 
             while (true)
             {
@@ -63,13 +64,14 @@ namespace PixelWarriors
                     // --- TURN START ---
                     SetState(BattleState.TurnStart);
                     _activeCharacter.StartTurn();
+                    StatusEffectProcessor.ProcessTurnStart(_activeCharacter);
                     GameEvents.RaiseTurnStarted(_activeCharacter);
                     GameEvents.RaiseTurnOrderUpdated(_roundNumber, _activeCharacter, _turnQueue.ToList());
                     _battleScreen.BattleGrid.ClearAllHighlights();
                     _battleScreen.BattleGrid.SetHighlight(_activeCharacter, true);
                     Log($"{_activeCharacter.Data.Name}'s turn!");
 
-                    yield return new WaitForSeconds(0.3f);
+                    yield return new WaitForSeconds(GameplayConfig.TurnStartDelay);
 
                     // --- ACTION LOOP ---
                     while (_activeCharacter.IsAlive && _activeCharacter.HasActionsRemaining())
@@ -84,7 +86,7 @@ namespace PixelWarriors
                         }
 
                         _battleScreen.BattleGrid.RefreshAll();
-                        yield return new WaitForSeconds(0.3f);
+                        yield return new WaitForSeconds(GameplayConfig.PostActionDelay);
 
                         if (CheckVictory())
                         {
@@ -107,7 +109,15 @@ namespace PixelWarriors
 
                     // --- TURN END ---
                     SetState(BattleState.TurnEnd);
-                    _activeCharacter.Priority = Priority.Normal;
+                    StatusEffectProcessor.ProcessTurnEnd(_activeCharacter);
+
+                    // Only reset priority if no Anticipate/Prepare was applied this turn
+                    if (!_activeCharacter.HasEffect(StatusEffect.Anticipate) &&
+                        !_activeCharacter.HasEffect(StatusEffect.Prepare))
+                    {
+                        _activeCharacter.Priority = Priority.Normal;
+                    }
+
                     GameEvents.RaiseTurnEnded(_activeCharacter);
                 }
             }
@@ -125,7 +135,7 @@ namespace PixelWarriors
         private IEnumerator EnemyTurn()
         {
             SetState(BattleState.ExecutingAction);
-            yield return new WaitForSeconds(0.5f);
+            yield return new WaitForSeconds(GameplayConfig.EnemyThinkDelay);
 
             EnemyAI.DecideAction(_activeCharacter, _players, _enemies,
                 out AbilityData ability, out List<BattleCharacter> targets);

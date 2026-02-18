@@ -145,12 +145,14 @@ namespace PixelWarriors
             _abilityJustSelected = false;
 
             _visuals.ShowStagedHighlights(_resolvedTargets);
+            _visuals.EnableStagedTargetClicks(_resolvedTargets);
 
             while (!_confirmed && !_cancelled && !_abilityJustSelected)
             {
                 yield return null;
             }
 
+            _visuals.DisableStagedTargetClicks();
             _visuals.ClearStagedHighlights();
 
             if (_cancelled)
@@ -175,6 +177,13 @@ namespace PixelWarriors
             if (_activeCharacter == null) return;
             if (!_activeCharacter.CanUseAbility(ability)) return;
 
+            // Tap same ability again during confirmation = confirm
+            if (_inputPhase == PlayerInputPhase.AwaitingConfirmation && ability == _stagedAbility)
+            {
+                _confirmed = true;
+                return;
+            }
+
             _stagedAbility = ability;
             _stagedTarget = null;
             _resolvedTargets = null;
@@ -197,12 +206,18 @@ namespace PixelWarriors
 
         private void HandleTargetSelected(BattleCharacter target)
         {
-            if (_inputPhase != PlayerInputPhase.SelectingTarget) return;
-
-            _stagedTarget = target;
-            _resolvedTargets = new List<BattleCharacter> { target };
-            UpdateStagedActionDescription();
-            TransitionToPhase(PlayerInputPhase.AwaitingConfirmation);
+            if (_inputPhase == PlayerInputPhase.SelectingTarget)
+            {
+                _stagedTarget = target;
+                _resolvedTargets = new List<BattleCharacter> { target };
+                UpdateStagedActionDescription();
+                TransitionToPhase(PlayerInputPhase.AwaitingConfirmation);
+            }
+            else if (_inputPhase == PlayerInputPhase.AwaitingConfirmation
+                     && _resolvedTargets != null && _resolvedTargets.Contains(target))
+            {
+                _confirmed = true;
+            }
         }
 
         private void HandleActionConfirmed()

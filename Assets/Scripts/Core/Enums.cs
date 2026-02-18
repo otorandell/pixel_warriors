@@ -90,10 +90,29 @@ namespace PixelWarriors
         Trinket2
     }
 
-    public enum StatusEffectType
+    public enum StatusEffect
     {
-        Buff,
-        Debuff
+        None,
+        Shield,
+        Mark,
+        Protect,
+        Hide,
+        Anticipate,
+        Prepare
+    }
+
+    public enum AbilityTag
+    {
+        None,
+        Swap,
+        Anticipate,
+        Prepare,
+        Protect,
+        Hide,
+        Ritual,
+        MagicBolt,
+        Mark,
+        WordOfProtection
     }
 
     public enum TargetType

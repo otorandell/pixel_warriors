@@ -150,8 +150,42 @@ namespace PixelWarriors
 
         public void RefreshAll()
         {
-            foreach (CharacterCardUI card in _enemyCards) card.Refresh();
-            foreach (CharacterCardUI card in _playerCards) card.Refresh();
+            RepositionCards(_playerCards, invertRows: false);
+            RepositionCards(_enemyCards, invertRows: true);
+
+            List<BattleCharacter> alivePlayers = new();
+            List<BattleCharacter> aliveEnemies = new();
+
+            foreach (CharacterCardUI card in _playerCards)
+                if (card.Character.IsAlive) alivePlayers.Add(card.Character);
+            foreach (CharacterCardUI card in _enemyCards)
+                if (card.Character.IsAlive) aliveEnemies.Add(card.Character);
+
+            foreach (CharacterCardUI card in _playerCards)
+            {
+                card.Refresh();
+                card.SetAggroPercent(TargetSelector.GetAggroPercent(card.Character, alivePlayers));
+            }
+            foreach (CharacterCardUI card in _enemyCards)
+            {
+                card.Refresh();
+                card.SetAggroPercent(TargetSelector.GetAggroPercent(card.Character, aliveEnemies));
+            }
+        }
+
+        private void RepositionCards(List<CharacterCardUI> cards, bool invertRows)
+        {
+            float spacing = 2f;
+            int totalCount = cards.Count;
+
+            foreach (CharacterCardUI card in cards)
+            {
+                GetCellBounds(card.Character.Row, card.Character.Column, totalCount, invertRows,
+                    out float xMin, out float yMin, out float xMax, out float yMax);
+
+                PanelBuilder.SetAnchored(card.Root, xMin, yMin, xMax, yMax,
+                    spacing, spacing, -spacing, -spacing);
+            }
         }
 
         private void ClearCards(List<CharacterCardUI> cards)

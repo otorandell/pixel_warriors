@@ -194,34 +194,38 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ---
 
-## Current State (2026-02-02)
+## Current State (2026-02-13)
 
 ### What's Built
 - **Core layer:** Enums, CharacterStats, GameplayConfig, UIStyleConfig, GameEvents (event bus), StatCalculator (all stat/damage formulas)
-- **Character system:** CharacterData, BattleCharacter (runtime combat state with action points), ClassDefinitions (6 classes with base stats, basic abilities, passives, generic abilities), EquipmentData
-- **Ability system:** AbilityData with factory methods (CreateAttack, CreateSkill, CreateSpell, CreateQuickAction)
+- **Character system:** CharacterData, BattleCharacter (runtime combat state with action points, status effects, LastSpellElement), ClassDefinitions (6 classes with base stats, basic abilities, passives, generic abilities), EquipmentData
+- **Ability system:** AbilityData with factory methods + AbilityTag enum for routing special abilities, ExcludeSelf support
 - **Enemy system:** EnemyDefinitions (Ratman, Goblin Archer, Minotaur), EnemyType enum for type-safe enemy creation
+- **Status effect system:**
+  - StatusEffectInstance (lightweight: type, duration, value, source)
+  - StatusEffectProcessor (static utility: turn start/end processing, shield absorption, mark bonus, aggro modifiers)
+  - 6 effects: Shield, Mark, Protect, Hide, Anticipate, Prepare
 - **Battle engine:**
-  - BattleManager (~150 lines, orchestration only: battle loop, turn cycling, state transitions, victory/defeat)
-  - PlayerInputHandler (owns player input staging: SelectingAbility → SelectingTarget → AwaitingConfirmation, event-driven)
+  - BattleManager (~170 lines, orchestration: battle loop, turn cycling, state transitions, effect ticking, victory/defeat)
+  - PlayerInputHandler (player input staging: SelectingAbility → SelectingTarget → AwaitingConfirmation, tap-to-confirm)
   - BattleVisualController (UI highlight management during battle: target selection, staged highlights)
   - TurnOrderCalculator (priority groups → initiative sorting)
-  - ActionExecutor (per-hit resolution: accuracy → dodge → damage → crit, multi-hit, healing, combat logging)
-  - TargetSelector (valid targets by TargetType, aggro-weighted selection for AI)
+  - ActionExecutor (tag-based ability routing, per-hit resolution with shield absorption + mark bonus, all special abilities implemented)
+  - TargetSelector (valid targets by TargetType with ExcludeSelf, aggro-weighted selection with Protect/Hide modifiers)
   - EnemyAI (random ability pick + aggro targeting)
   - HitResult (readonly struct for hit outcomes)
 - **UI framework (all code-first, TextMeshPro):**
   - PanelBuilder (panels, borders, text, bars, buttons, vertical scroll views)
   - BattleScreenUI (canvas + EventSystem + layout assembly)
-  - BattleGridUI (2x2 enemy/player grids with positioning rules)
-  - CharacterCardUI (name, HP/energy/mana bars, clickable for targeting, highlight support, long-press detail popup)
+  - BattleGridUI (2x2 enemy/player grids with positioning rules, RepositionCards for swap)
+  - CharacterCardUI (numeric text display: name, class/level, HP/EN/MP, aggro %, status indicators [S][M][P][H], shield value, death greying)
   - AbilityPanelUI (5 tabs: ATK/SKL/SPL/ITM/GEN, scrollable dynamic ability buttons, staged ability highlight, long-press detail popup)
   - PopupBase (shared popup infrastructure: build, show, hide, content management)
   - CharacterPopupUI (extends PopupBase, character detail sheet: stats, resources, abilities)
   - AbilityPopupUI (extends PopupBase, ability detail: description, costs, properties)
   - UIFormatUtil (shared formatting: GetClassColor, FormatAbilityCost, FormatTargetType)
   - LongPressHandler (MonoBehaviour input component: distinguishes hold vs tap on UI elements)
-  - TurnInfoPanelUI (top strip: round number, active character, turn order sequence, long-press for detail popup)
+  - TurnInfoPanelUI (top strip: round number, active character, action points display, turn order sequence)
   - TurnOrderPopupUI (extends PopupBase, full turn order with HP and class colors)
   - SelectionPanelUI (bottom-right: Cancel/Confirm buttons + phase prompts + staged action display)
   - CombatLogUI (scrollable combat log, bottom-left, always visible, manual scroll management)
@@ -234,37 +238,31 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ### What Works
 - Full battle loop: turns cycle based on initiative/priority
+- **All 5 generic abilities functional:** Swap (repositions cards), Anticipate (act first, -1 short), Prepare (bonus regen, act last), Protect (draw aggro), Hide (reduce aggro)
+- **All 4 class abilities functional:** Warrior Crushing Blow, Rogue Quick Stab, Ranger Mark (damage + team-wide 10% bonus, 2 turns), Priest Word of Protection (shield absorbs damage), Wizard Magic Bolt (inherits last spell element), Warlock Ritual (HP→Mana)
+- **Status effects:** Shield absorption in damage pipeline, Mark damage bonus, Protect/Hide aggro modifiers visible in % display, effects tick/expire correctly
+- **Death visuals:** Defeated characters greyed out, show "DEFEATED", disabled interaction, no aggro %, no long-press
+- **Confirmation system:** Tap target again to confirm, tap ability again to confirm (auto-target)
+- **Action points in top bar:** 1L+1S per turn, ● for long, • for short, dimmed when spent
 - Confirmation-based action staging: tap ability → tap target → Confirm/Cancel
 - Cancel at any point returns to previous selection step
 - Ability re-selection mid-flow works (tap different ability restarts staging)
 - Auto-target abilities (Self, All) skip target selection, go straight to confirm
 - Staged ability highlighted yellow in ability panel, staged target highlighted yellow on grid
-- Contextual prompts in selection panel ("Select an ability" / "Select a target" / "Crushing Blow > Ratman")
-- Turn info panel shows round number, active character, and remaining turn order
-- Enemies auto-act with random ability + aggro-weighted targeting
+- Turn info panel shows round number, active character, action points, and turn order
+- Enemies auto-act with random ability + aggro-weighted targeting (respects Protect/Hide)
 - Damage resolution with accuracy, dodge, crit, armor (flat), magic resist (%)
 - Scrollable combat log (always visible, never hidden by prompts)
 - Scrollable ability list (handles overflow when many abilities exist)
 - Active character highlighted green, targetable cards highlighted cyan
-- Long-press (hold) on character cards shows detail popup (stats, resources, abilities)
-- Long-press on ability buttons shows ability detail popup (description, costs, properties)
-- Long-press works on disabled/unaffordable abilities and non-targetable cards
-- Long-press on turn info panel shows full turn order popup (character names, HP, class colors)
-- Popup dismisses on tap anywhere (blocker or popup itself)
+- Long-press popups for characters, abilities, and turn order
 - Victory/defeat detection
-- Looping battle theme music (loaded from Resources/Music/BattleTheme), stops on victory/defeat
-- Procedural chiptune SFX: UI clicks/confirms/cancels, combat hits (physical/magical/crit/miss/dodge), heal, defeat, battle start/victory/defeat jingles, turn notification
-- Per-hit audio via OnHitResolved event (branches on miss/dodge/crit/damage type)
-- Pitch variation on combat hits to avoid repetition
-
-### What's NOT Built Yet
-See Roadmap below for prioritized order.
+- Procedural chiptune SFX and looping battle music
 
 ### Known Issues
-- Generic abilities (Swap, Anticipate, Prepare, Protect, Hide) don't have behavior implementations yet — they execute but do nothing
-- Warlock's Ritual (HP→Mana) not implemented in ActionExecutor
-- Wizard's Magic Bolt element-tracking not implemented
 - Enemies with no usable abilities pass by zeroing their action points (works but is a workaround)
+- No visual feedback yet for status effect application/removal (no floating text, no animations)
+- Shield value not shown in character detail popup (only on card HP line)
 
 ## Decisions Made
 - All UI built in code (code-first)
@@ -273,24 +271,24 @@ See Roadmap below for prioritized order.
 - Press Start 2P font (TMP, RASTER_HINTED rendering)
 - New Input System (`InputSystemUIInputModule`) for touch/click
 - Coroutine-based battle loop with PlayerInputPhase enum for staged confirmation flow
-- Static utility classes for ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator
-- Healing determined by TargetType (ally-targeting + BasePower > 0 = healing)
+- Static utility classes for ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator, StatusEffectProcessor
+- AbilityTag enum for routing special abilities (no string matching)
+- Lightweight StatusEffectInstance (type, duration, value, source) — no full buff/debuff framework
+- Protect/Hide last until character's next turn start
+- Mark is team-wide 10% damage bonus, 2-turn duration, ticks on target's turn end
+- Shield has no duration (persists until absorbed or replaced)
+- Healing determined by TargetType (ally-targeting + BasePower > 0 = healing), unless overridden by tag
 - Event-driven communication between systems via static GameEvents
 - BattleManager split into 3 focused classes: BattleManager (orchestration), PlayerInputHandler (input staging), BattleVisualController (visual feedback)
 - Popup system uses inheritance: PopupBase → CharacterPopupUI / AbilityPopupUI
-- UIFormatUtil centralizes shared formatting (class colors, ability costs, target types) — no duplication across UI classes
-- EnemyType enum instead of string keys for enemy creation
-- Procedural audio via AudioClip.Create() with waveform math — no external audio assets, fits retro aesthetic
-- OnHitResolved event for per-hit audio/visual feedback (carries HitResult + DamageType)
+- UIFormatUtil centralizes shared formatting (class colors, ability costs, target types)
+- Procedural audio via AudioClip.Create() with waveform math — no external audio assets
+- 1 long + 1 short action points per turn (reduced from 2L+1S)
 
 ## Roadmap
 
-### Phase 1: Complete Battle
-1. Death visuals — fade/grey out defeated characters, prevent interaction
-2. Status effects system — buff/debuff framework (duration, stacking, tick effects)
-3. Generic ability implementations — Swap Position, Anticipate, Prepare, Protect, Hide
-4. Class ability fixes — Warlock Ritual (HP→Mana), Wizard Magic Bolt (element tracking)
-5. Advanced abilities & gameplay — shields, marks, DoTs, more complex effects
+### Phase 1: Complete Battle -- DONE
+~~1. Death visuals~~ ~~2. Status effects system~~ ~~3. Generic ability implementations~~ ~~4. Class ability fixes~~ ~~5. Advanced abilities & gameplay~~
 6. **Polish pass** — battle feel, edge cases, visual consistency
 
 ### Phase 2: Visual Feedback (DOTween)
@@ -315,7 +313,7 @@ See Roadmap below for prioritized order.
 19. Full visual/UI/balance polish pass
 
 ### Next Up
-Phase 1, Step 1: Death visuals
+Phase 1, Step 6: Polish pass (battle feel, edge cases, visual consistency)
 
 ---
 

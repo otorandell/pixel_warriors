@@ -35,6 +35,10 @@ namespace PixelWarriors
         public static readonly Color ActiveTurnHighlight = AccentGreen;
         public static readonly Color StagedHighlight = AccentYellow;
 
+        // Death
+        public static readonly Color DeathTextColor = new Color(0.35f, 0.35f, 0.35f, 1f);
+        public static readonly Color DeathBorderColor = new Color(0.25f, 0.25f, 0.25f, 1f);
+
         // --- Font Sizes ---
         public const float FontSizeLarge = 24f;
         public const float FontSizeMedium = 18f;
@@ -46,6 +50,9 @@ namespace PixelWarriors
         public const float ElementSpacing = 4f;
         public const float BarHeight = 6f;
         public const float BarSpacing = 2f;
+
+        // --- Scroll ---
+        public const float ScrollSensitivity = 20f;
 
         // --- Border ---
         public const float BorderWidth = 2f;

@@ -13,15 +13,16 @@ namespace PixelWarriors
         public event Action<BattleCharacter> OnCardClicked;
 
         private TextMeshProUGUI _nameText;
-        private Image _hpFill;
-        private Image _energyFill;
-        private Image _manaFill;
-        private RectTransform _hpBarBg;
-        private RectTransform _energyBarBg;
-        private RectTransform _manaBarBg;
+        private TextMeshProUGUI _classLevelText;
+        private TextMeshProUGUI _hpText;
+        private TextMeshProUGUI _energyText;
+        private TextMeshProUGUI _manaText;
+        private TextMeshProUGUI _aggroText;
         private BattleCharacter _character;
         private Button _button;
         private Image[] _borderImages;
+        private LongPressHandler _longPress;
+        private bool _isDead;
 
         public void Build(Transform parent, BattleCharacter character)
         {
@@ -29,50 +30,65 @@ namespace PixelWarriors
 
             Root = PanelBuilder.CreatePanel("Card_" + character.Data.Name, parent);
 
-            // Add button component (disabled by default)
             _button = Root.gameObject.AddComponent<Button>();
             _button.interactable = false;
 
-            // Long press detection (works regardless of button interactable state)
-            LongPressHandler longPress = Root.gameObject.AddComponent<LongPressHandler>();
-            longPress.OnLongPress += () => GameEvents.RaiseCharacterDetailRequested(_character);
+            _longPress = Root.gameObject.AddComponent<LongPressHandler>();
+            _longPress.OnLongPress += () =>
+            {
+                if (!_isDead) GameEvents.RaiseCharacterDetailRequested(_character);
+            };
 
             _button.onClick.AddListener(() =>
             {
-                if (longPress.WasLongPress) return;
+                if (_longPress.WasLongPress) return;
                 OnCardClicked?.Invoke(_character);
             });
 
-            // Cache border images for highlighting
             _borderImages = Root.GetComponentsInChildren<Image>();
 
             float padding = UIStyleConfig.PanelPadding;
             RectTransform content = PanelBuilder.CreateContainer("Content", Root);
             PanelBuilder.SetFill(content, padding);
 
-            // Name label
+            // Name (class-colored)
             _nameText = PanelBuilder.CreateText("Name", content, character.Data.Name,
-                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft, UIFormatUtil.GetClassColor(character.Data.Class));
-            RectTransform nameRect = _nameText.GetComponent<RectTransform>();
-            PanelBuilder.SetAnchored(nameRect, 0, 0.65f, 1, 1);
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
+                UIFormatUtil.GetClassColor(character.Data.Class));
+            PanelBuilder.SetAnchored(_nameText.GetComponent<RectTransform>(), 0, 0.80f, 1, 1);
 
-            // HP bar
-            _hpFill = PanelBuilder.CreateBar("HP", content,
-                UIStyleConfig.HPBarColor, UIStyleConfig.HPBarBackground);
-            _hpBarBg = _hpFill.transform.parent.GetComponent<RectTransform>();
-            PanelBuilder.SetAnchored(_hpBarBg, 0, 0.45f, 1, 0.60f);
+            // Class + Level (dimmed)
+            string classLevelStr = character.Side == TeamSide.Player
+                ? $"{character.Data.Class} Lv{character.Data.Level}"
+                : $"Lv{character.Data.Level}";
+            _classLevelText = PanelBuilder.CreateText("ClassLevel", content, classLevelStr,
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
+                UIStyleConfig.TextDimmed);
+            PanelBuilder.SetAnchored(_classLevelText.GetComponent<RectTransform>(), 0, 0.60f, 1, 0.80f);
 
-            // Energy bar
-            _energyFill = PanelBuilder.CreateBar("Energy", content,
-                UIStyleConfig.EnergyBarColor, UIStyleConfig.EnergyBarBackground);
-            _energyBarBg = _energyFill.transform.parent.GetComponent<RectTransform>();
-            PanelBuilder.SetAnchored(_energyBarBg, 0, 0.25f, 1, 0.40f);
+            // HP (red)
+            _hpText = PanelBuilder.CreateText("HP", content, "",
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
+                UIStyleConfig.HPBarColor);
+            PanelBuilder.SetAnchored(_hpText.GetComponent<RectTransform>(), 0, 0.40f, 1, 0.60f);
 
-            // Mana bar
-            _manaFill = PanelBuilder.CreateBar("Mana", content,
-                UIStyleConfig.ManaBarColor, UIStyleConfig.ManaBarBackground);
-            _manaBarBg = _manaFill.transform.parent.GetComponent<RectTransform>();
-            PanelBuilder.SetAnchored(_manaBarBg, 0, 0.05f, 1, 0.20f);
+            // Energy (yellow)
+            _energyText = PanelBuilder.CreateText("Energy", content, "",
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
+                UIStyleConfig.EnergyBarColor);
+            PanelBuilder.SetAnchored(_energyText.GetComponent<RectTransform>(), 0, 0.20f, 1, 0.40f);
+
+            // Mana (cyan)
+            _manaText = PanelBuilder.CreateText("Mana", content, "",
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
+                UIStyleConfig.ManaBarColor);
+            PanelBuilder.SetAnchored(_manaText.GetComponent<RectTransform>(), 0, 0.00f, 1, 0.20f);
+
+            // Hit chance % (right-aligned, top-right)
+            _aggroText = PanelBuilder.CreateText("HitChance", content, "",
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopRight,
+                UIStyleConfig.TextDimmed);
+            PanelBuilder.SetAnchored(_aggroText.GetComponent<RectTransform>(), 0, 0.80f, 1, 1);
 
             Refresh();
         }
@@ -81,25 +97,93 @@ namespace PixelWarriors
         {
             if (_character == null) return;
 
-            SetBarFill(_hpFill, _character.CurrentHP, _character.MaxHP);
-            SetBarFill(_energyFill, _character.CurrentEnergy, _character.MaxEnergy);
-            SetBarFill(_manaFill, _character.CurrentMana, _character.MaxMana);
+            if (!_character.IsAlive && !_isDead)
+            {
+                SetDead();
+                return;
+            }
+
+            if (_isDead) return;
+
+            // HP line — append shield value if active
+            StatusEffectInstance shield = _character.GetEffect(StatusEffect.Shield);
+            if (shield != null)
+                _hpText.text = $"HP {_character.CurrentHP}/{_character.MaxHP} +{shield.Value}";
+            else
+                _hpText.text = $"HP {_character.CurrentHP}/{_character.MaxHP}";
+
+            _energyText.text = $"EN {_character.CurrentEnergy}/{_character.MaxEnergy}";
+            _manaText.text = $"MP {_character.CurrentMana}/{_character.MaxMana}";
+
+            // Status indicators on class/level line
+            string baseStr = _character.Side == TeamSide.Player
+                ? $"{_character.Data.Class} Lv{_character.Data.Level}"
+                : $"Lv{_character.Data.Level}";
+
+            string indicators = BuildStatusIndicators();
+            _classLevelText.text = indicators.Length > 0 ? $"{baseStr} {indicators}" : baseStr;
+        }
+
+        public void SetAggroPercent(float percent)
+        {
+            if (_isDead)
+            {
+                _aggroText.text = "";
+                return;
+            }
+            _aggroText.text = $"{Mathf.RoundToInt(percent * 100)}%";
+        }
+
+        public void SetClickable(bool clickable)
+        {
+            if (_isDead) return;
+            _button.interactable = clickable;
         }
 
         public void SetTargetable(bool targetable)
         {
+            if (_isDead) return;
             _button.interactable = targetable;
             SetBorderColor(targetable ? UIStyleConfig.TargetHighlight : UIStyleConfig.PanelBorder);
         }
 
         public void SetHighlight(bool highlighted)
         {
+            if (_isDead) return;
             SetBorderColor(highlighted ? UIStyleConfig.ActiveTurnHighlight : UIStyleConfig.PanelBorder);
         }
 
         public void SetStagedHighlight(bool staged)
         {
+            if (_isDead) return;
             SetBorderColor(staged ? UIStyleConfig.StagedHighlight : UIStyleConfig.PanelBorder);
+        }
+
+        private void SetDead()
+        {
+            _isDead = true;
+            _button.interactable = false;
+
+            _nameText.color = UIStyleConfig.DeathTextColor;
+            _classLevelText.text = "DEFEATED";
+            _classLevelText.color = UIStyleConfig.DeathTextColor;
+            _hpText.text = "HP 0";
+            _hpText.color = UIStyleConfig.DeathTextColor;
+            _energyText.text = "";
+            _manaText.text = "";
+            _aggroText.text = "";
+
+            SetBorderColor(UIStyleConfig.DeathBorderColor);
+        }
+
+        private string BuildStatusIndicators()
+        {
+            string s = "";
+            if (_character.HasEffect(StatusEffect.Shield)) s += "[S]";
+            if (_character.HasEffect(StatusEffect.Mark)) s += "[M]";
+            if (_character.HasEffect(StatusEffect.Protect)) s += "[P]";
+            if (_character.HasEffect(StatusEffect.Hide)) s += "[H]";
+            return s;
         }
 
         private void SetBorderColor(Color color)
@@ -114,13 +198,5 @@ namespace PixelWarriors
                 }
             }
         }
-
-        private void SetBarFill(Image fill, int current, int max)
-        {
-            float ratio = max > 0 ? (float)current / max : 0f;
-            RectTransform fillRect = fill.GetComponent<RectTransform>();
-            fillRect.anchorMax = new Vector2(ratio, 1f);
-        }
-
     }
 }

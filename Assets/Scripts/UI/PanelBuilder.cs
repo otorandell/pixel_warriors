@@ -160,7 +160,7 @@ namespace PixelWarriors
             scroll.horizontal = false;
             scroll.vertical = true;
             scroll.movementType = ScrollRect.MovementType.Clamped;
-            scroll.scrollSensitivity = 20f;
+            scroll.scrollSensitivity = UIStyleConfig.ScrollSensitivity;
 
             // Viewport (masks content via rect clipping)
             GameObject viewportGo = new GameObject("Viewport");

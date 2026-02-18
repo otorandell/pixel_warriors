@@ -32,6 +32,13 @@ namespace PixelWarriors
         public static event Action<BattleCharacter> OnCharacterDetailRequested;
         public static event Action<AbilityData> OnAbilityDetailRequested;
 
+        // --- Status Effects ---
+        public static event Action<BattleCharacter, StatusEffect, int> OnStatusEffectApplied;
+        public static event Action<BattleCharacter, StatusEffect> OnStatusEffectRemoved;
+
+        // --- Position ---
+        public static event Action<BattleCharacter, BattleCharacter> OnPositionSwapped;
+
         // --- Hit Resolution (for audio/visual feedback) ---
         public static event Action<BattleCharacter, HitResult, DamageType> OnHitResolved;
 
@@ -91,6 +98,15 @@ namespace PixelWarriors
 
         public static void RaiseAbilityDetailRequested(AbilityData ability)
             => OnAbilityDetailRequested?.Invoke(ability);
+
+        public static void RaiseStatusEffectApplied(BattleCharacter target, StatusEffect effect, int value)
+            => OnStatusEffectApplied?.Invoke(target, effect, value);
+
+        public static void RaiseStatusEffectRemoved(BattleCharacter target, StatusEffect effect)
+            => OnStatusEffectRemoved?.Invoke(target, effect);
+
+        public static void RaisePositionSwapped(BattleCharacter a, BattleCharacter b)
+            => OnPositionSwapped?.Invoke(a, b);
 
         public static void RaiseHitResolved(BattleCharacter target, HitResult result, DamageType damageType)
             => OnHitResolved?.Invoke(target, result, damageType);

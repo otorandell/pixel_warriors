@@ -57,10 +57,20 @@ namespace PixelWarriors
                     TargetType = TargetType.SingleEnemy
                 },
 
-                CharacterClass.Ranger => AbilityData.CreateSkill(
-                    "Mark",
-                    "Marks an enemy, boosting all attacks against it.",
-                    basePower: 5, energyCost: 2),
+                CharacterClass.Ranger => new AbilityData
+                {
+                    Name = "Mark",
+                    Description = "Marks an enemy, boosting all attacks against it.",
+                    Tab = AbilityTab.Skills,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 2,
+                    DamageType = DamageType.Physical,
+                    BasePower = 5,
+                    HitCount = 1,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.Mark
+                },
 
                 CharacterClass.Priest => new AbilityData
                 {
@@ -73,13 +83,25 @@ namespace PixelWarriors
                     DamageType = DamageType.Magical,
                     Element = Element.Holy,
                     BasePower = 8,
-                    TargetType = TargetType.SingleAlly
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.WordOfProtection
                 },
 
-                CharacterClass.Wizard => AbilityData.CreateSpell(
-                    "Magic Bolt",
-                    "A bolt of magic that takes the school of the last spell used.",
-                    basePower: 10, manaCost: 4, element: Element.Arcane),
+                CharacterClass.Wizard => new AbilityData
+                {
+                    Name = "Magic Bolt",
+                    Description = "A bolt of magic that takes the school of the last spell used.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 4,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Arcane,
+                    BasePower = 10,
+                    HitCount = 1,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.MagicBolt
+                },
 
                 CharacterClass.Warlock => new AbilityData
                 {
@@ -91,7 +113,8 @@ namespace PixelWarriors
                     HPCost = 5,
                     DamageType = DamageType.Magical,
                     Element = Element.Shadow,
-                    TargetType = TargetType.Self
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Ritual
                 },
 
                 _ => AbilityData.CreateAttack("Attack", "Basic attack.", basePower: 5)
@@ -146,7 +169,17 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                AbilityData.CreateQuickAction("Swap Position", "Switch grid position with an ally."),
+                new AbilityData
+                {
+                    Name = "Swap Position",
+                    Description = "Switch grid position with an ally.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.Swap,
+                    ExcludeSelf = true
+                },
                 new AbilityData
                 {
                     Name = "Anticipate",
@@ -154,7 +187,8 @@ namespace PixelWarriors
                     Tab = AbilityTab.Generic,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
-                    TargetType = TargetType.Self
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Anticipate
                 },
                 new AbilityData
                 {
@@ -163,7 +197,8 @@ namespace PixelWarriors
                     Tab = AbilityTab.Generic,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
-                    TargetType = TargetType.Self
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Prepare
                 },
                 new AbilityData
                 {
@@ -172,7 +207,8 @@ namespace PixelWarriors
                     Tab = AbilityTab.Generic,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
-                    TargetType = TargetType.Self
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Protect
                 },
                 new AbilityData
                 {
@@ -181,7 +217,8 @@ namespace PixelWarriors
                     Tab = AbilityTab.Generic,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
-                    TargetType = TargetType.Self
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Hide
                 }
             };
         }

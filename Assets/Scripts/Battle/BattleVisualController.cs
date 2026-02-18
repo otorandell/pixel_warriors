@@ -41,6 +41,34 @@ namespace PixelWarriors
             _battleScreen.BattleGrid.SetStagedHighlightAll(targets, true);
         }
 
+        public void EnableStagedTargetClicks(List<BattleCharacter> targets)
+        {
+            if (targets == null) return;
+            foreach (BattleCharacter target in targets)
+            {
+                CharacterCardUI card = _battleScreen.BattleGrid.FindCard(target);
+                if (card != null)
+                {
+                    card.SetClickable(true);
+                    card.OnCardClicked += HandleCardClicked;
+                }
+            }
+        }
+
+        public void DisableStagedTargetClicks()
+        {
+            foreach (CharacterCardUI card in _battleScreen.BattleGrid.EnemyCards)
+            {
+                card.SetClickable(false);
+                card.OnCardClicked -= HandleCardClicked;
+            }
+            foreach (CharacterCardUI card in _battleScreen.BattleGrid.PlayerCards)
+            {
+                card.SetClickable(false);
+                card.OnCardClicked -= HandleCardClicked;
+            }
+        }
+
         public void ClearStagedHighlights()
         {
             _battleScreen.BattleGrid.ClearStagedHighlights();
