@@ -33,6 +33,21 @@ namespace PixelWarriors
                 return;
             }
 
+            // Mass Confusion: chance to redirect targeting to allies
+            if (enemy.HasEffect(StatusEffect.Confusion) &&
+                IsOffensiveAbility(chosenAbility) &&
+                Random.value < GameplayConfig.ConfusionAllyTargetChance)
+            {
+                List<BattleCharacter> allies = enemies.Where(e => e.IsAlive && e != enemy).ToList();
+                if (allies.Count > 0)
+                {
+                    GameEvents.RaiseCombatLogMessage($"{enemy.Data.Name} is confused!");
+                    BattleCharacter target = allies[Random.Range(0, allies.Count)];
+                    chosenTargets = new List<BattleCharacter> { target };
+                    return;
+                }
+            }
+
             if (TargetSelector.RequiresManualTargetSelection(chosenAbility.TargetType))
             {
                 BattleCharacter target = TargetSelector.SelectAggroTarget(validTargets);
@@ -42,6 +57,12 @@ namespace PixelWarriors
             {
                 chosenTargets = validTargets;
             }
+        }
+
+        private static bool IsOffensiveAbility(AbilityData ability)
+        {
+            return ability.TargetType == TargetType.SingleEnemy ||
+                   ability.TargetType == TargetType.AllEnemies;
         }
     }
 }

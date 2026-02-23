@@ -181,8 +181,19 @@ namespace PixelWarriors
             string s = "";
             if (_character.HasEffect(StatusEffect.Shield)) s += "[S]";
             if (_character.HasEffect(StatusEffect.Mark)) s += "[M]";
-            if (_character.HasEffect(StatusEffect.Protect)) s += "[P]";
+            if (_character.HasEffect(StatusEffect.Taunt)) s += "[T]";
             if (_character.HasEffect(StatusEffect.Hide)) s += "[H]";
+            if (_character.HasEffect(StatusEffect.Conceal)) s += "[C]";
+            if (_character.HasEffect(StatusEffect.Bleed)) s += "[B]";
+            if (_character.HasEffect(StatusEffect.Poison)) s += "[Po]";
+            if (_character.HasEffect(StatusEffect.Burn)) s += "[Fi]";
+            if (_character.HasEffect(StatusEffect.Chilled)) s += "[Ch]";
+            if (_character.HasEffect(StatusEffect.Stun)) s += "[!]";
+            if (_character.HasEffect(StatusEffect.Silence)) s += "[X]";
+            if (_character.HasEffect(StatusEffect.StanceDefensive)) s += "[Df]";
+            if (_character.HasEffect(StatusEffect.StanceBrawling)) s += "[Br]";
+            if (_character.HasEffect(StatusEffect.StanceBerserker)) s += "[Bk]";
+            if (_character.HasEffect(StatusEffect.Block)) s += "[Bl]";
             return s;
         }
 

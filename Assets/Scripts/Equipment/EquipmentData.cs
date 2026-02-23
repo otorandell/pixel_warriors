@@ -9,10 +9,26 @@ namespace PixelWarriors
         public string Description;
         public EquipmentSlot Slot;
         public CharacterStats StatModifiers;
+        public WeaponType WeaponType;
+        public int BaseDamage;
+        public float BaseBlockChance;
+        public float ArmorPenetration;
+        public int MagicPenetration;
 
         public EquipmentData()
         {
             StatModifiers = new CharacterStats();
+            WeaponType = WeaponType.None;
+        }
+
+        public static AbilityRange GetRangeForWeapon(WeaponType weaponType)
+        {
+            return weaponType switch
+            {
+                WeaponType.Bow   => AbilityRange.Reach,
+                WeaponType.Staff => AbilityRange.Reach,
+                _                => AbilityRange.Close
+            };
         }
     }
 }

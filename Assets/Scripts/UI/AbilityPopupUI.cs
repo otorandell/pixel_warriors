@@ -23,9 +23,13 @@ namespace PixelWarriors
             float lineH = 0.07f;
 
             // Action cost
-            string actionStr = ability.ActionCost == ActionPointType.Long
-                ? $"Action: Long ({ability.LongPointCost} pt)"
-                : $"Action: Quick ({ability.ShortPointCost} pt)";
+            string actionStr;
+            if (ability.LongPointCost > 0 && ability.ShortPointCost > 0)
+                actionStr = $"Action: {ability.LongPointCost}L + {ability.ShortPointCost}S";
+            else if (ability.LongPointCost > 0)
+                actionStr = $"Action: Long ({ability.LongPointCost} pt)";
+            else
+                actionStr = $"Action: Quick ({ability.ShortPointCost} pt)";
             AddText(actionStr, UIStyleConfig.FontSizeTiny, UIStyleConfig.TextDimmed, y - lineH, y);
             y -= lineH;
 
@@ -52,7 +56,13 @@ namespace PixelWarriors
             }
 
             // Damage/healing info
-            if (ability.BasePower > 0)
+            if (ability.IsWeaponAttack)
+            {
+                AddText($"Damage: {ability.DamageMultiplier:0.0}x  Type: Physical",
+                    UIStyleConfig.FontSizeTiny, UIStyleConfig.TextPrimary, y - lineH, y);
+                y -= lineH;
+            }
+            else if (ability.BasePower > 0)
             {
                 AddText($"Power: {ability.BasePower}  Type: {ability.DamageType}",
                     UIStyleConfig.FontSizeTiny, UIStyleConfig.TextPrimary, y - lineH, y);
@@ -77,6 +87,44 @@ namespace PixelWarriors
             string targetStr = UIFormatUtil.FormatTargetType(ability.TargetType);
             AddText($"Target: {targetStr}", UIStyleConfig.FontSizeTiny,
                 UIStyleConfig.TextDimmed, y - lineH, y);
+            y -= lineH;
+
+            // Range
+            string rangeStr = UIFormatUtil.FormatAbilityRange(ability.Range);
+            if (!string.IsNullOrEmpty(rangeStr))
+            {
+                AddText($"Range: {rangeStr}", UIStyleConfig.FontSizeTiny,
+                    UIStyleConfig.TextDimmed, y - lineH, y);
+                y -= lineH;
+            }
+
+            // Requirements
+            if (ability.RequiredWeapon != WeaponType.None)
+            {
+                AddText($"Requires: {ability.RequiredWeapon}", UIStyleConfig.FontSizeTiny,
+                    UIStyleConfig.AccentYellow, y - lineH, y);
+                y -= lineH;
+            }
+
+            if (ability.RequiresFrontline)
+            {
+                AddText("Frontline Only", UIStyleConfig.FontSizeTiny,
+                    UIStyleConfig.AccentRed, y - lineH, y);
+                y -= lineH;
+            }
+
+            if (ability.OncePerBattle)
+            {
+                AddText("Once Per Battle", UIStyleConfig.FontSizeTiny,
+                    UIStyleConfig.AccentMagenta, y - lineH, y);
+                y -= lineH;
+            }
+
+            if (ability.RequiresConcealed)
+            {
+                AddText("Requires: Concealed", UIStyleConfig.FontSizeTiny,
+                    UIStyleConfig.AccentGreen, y - lineH, y);
+            }
 
             Show();
         }

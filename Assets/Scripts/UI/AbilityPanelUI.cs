@@ -104,7 +104,15 @@ namespace PixelWarriors
                 AbilityData ability = abilities[i];
 
                 string costText = UIFormatUtil.FormatAbilityCost(ability);
-                string label = ability.Name + (costText.Length > 0 ? " " + costText : "");
+                string rangeTag = ability.Range switch
+                {
+                    AbilityRange.Close => "[C]",
+                    AbilityRange.Reach => "[R]",
+                    AbilityRange.Weapon => "[W]",
+                    _ => ""
+                };
+                string label = ability.Name + (costText.Length > 0 ? " " + costText : "")
+                    + (rangeTag.Length > 0 ? " " + rangeTag : "");
 
                 Color textColor = _activeCharacter.CanUseAbility(ability)
                     ? UIStyleConfig.TextPrimary

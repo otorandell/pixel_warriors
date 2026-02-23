@@ -22,21 +22,18 @@ namespace PixelWarriors
         public const float ManaPerIntellect = 4f;
 
         // --- Damage ---
-        public const float StrengthDamageMultiplier = 1.5f;
+        public const float WeaponStrengthScaling = 1.0f;
+        public const float SpellWillpowerScaling = 1.0f;
         public const int MinDamageAfterArmor = 1;
 
+        // --- Hit ---
+        public const float BaseHitChance = 0.75f;
+        public const float DexterityHitScaling = 0.03f;
+
         // --- Crit ---
-        public const float BaseCritChance = 0.05f;
-        public const float CritPerDexterity = 0.01f;
+        public const float BaseCritChance = 0.03f;
+        public const float CritPerDexterity = 0.015f;
         public const float CritDamageMultiplier = 1.5f;
-
-        // --- Dodge ---
-        public const float BaseDodgeChance = 0.03f;
-        public const float DodgePerDexterity = 0.005f;
-
-        // --- Accuracy ---
-        public const float BaseAccuracy = 0.90f;
-        public const float AccuracyPerDexterity = 0.01f;
 
         // --- Willpower ---
         public const float BaseEffectChance = 0.10f;
@@ -46,11 +43,48 @@ namespace PixelWarriors
         public const int BaseXPToLevel = 100;
         public const float XPScalingFactor = 1.25f;
 
-        // --- Status Effects ---
+        // --- Status Effects: Aggro ---
+        public const float TauntAggroMultiplier = 2.0f;
+        public const float HideAggroMultiplier = 0.25f;
+        public const float ConcealAggroMultiplier = 0f;
+        public const int TauntDuration = 2;
+
+        // --- Status Effects: Mark ---
         public const float MarkDamageBonus = 0.10f;
         public const int MarkDuration = 2;
-        public const float ProtectAggroMultiplier = 2.0f;
-        public const float HideAggroMultiplier = 0.25f;
+
+        // --- Status Effects: DoTs ---
+        public const int BleedDuration = 3;
+        public const int BleedDamagePerStack = 3;
+        public const int PoisonDuration = 5;
+        public const int PoisonDamagePerTurn = 4;
+        public const float PoisonHealingReduction = 0.50f;
+        public const int BurnDuration = 3;
+        public const int BurnDamagePerTurn = 6;
+        public const int ChilledDefaultDuration = 2;
+
+        // --- Block ---
+        public const float BaseBlockChance = 0f;
+
+        // --- Stances ---
+        public const int StanceEnergyCostPerTrigger = 2;
+        public const int StanceBerserkerEnergyGain = 2;
+        public const float DefensiveStanceBlockBonus = 0.10f;
+
+        // --- Assassination ---
+        public const float AssassinationThreshold = 0.20f;
+        public const float AssassinationBossThreshold = 0.05f;
+
+        // --- Mass Confusion ---
+        public const float ConfusionAllyTargetChance = 0.33f;
+
+        // --- Caltrops ---
+        public const int CaltropsDamage = 5;
+
+        // --- Imbue ---
+        public const int ImbueBonusDamage = 3;
+
+        // --- Ritual ---
         public const float RitualManaPerHP = 2.0f;
 
         // --- Battle Timing ---
@@ -60,8 +94,7 @@ namespace PixelWarriors
         public const float EnemyThinkDelay = 0.5f;
 
         // --- Energy / Mana Regen ---
-        public const float EnergyRegenPerTurn = 0.20f;  // 20% of max
-        public const float ManaRegenPerTurn = 0.05f;     // 5% of max
-        public const float PrepareRegenBonus = 0.10f;    // Extra regen from Prepare
+        public const float EnergyRegenPerTurn = 0.20f;
+        public const float ManaRegenPerTurn = 0.05f;
     }
 }

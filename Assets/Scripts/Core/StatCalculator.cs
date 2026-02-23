@@ -19,33 +19,42 @@ namespace PixelWarriors
             return GameplayConfig.BaseMana + Mathf.RoundToInt(stats.Intellect * GameplayConfig.ManaPerIntellect);
         }
 
-        public static int CalculatePhysicalDamage(int baseDamage, int strength, int targetArmor)
+        public static int CalculateWeaponDamage(int weaponDmg, int strength, float multiplier,
+            int targetArmor, float armorPen)
         {
-            float raw = baseDamage + strength * GameplayConfig.StrengthDamageMultiplier;
-            int afterArmor = Mathf.RoundToInt(raw) - targetArmor;
+            float raw = (weaponDmg + strength * GameplayConfig.WeaponStrengthScaling) * multiplier;
+            float effectiveArmor = targetArmor * (1f - Mathf.Clamp01(armorPen));
+            int afterArmor = Mathf.RoundToInt(raw - effectiveArmor);
             return Mathf.Max(afterArmor, GameplayConfig.MinDamageAfterArmor);
         }
 
-        public static int CalculateMagicalDamage(int baseDamage, int targetMagicResist)
+        public static int CalculatePhysicalSpellDamage(int basePower, int willpower,
+            int targetArmor, float armorPen)
         {
-            float reduction = targetMagicResist / 100f;
-            float afterResist = baseDamage * (1f - reduction);
+            float raw = basePower + willpower * GameplayConfig.SpellWillpowerScaling;
+            float effectiveArmor = targetArmor * (1f - Mathf.Clamp01(armorPen));
+            int afterArmor = Mathf.RoundToInt(raw - effectiveArmor);
+            return Mathf.Max(afterArmor, GameplayConfig.MinDamageAfterArmor);
+        }
+
+        public static int CalculateSpellDamage(int basePower, int willpower,
+            int targetMR, int magicPen)
+        {
+            float raw = basePower + willpower * GameplayConfig.SpellWillpowerScaling;
+            int effectiveMR = Mathf.Max(0, targetMR - magicPen);
+            float afterResist = raw * (1f - effectiveMR / 100f);
             return Mathf.Max(Mathf.RoundToInt(afterResist), GameplayConfig.MinDamageAfterArmor);
         }
 
-        public static float CalculateAccuracy(int dexterity)
+        public static float CalculateHitChance(int attackerDex, int targetDex)
         {
-            return GameplayConfig.BaseAccuracy + dexterity * GameplayConfig.AccuracyPerDexterity;
+            return GameplayConfig.BaseHitChance
+                + (attackerDex - targetDex) * GameplayConfig.DexterityHitScaling;
         }
 
         public static float CalculateCritChance(int dexterity)
         {
             return GameplayConfig.BaseCritChance + dexterity * GameplayConfig.CritPerDexterity;
-        }
-
-        public static float CalculateDodgeChance(int dexterity)
-        {
-            return GameplayConfig.BaseDodgeChance + dexterity * GameplayConfig.DodgePerDexterity;
         }
 
         public static float CalculateEffectChance(int willpower)

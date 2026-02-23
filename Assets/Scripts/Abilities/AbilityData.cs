@@ -22,15 +22,28 @@ namespace PixelWarriors
         public bool IsPassive;
         public AbilityTag Tag;
         public bool ExcludeSelf;
+        public AbilityRange Range;
+        public bool OncePerBattle;
+        public bool RequiresConcealed;
+        public WeaponType RequiredWeapon;
+        public bool RequiresFrontline;
+        public float DamageMultiplier;
+        public float AbilityArmorPen;
+        public int AbilityMagicPen;
+
+        public bool IsWeaponAttack => DamageMultiplier > 0f;
 
         public AbilityData()
         {
             HitCount = 1;
             Element = Element.None;
+            Range = AbilityRange.Any;
+            RequiredWeapon = WeaponType.None;
         }
 
         public static AbilityData CreateAttack(string name, string description, int basePower,
-            int energyCost = 0, int hitCount = 1, TargetType targetType = TargetType.SingleEnemy)
+            int energyCost = 0, int hitCount = 1, TargetType targetType = TargetType.SingleEnemy,
+            AbilityRange range = AbilityRange.Any, float damageMultiplier = 0f)
         {
             return new AbilityData
             {
@@ -41,14 +54,17 @@ namespace PixelWarriors
                 LongPointCost = 1,
                 EnergyCost = energyCost,
                 DamageType = DamageType.Physical,
-                BasePower = basePower,
+                BasePower = damageMultiplier > 0f ? 0 : basePower,
+                DamageMultiplier = damageMultiplier,
                 HitCount = hitCount,
-                TargetType = targetType
+                TargetType = targetType,
+                Range = range
             };
         }
 
         public static AbilityData CreateSkill(string name, string description, int basePower,
-            int energyCost, TargetType targetType = TargetType.SingleEnemy)
+            int energyCost, TargetType targetType = TargetType.SingleEnemy,
+            AbilityRange range = AbilityRange.Any, float damageMultiplier = 0f)
         {
             return new AbilityData
             {
@@ -59,14 +75,17 @@ namespace PixelWarriors
                 LongPointCost = 1,
                 EnergyCost = energyCost,
                 DamageType = DamageType.Physical,
-                BasePower = basePower,
+                BasePower = damageMultiplier > 0f ? 0 : basePower,
+                DamageMultiplier = damageMultiplier,
                 HitCount = 1,
-                TargetType = targetType
+                TargetType = targetType,
+                Range = range
             };
         }
 
         public static AbilityData CreateSpell(string name, string description, int basePower,
-            int manaCost, Element element = Element.Arcane, TargetType targetType = TargetType.SingleEnemy)
+            int manaCost, Element element = Element.Arcane, TargetType targetType = TargetType.SingleEnemy,
+            AbilityRange range = AbilityRange.Any)
         {
             return new AbilityData
             {
@@ -80,7 +99,8 @@ namespace PixelWarriors
                 Element = element,
                 BasePower = basePower,
                 HitCount = 1,
-                TargetType = targetType
+                TargetType = targetType,
+                Range = range
             };
         }
 

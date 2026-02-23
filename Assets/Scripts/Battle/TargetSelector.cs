@@ -29,6 +29,32 @@ namespace PixelWarriors
                 result.Remove(user);
             }
 
+            // Resolve Weapon range to Close/Reach based on equipped weapon
+            AbilityRange resolvedRange = ability.Range;
+            if (resolvedRange == AbilityRange.Weapon)
+            {
+                WeaponType mainWeapon = user.Data.Equipment[(int)EquipmentSlot.Hand1]?.WeaponType ?? WeaponType.None;
+                resolvedRange = EquipmentData.GetRangeForWeapon(mainWeapon);
+            }
+
+            // Close range: column-based frontline blocking (unless user has Levitate)
+            if (resolvedRange == AbilityRange.Close && !user.HasEffect(StatusEffect.Levitate))
+            {
+                bool isOffensive = ability.TargetType == TargetType.SingleEnemy ||
+                                   ability.TargetType == TargetType.AllEnemies;
+                if (isOffensive)
+                {
+                    List<BattleCharacter> foesFull = user.Side == TeamSide.Player ? enemies : players;
+                    result = result.Where(c =>
+                    {
+                        if (c.Row == GridRow.Front) return true;
+                        // Backline target: allowed only if no living frontline enemy in same column
+                        bool frontBlocked = foesFull.Any(f => f.IsAlive && f.Row == GridRow.Front && f.Column == c.Column);
+                        return !frontBlocked;
+                    }).ToList();
+                }
+            }
+
             return result;
         }
 
@@ -67,6 +93,12 @@ namespace PixelWarriors
                 float weight = GetBaseWeight(target) * StatusEffectProcessor.GetAggroModifier(target);
                 weights[i] = weight;
                 totalWeight += weight;
+            }
+
+            // Concealment fallback: if all weights are 0, distribute equally
+            if (totalWeight <= 0f)
+            {
+                return potentialTargets[Random.Range(0, potentialTargets.Count)];
             }
 
             float roll = Random.value * totalWeight;

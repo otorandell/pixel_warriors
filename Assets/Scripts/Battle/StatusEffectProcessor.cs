@@ -6,7 +6,23 @@ namespace PixelWarriors
     {
         public static void ProcessTurnStart(BattleCharacter character)
         {
-            // Anticipate: grant positive priority (already set when applied)
+            // Stun: zero all actions, character skips turn naturally
+            if (character.HasEffect(StatusEffect.Stun))
+            {
+                character.LongActionsRemaining = 0;
+                character.ShortActionsRemaining = 0;
+                character.RemoveEffect(StatusEffect.Stun);
+                GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Stun);
+                GameEvents.RaiseCombatLogMessage($"{character.Data.Name} is stunned and cannot act!");
+            }
+
+            // Chilled: act last this turn
+            if (character.HasEffect(StatusEffect.Chilled))
+            {
+                character.Priority = Priority.Negative;
+            }
+
+            // Anticipate: grant positive priority (already set when applied), -1 short action
             if (character.HasEffect(StatusEffect.Anticipate))
             {
                 character.ShortActionsRemaining = Mathf.Max(0, character.ShortActionsRemaining - 1);
@@ -14,24 +30,14 @@ namespace PixelWarriors
                 GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Anticipate);
             }
 
-            // Prepare: bonus regen then remove
-            if (character.HasEffect(StatusEffect.Prepare))
+            // React: set negative priority (already set when applied), then remove
+            if (character.HasEffect(StatusEffect.React))
             {
-                int bonusEnergy = Mathf.Max(1, Mathf.RoundToInt(character.MaxEnergy * GameplayConfig.PrepareRegenBonus));
-                int bonusMana = Mathf.Max(1, Mathf.RoundToInt(character.MaxMana * GameplayConfig.PrepareRegenBonus));
-                character.CurrentEnergy = Mathf.Min(character.CurrentEnergy + bonusEnergy, character.MaxEnergy);
-                character.CurrentMana = Mathf.Min(character.CurrentMana + bonusMana, character.MaxMana);
-                character.RemoveEffect(StatusEffect.Prepare);
-                GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Prepare);
+                character.RemoveEffect(StatusEffect.React);
+                GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.React);
             }
 
-            // Protect/Hide: removed at turn start (lasted since last turn)
-            if (character.HasEffect(StatusEffect.Protect))
-            {
-                character.RemoveEffect(StatusEffect.Protect);
-                GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Protect);
-            }
-
+            // Hide: removed at turn start (lasted since last turn)
             if (character.HasEffect(StatusEffect.Hide))
             {
                 character.RemoveEffect(StatusEffect.Hide);
@@ -41,6 +47,13 @@ namespace PixelWarriors
 
         public static void ProcessTurnEnd(BattleCharacter character)
         {
+            // Process DoTs before duration ticking
+            ProcessBleed(character);
+            ProcessPoison(character);
+            ProcessBurn(character);
+            ProcessLeechLife(character);
+
+            // Tick durations
             for (int i = character.StatusEffects.Count - 1; i >= 0; i--)
             {
                 StatusEffectInstance effect = character.StatusEffects[i];
@@ -54,7 +67,92 @@ namespace PixelWarriors
                     }
                 }
             }
+
+            // Stance energy check: cancel stance if energy depleted
+            CheckStanceEnergy(character, StatusEffect.StanceDefensive);
+            CheckStanceEnergy(character, StatusEffect.StanceBrawling);
         }
+
+        private static void ProcessBleed(BattleCharacter character)
+        {
+            var bleeds = character.GetAllEffects(StatusEffect.Bleed);
+            if (bleeds.Count == 0) return;
+
+            int totalDamage = bleeds.Count * GameplayConfig.BleedDamagePerStack;
+            character.CurrentHP = Mathf.Max(0, character.CurrentHP - totalDamage);
+            GameEvents.RaiseDamageDealt(character, totalDamage, DamageType.Physical);
+            GameEvents.RaiseCombatLogMessage(
+                $"{character.Data.Name} takes {totalDamage} bleed damage! ({bleeds.Count} stacks)");
+
+            // Tick bleed stacks individually
+            for (int i = bleeds.Count - 1; i >= 0; i--)
+            {
+                bleeds[i].RemainingTurns--;
+                if (bleeds[i].IsExpired)
+                {
+                    character.StatusEffects.Remove(bleeds[i]);
+                    GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Bleed);
+                }
+            }
+
+            if (!character.IsAlive) GameEvents.RaiseCharacterDefeated(character);
+        }
+
+        private static void ProcessPoison(BattleCharacter character)
+        {
+            if (!character.HasEffect(StatusEffect.Poison)) return;
+
+            character.CurrentHP = Mathf.Max(0, character.CurrentHP - GameplayConfig.PoisonDamagePerTurn);
+            GameEvents.RaiseDamageDealt(character, GameplayConfig.PoisonDamagePerTurn, DamageType.Physical);
+            GameEvents.RaiseCombatLogMessage(
+                $"{character.Data.Name} takes {GameplayConfig.PoisonDamagePerTurn} poison damage!");
+
+            if (!character.IsAlive) GameEvents.RaiseCharacterDefeated(character);
+        }
+
+        private static void ProcessBurn(BattleCharacter character)
+        {
+            if (!character.HasEffect(StatusEffect.Burn)) return;
+
+            character.CurrentHP = Mathf.Max(0, character.CurrentHP - GameplayConfig.BurnDamagePerTurn);
+            GameEvents.RaiseDamageDealt(character, GameplayConfig.BurnDamagePerTurn, DamageType.Magical);
+            GameEvents.RaiseCombatLogMessage(
+                $"{character.Data.Name} takes {GameplayConfig.BurnDamagePerTurn} burn damage!");
+
+            if (!character.IsAlive) GameEvents.RaiseCharacterDefeated(character);
+        }
+
+        private static void ProcessLeechLife(BattleCharacter character)
+        {
+            StatusEffectInstance leech = character.GetEffect(StatusEffect.LeechLife);
+            if (leech == null) return;
+
+            int drain = leech.Value;
+            character.CurrentHP = Mathf.Max(0, character.CurrentHP - drain);
+            GameEvents.RaiseDamageDealt(character, drain, DamageType.Magical);
+            GameEvents.RaiseCombatLogMessage($"{character.Data.Name} is drained for {drain} HP!");
+
+            // Heal the source
+            if (leech.Source != null && leech.Source.IsAlive)
+            {
+                leech.Source.CurrentHP = Mathf.Min(leech.Source.CurrentHP + drain, leech.Source.MaxHP);
+                GameEvents.RaiseHealingReceived(leech.Source, drain);
+            }
+
+            if (!character.IsAlive) GameEvents.RaiseCharacterDefeated(character);
+        }
+
+        private static void CheckStanceEnergy(BattleCharacter character, StatusEffect stanceType)
+        {
+            if (character.HasEffect(stanceType) && character.CurrentEnergy <= 0)
+            {
+                character.RemoveEffect(stanceType);
+                GameEvents.RaiseStatusEffectRemoved(character, stanceType);
+                GameEvents.RaiseCombatLogMessage($"{character.Data.Name}'s stance fades (no energy)!");
+            }
+        }
+
+        // --- Modifier Queries ---
 
         public static int AbsorbDamage(BattleCharacter target, int damage)
         {
@@ -82,8 +180,12 @@ namespace PixelWarriors
 
         public static float GetAggroModifier(BattleCharacter character)
         {
-            if (character.HasEffect(StatusEffect.Protect))
-                return GameplayConfig.ProtectAggroMultiplier;
+            if (character.HasEffect(StatusEffect.Conceal))
+                return GameplayConfig.ConcealAggroMultiplier;
+            if (character.HasEffect(StatusEffect.Taunt))
+                return GameplayConfig.TauntAggroMultiplier;
+            if (character.HasEffect(StatusEffect.Levitate))
+                return GameplayConfig.HideAggroMultiplier;
             if (character.HasEffect(StatusEffect.Hide))
                 return GameplayConfig.HideAggroMultiplier;
             return 1f;

@@ -25,6 +25,7 @@ namespace PixelWarriors
 
         public List<StatusEffectInstance> StatusEffects { get; private set; } = new();
         public Element LastSpellElement { get; set; } = Element.Arcane;
+        public HashSet<AbilityTag> UsedOnceAbilities { get; private set; } = new();
 
         public BattleCharacter(CharacterData data, TeamSide side, GridRow row, GridColumn column)
         {
@@ -54,8 +55,31 @@ namespace PixelWarriors
             return null;
         }
 
+        public List<StatusEffectInstance> GetAllEffects(StatusEffect type)
+        {
+            List<StatusEffectInstance> results = new();
+            for (int i = 0; i < StatusEffects.Count; i++)
+                if (StatusEffects[i].Type == type) results.Add(StatusEffects[i]);
+            return results;
+        }
+
         public void AddEffect(StatusEffectInstance effect)
         {
+            // Stackable effects always add a new instance
+            if (effect.Type == StatusEffect.Bleed)
+            {
+                StatusEffects.Add(effect);
+                return;
+            }
+
+            // Exclusive stance group: adding one removes any existing stance
+            if (IsStance(effect.Type))
+            {
+                RemoveEffect(StatusEffect.StanceDefensive);
+                RemoveEffect(StatusEffect.StanceBrawling);
+                RemoveEffect(StatusEffect.StanceBerserker);
+            }
+
             // Replace existing effect of same type
             for (int i = 0; i < StatusEffects.Count; i++)
             {
@@ -80,6 +104,18 @@ namespace PixelWarriors
             }
         }
 
+        public void RemoveAllEffects(StatusEffect type)
+        {
+            for (int i = StatusEffects.Count - 1; i >= 0; i--)
+            {
+                if (StatusEffects[i].Type == type)
+                    StatusEffects.RemoveAt(i);
+            }
+        }
+
+        public bool HasUsedOnce(AbilityTag tag) => UsedOnceAbilities.Contains(tag);
+        public void MarkUsedOnce(AbilityTag tag) => UsedOnceAbilities.Add(tag);
+
         public void RecalculateStats()
         {
             EffectiveStats = Data.GetTotalStats();
@@ -102,15 +138,38 @@ namespace PixelWarriors
 
         public bool CanUseAbility(AbilityData ability)
         {
-            if (ability.ActionCost == ActionPointType.Long && LongActionsRemaining < ability.LongPointCost)
+            // Once per battle check
+            if (ability.OncePerBattle && HasUsedOnce(ability.Tag))
                 return false;
 
-            if (ability.ActionCost == ActionPointType.Short)
-            {
-                int availableShort = ShortActionsRemaining + LongActionsRemaining;
-                if (availableShort < ability.ShortPointCost)
-                    return false;
-            }
+            // Concealment requirement
+            if (ability.RequiresConcealed && !HasEffect(StatusEffect.Conceal))
+                return false;
+
+            // Weapon requirement
+            if (ability.RequiredWeapon != WeaponType.None && !Data.HasWeaponType(ability.RequiredWeapon))
+                return false;
+
+            // Frontline requirement
+            if (ability.RequiresFrontline && Row != GridRow.Front)
+                return false;
+
+            // Silence blocks spells
+            if (HasEffect(StatusEffect.Silence) && ability.Tab == AbilityTab.Spells)
+                return false;
+
+            // Terror blocks attacks
+            if (HasEffect(StatusEffect.Terror) && ability.Tab == AbilityTab.Attacks)
+                return false;
+
+            // Action point check: consume both long and short costs additively
+            if (LongActionsRemaining < ability.LongPointCost)
+                return false;
+
+            int remainingLong = LongActionsRemaining - ability.LongPointCost;
+            int availableShort = ShortActionsRemaining + remainingLong;
+            if (availableShort < ability.ShortPointCost)
+                return false;
 
             if (ability.EnergyCost > CurrentEnergy)
                 return false;
@@ -126,11 +185,11 @@ namespace PixelWarriors
 
         public void ConsumeAbilityCost(AbilityData ability)
         {
-            if (ability.ActionCost == ActionPointType.Long)
-            {
-                LongActionsRemaining -= ability.LongPointCost;
-            }
-            else
+            // Consume long action points
+            LongActionsRemaining -= ability.LongPointCost;
+
+            // Consume short action points (overflow to long)
+            if (ability.ShortPointCost > 0)
             {
                 if (ShortActionsRemaining >= ability.ShortPointCost)
                 {
@@ -152,6 +211,13 @@ namespace PixelWarriors
         public bool HasActionsRemaining()
         {
             return LongActionsRemaining > 0 || ShortActionsRemaining > 0;
+        }
+
+        private static bool IsStance(StatusEffect type)
+        {
+            return type == StatusEffect.StanceDefensive ||
+                   type == StatusEffect.StanceBrawling ||
+                   type == StatusEffect.StanceBerserker;
         }
     }
 }

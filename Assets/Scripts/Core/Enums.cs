@@ -6,7 +6,7 @@ namespace PixelWarriors
         Rogue,
         Ranger,
         Priest,
-        Wizard,
+        Elementalist,
         Warlock
     }
 
@@ -35,12 +35,30 @@ namespace PixelWarriors
     {
         None,
         Fire,
-        Ice,
-        Lightning,
         Earth,
-        Shadow,
-        Holy,
+        Water,
+        Air,
         Arcane
+    }
+
+    public enum AbilityRange
+    {
+        Any,
+        Close,
+        Reach,
+        Weapon
+    }
+
+    public enum WeaponType
+    {
+        None,
+        Sword,
+        Dagger,
+        TwoHanded,
+        Shield,
+        Staff,
+        Bow,
+        Mace
     }
 
     public enum GridRow
@@ -82,10 +100,9 @@ namespace PixelWarriors
     public enum EquipmentSlot
     {
         Hand1,
-        Hand2,
-        Chest,
-        Pants,
-        Helmet,
+        Offhand,
+        Head,
+        Body,
         Trinket1,
         Trinket2
     }
@@ -95,24 +112,94 @@ namespace PixelWarriors
         None,
         Shield,
         Mark,
-        Protect,
+        Taunt,
         Hide,
         Anticipate,
-        Prepare
+        React,
+        Bleed,
+        Poison,
+        Burn,
+        Chilled,
+        Conceal,
+        Stun,
+        Silence,
+        StanceDefensive,
+        StanceBrawling,
+        StanceBerserker,
+        Block,
+        Envenom,
+        UltimateReflexes,
+        Caltrops,
+        LeechLife,
+        SteamBeamDebuff,
+        Terror,
+        Confusion,
+        CorpseExplosion,
+        Levitate,
+        Imbue,
+        ElementalArmor,
+        Bodyguard
     }
 
     public enum AbilityTag
     {
         None,
+        // Generic
         Swap,
         Anticipate,
-        Prepare,
-        Protect,
+        React,
+        Taunt,
         Hide,
+        Pass,
+        // Warrior
+        CrushArmor,
+        Bulwark,
+        StanceDefensive,
+        StanceBrawling,
+        StanceBerserker,
+        Cleave,
+        SecondWind,
+        BlockAbility,
+        Bodyguard,
+        Bladedance,
+        // Rogue
+        QuickStab,
+        SuckerPunch,
+        Ambush,
+        Vanish,
+        Envenom,
+        UltimateReflexes,
+        DaggerThrow,
+        Assassination,
+        PowderBomb,
+        Caltrops,
+        // Elementalist
+        EnergyBolt,
+        Ignite,
+        Earthquake,
+        SteamBeam,
+        WaveCrash,
+        Levitate,
+        SealOfElements,
+        ArcaneBurst,
+        Splinters,
+        Invisibility,
+        Meltdown,
+        ElementalArmor,
+        ImbueStaff,
+        // Warlock
         Ritual,
-        MagicBolt,
-        Mark,
-        WordOfProtection
+        Terror,
+        Curse,
+        Hex,
+        Consume,
+        MassConfusion,
+        CorpseExplosion,
+        LeechLife,
+        // Priest
+        WordOfProtection,
+        // Ranger
+        Mark
     }
 
     public enum TargetType
@@ -156,6 +243,7 @@ namespace PixelWarriors
         Dodge,
         Heal,
         Defeated,
+        Blocked,
 
         // Battle Flow
         BattleStart,

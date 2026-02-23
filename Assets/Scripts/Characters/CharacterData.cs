@@ -21,7 +21,7 @@ namespace PixelWarriors
             CurrentXP = 0;
             Abilities = new List<AbilityData>();
             Passives = new List<AbilityData>();
-            Equipment = new EquipmentData[7]; // 7 slots
+            Equipment = new EquipmentData[6];
         }
 
         public CharacterStats GetTotalStats()
@@ -36,6 +36,60 @@ namespace PixelWarriors
                 }
             }
 
+            return total;
+        }
+
+        public bool HasWeaponType(WeaponType type)
+        {
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                if (Equipment[i] != null && Equipment[i].WeaponType == type)
+                    return true;
+            }
+            return false;
+        }
+
+        public float GetBaseBlockChance()
+        {
+            float total = 0f;
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                if (Equipment[i] != null)
+                    total += Equipment[i].BaseBlockChance;
+            }
+            return total;
+        }
+
+        public int GetWeaponDamage()
+        {
+            int total = 0;
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                if (Equipment[i] != null)
+                    total += Equipment[i].BaseDamage;
+            }
+            return total;
+        }
+
+        public float GetArmorPenetration()
+        {
+            float total = 0f;
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                if (Equipment[i] != null)
+                    total += Equipment[i].ArmorPenetration;
+            }
+            return Math.Min(total, 1f);
+        }
+
+        public int GetMagicPenetration()
+        {
+            int total = 0;
+            for (int i = 0; i < Equipment.Length; i++)
+            {
+                if (Equipment[i] != null)
+                    total += Equipment[i].MagicPenetration;
+            }
             return total;
         }
     }

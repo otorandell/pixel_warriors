@@ -12,7 +12,7 @@ namespace PixelWarriors
                 CharacterClass.Rogue => UIStyleConfig.AccentGreen,
                 CharacterClass.Ranger => UIStyleConfig.AccentYellow,
                 CharacterClass.Priest => UIStyleConfig.TextPrimary,
-                CharacterClass.Wizard => UIStyleConfig.AccentCyan,
+                CharacterClass.Elementalist => UIStyleConfig.AccentCyan,
                 CharacterClass.Warlock => UIStyleConfig.AccentMagenta,
                 _ => UIStyleConfig.TextPrimary
             };
@@ -20,11 +20,31 @@ namespace PixelWarriors
 
         public static string FormatAbilityCost(AbilityData ability)
         {
-            if (ability.EnergyCost > 0) return $"[{ability.EnergyCost}E]";
-            if (ability.ManaCost > 0) return $"[{ability.ManaCost}M]";
-            if (ability.HPCost > 0) return $"[{ability.HPCost}HP]";
-            if (ability.ActionCost == ActionPointType.Short) return "[Q]";
-            return "";
+            string cost = "";
+            if (ability.EnergyCost > 0) cost += $"[{ability.EnergyCost}E]";
+            if (ability.ManaCost > 0) cost += $"[{ability.ManaCost}M]";
+            if (ability.HPCost > 0) cost += $"[{ability.HPCost}HP]";
+            if (cost == "" && ability.ActionCost == ActionPointType.Short) cost = "[Q]";
+
+            // Action point indicators
+            string ap = "";
+            if (ability.LongPointCost > 0) ap += "A";
+            if (ability.ShortPointCost > 0) ap += "S";
+            if (ap.Length > 0 && cost.Length > 0) cost = $"[{ap}]{cost}";
+            else if (ap.Length > 0) cost = $"[{ap}]";
+
+            return cost;
+        }
+
+        public static string FormatAbilityRange(AbilityRange range)
+        {
+            return range switch
+            {
+                AbilityRange.Close => "Close",
+                AbilityRange.Reach => "Reach",
+                AbilityRange.Weapon => "Weapon",
+                _ => ""
+            };
         }
 
         public static string FormatTargetType(TargetType targetType)

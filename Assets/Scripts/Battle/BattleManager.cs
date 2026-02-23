@@ -28,6 +28,7 @@ namespace PixelWarriors
             _visuals = new BattleVisualController(battleScreen);
             _playerInput = new PlayerInputHandler(battleScreen, _visuals);
             _playerInput.SubscribeEvents();
+            SubscribePassiveEvents();
 
             StartCoroutine(BattleLoop());
         }
@@ -35,16 +36,77 @@ namespace PixelWarriors
         private void OnDestroy()
         {
             _playerInput?.UnsubscribeEvents();
+            UnsubscribePassiveEvents();
+        }
+
+        private void SubscribePassiveEvents()
+        {
+            GameEvents.OnDamageDealt += HandleDamageForPassives;
+            GameEvents.OnCharacterDefeated += HandleDefeatedForPassives;
+            GameEvents.OnPositionSwapped += HandlePositionSwapForCaltrops;
+        }
+
+        private void UnsubscribePassiveEvents()
+        {
+            GameEvents.OnDamageDealt -= HandleDamageForPassives;
+            GameEvents.OnCharacterDefeated -= HandleDefeatedForPassives;
+            GameEvents.OnPositionSwapped -= HandlePositionSwapForCaltrops;
+        }
+
+        private void HandleDamageForPassives(BattleCharacter target, int damage, DamageType type)
+        {
+            PassiveProcessor.OnDamageTaken(target, damage, GetAllCharacters());
+        }
+
+        private bool _processingDefeat;
+
+        private void HandleDefeatedForPassives(BattleCharacter defeated)
+        {
+            if (_processingDefeat) return;
+            _processingDefeat = true;
+            PassiveProcessor.OnCharacterDefeated(defeated, GetAllCharacters());
+            _processingDefeat = false;
+        }
+
+        private void HandlePositionSwapForCaltrops(BattleCharacter a, BattleCharacter b)
+        {
+            ProcessCaltrops(a);
+            if (a != b) ProcessCaltrops(b);
+        }
+
+        private void ProcessCaltrops(BattleCharacter movedCharacter)
+        {
+            if (!movedCharacter.IsAlive) return;
+
+            List<BattleCharacter> opponents = movedCharacter.Side == TeamSide.Player ? _enemies : _players;
+            foreach (BattleCharacter opponent in opponents)
+            {
+                if (!opponent.IsAlive) continue;
+                if (!opponent.HasEffect(StatusEffect.Caltrops)) continue;
+
+                int damage = GameplayConfig.CaltropsDamage;
+                movedCharacter.CurrentHP = Mathf.Max(0, movedCharacter.CurrentHP - damage);
+                GameEvents.RaiseDamageDealt(movedCharacter, damage, DamageType.Physical);
+                Log($"{movedCharacter.Data.Name} steps on caltrops! {damage} damage!");
+                ActionExecutor.CheckDefeated(movedCharacter);
+                break;
+            }
         }
 
         private IEnumerator BattleLoop()
         {
             SetState(BattleState.Setup);
             GameEvents.RaiseBattleStarted();
+            WarriorAbilityHandler.ResetBladedanceCounts();
             Log("Battle begins!");
 
             _battleScreen.BattleGrid.SetPlayers(_players);
             _battleScreen.BattleGrid.SetEnemies(_enemies);
+            _battleScreen.BattleGrid.RefreshAll();
+
+            // Fire passive battle-start hooks
+            foreach (BattleCharacter character in GetAllCharacters())
+                PassiveProcessor.OnBattleStart(character);
             _battleScreen.BattleGrid.RefreshAll();
 
             yield return new WaitForSeconds(GameplayConfig.BattleStartDelay);
@@ -65,6 +127,7 @@ namespace PixelWarriors
                     SetState(BattleState.TurnStart);
                     _activeCharacter.StartTurn();
                     StatusEffectProcessor.ProcessTurnStart(_activeCharacter);
+                    PassiveProcessor.OnTurnStart(_activeCharacter);
                     GameEvents.RaiseTurnStarted(_activeCharacter);
                     GameEvents.RaiseTurnOrderUpdated(_roundNumber, _activeCharacter, _turnQueue.ToList());
                     _battleScreen.BattleGrid.ClearAllHighlights();
@@ -111,11 +174,32 @@ namespace PixelWarriors
                     SetState(BattleState.TurnEnd);
                     StatusEffectProcessor.ProcessTurnEnd(_activeCharacter);
 
-                    // Only reset priority if no Anticipate/Prepare was applied this turn
+                    // Only reset priority if no Anticipate/React was applied this turn
                     if (!_activeCharacter.HasEffect(StatusEffect.Anticipate) &&
-                        !_activeCharacter.HasEffect(StatusEffect.Prepare))
+                        !_activeCharacter.HasEffect(StatusEffect.React))
                     {
                         _activeCharacter.Priority = Priority.Normal;
+                    }
+
+                    // Check for deaths from DoT effects
+                    _battleScreen.BattleGrid.RefreshAll();
+
+                    if (CheckVictory())
+                    {
+                        SetState(BattleState.Victory);
+                        _battleScreen.BattleGrid.ClearAllHighlights();
+                        Log("Victory!");
+                        GameEvents.RaiseBattleEnded();
+                        yield break;
+                    }
+
+                    if (CheckDefeat())
+                    {
+                        SetState(BattleState.Defeat);
+                        _battleScreen.BattleGrid.ClearAllHighlights();
+                        Log("Defeat...");
+                        GameEvents.RaiseBattleEnded();
+                        yield break;
                     }
 
                     GameEvents.RaiseTurnEnded(_activeCharacter);
