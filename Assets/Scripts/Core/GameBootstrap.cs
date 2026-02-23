@@ -5,6 +5,9 @@ namespace PixelWarriors
 {
     public class GameBootstrap : MonoBehaviour
     {
+        [SerializeField] private bool _useTestBattle = true;
+
+        private ScreenManager _screenManager;
         private BattleScreenUI _battleScreen;
         private BattleManager _battleManager;
 
@@ -12,8 +15,15 @@ namespace PixelWarriors
         {
             SetupCamera();
             InitializeAudio();
-            BuildBattleScreen();
-            LoadTestBattle();
+
+            if (_useTestBattle)
+            {
+                LoadTestBattle();
+            }
+            else
+            {
+                LaunchGameLoop();
+            }
         }
 
         private void SetupCamera()
@@ -28,14 +38,19 @@ namespace PixelWarriors
             audioGo.AddComponent<AudioManager>();
         }
 
-        private void BuildBattleScreen()
+        private void LaunchGameLoop()
         {
-            GameObject screenGo = new GameObject("BattleScreen");
-            _battleScreen = screenGo.AddComponent<BattleScreenUI>();
+            _screenManager = new ScreenManager();
+            GameStateManager stateManager = gameObject.AddComponent<GameStateManager>();
+            stateManager.Initialize(_screenManager);
         }
 
         private void LoadTestBattle()
         {
+            _screenManager = new ScreenManager();
+            _battleScreen = new BattleScreenUI();
+            _battleScreen.Build(_screenManager.CanvasParent);
+
             // Pick 4 random classes for the party
             CharacterClass[] allClasses = {
                 CharacterClass.Warrior, CharacterClass.Rogue, CharacterClass.Ranger,
@@ -48,7 +63,7 @@ namespace PixelWarriors
             List<CharacterData> partyData = new();
             for (int i = 0; i < 4; i++)
             {
-                CharacterData data = ClassDefinitions.CreateCharacter(names[i], allClasses[i]);
+                CharacterData data = ClassDefinitions.CreateCharacterAllAbilities(names[i], allClasses[i]);
                 EquipDefaultWeapon(data, allClasses[i]);
                 partyData.Add(data);
             }

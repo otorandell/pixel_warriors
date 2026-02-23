@@ -37,7 +37,7 @@ namespace PixelWarriors
                 resolvedRange = EquipmentData.GetRangeForWeapon(mainWeapon);
             }
 
-            // Close range: column-based frontline blocking (unless user has Levitate)
+            // Close range: frontline blocking (unless user has Levitate)
             if (resolvedRange == AbilityRange.Close && !user.HasEffect(StatusEffect.Levitate))
             {
                 bool isOffensive = ability.TargetType == TargetType.SingleEnemy ||
@@ -45,10 +45,17 @@ namespace PixelWarriors
                 if (isOffensive)
                 {
                     List<BattleCharacter> foesFull = user.Side == TeamSide.Player ? enemies : players;
+                    int frontlineCount = foesFull.Count(f => f.IsAlive && f.Row == GridRow.Front);
+
                     result = result.Where(c =>
                     {
                         if (c.Row == GridRow.Front) return true;
-                        // Backline target: allowed only if no living frontline enemy in same column
+                        if (frontlineCount <= 1)
+                        {
+                            // 0-1 frontliners: any frontliner blocks ALL backline targets
+                            return frontlineCount == 0;
+                        }
+                        // 2+ frontliners: column-based blocking
                         bool frontBlocked = foesFull.Any(f => f.IsAlive && f.Row == GridRow.Front && f.Column == c.Column);
                         return !frontBlocked;
                     }).ToList();

@@ -30,6 +30,7 @@ namespace PixelWarriors
         public float DamageMultiplier;
         public float AbilityArmorPen;
         public int AbilityMagicPen;
+        public float HitChanceModifier;
 
         public bool IsWeaponAttack => DamageMultiplier > 0f;
 

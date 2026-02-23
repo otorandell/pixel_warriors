@@ -36,9 +36,28 @@ namespace PixelWarriors
             Priority = Priority.Normal;
 
             RecalculateStats();
-            CurrentHP = MaxHP;
-            CurrentEnergy = MaxEnergy;
-            CurrentMana = MaxMana;
+
+            if (data.ResourcesInitialized)
+            {
+                // Use persistent resources from CharacterData
+                CurrentHP = UnityEngine.Mathf.Min(data.CurrentHP, MaxHP);
+                CurrentEnergy = UnityEngine.Mathf.Min(data.CurrentEnergy, MaxEnergy);
+                CurrentMana = UnityEngine.Mathf.Min(data.CurrentMana, MaxMana);
+            }
+            else
+            {
+                // First time (enemies, test battle): start at max
+                CurrentHP = MaxHP;
+                CurrentEnergy = MaxEnergy;
+                CurrentMana = MaxMana;
+            }
+        }
+
+        public void SyncToData()
+        {
+            Data.CurrentHP = CurrentHP;
+            Data.CurrentEnergy = CurrentEnergy;
+            Data.CurrentMana = CurrentMana;
         }
 
         public bool HasEffect(StatusEffect type)

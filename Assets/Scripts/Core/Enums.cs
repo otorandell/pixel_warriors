@@ -146,6 +146,7 @@ namespace PixelWarriors
         None,
         // Generic
         Swap,
+        Reposition,
         Anticipate,
         React,
         Taunt,
@@ -163,6 +164,7 @@ namespace PixelWarriors
         Bodyguard,
         Bladedance,
         // Rogue
+        EscapePlan,
         QuickStab,
         SuckerPunch,
         Ambush,
@@ -199,7 +201,9 @@ namespace PixelWarriors
         // Priest
         WordOfProtection,
         // Ranger
-        Mark
+        Mark,
+        // Debug
+        Annihilation
     }
 
     public enum TargetType
@@ -217,6 +221,38 @@ namespace PixelWarriors
         Ratman,
         GoblinArcher,
         Minotaur
+    }
+
+    public enum GameScreen
+    {
+        MainMenu,
+        PartySetup,
+        RoomChoice,
+        Battle,
+        PostBattle,
+        Shop,
+        Event,
+        Rest,
+        Recruit,
+        GameOver
+    }
+
+    public enum RoomType
+    {
+        Battle,
+        EliteBattle,
+        BossBattle,
+        Shop,
+        Rest,
+        Event,
+        Recruit
+    }
+
+    public enum BattleResult
+    {
+        None,
+        Victory,
+        Defeat
     }
 
     public enum PlayerInputPhase

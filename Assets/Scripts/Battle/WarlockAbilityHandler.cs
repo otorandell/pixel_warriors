@@ -178,6 +178,12 @@ namespace PixelWarriors
             {
                 if (!target.IsAlive) continue;
 
+                if (!ActionExecutor.RollSpellHit(user, ability, target))
+                {
+                    Log($"{target.Data.Name} resists the confusion!");
+                    continue;
+                }
+
                 var effect = new StatusEffectInstance(StatusEffect.Confusion, 2, 0, user);
                 target.AddEffect(effect);
                 GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Confusion, 0);

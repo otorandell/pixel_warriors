@@ -24,6 +24,16 @@ namespace PixelWarriors
                 },
                 new AbilityData
                 {
+                    Name = "Reposition",
+                    Description = "Move between front and back row.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Reposition
+                },
+                new AbilityData
+                {
                     Name = "Anticipate",
                     Description = "Act with priority next turn, but lose 1 short action.",
                     Tab = AbilityTab.Generic,
@@ -72,6 +82,16 @@ namespace PixelWarriors
                     ShortPointCost = 0,
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.Pass
+                },
+                new AbilityData
+                {
+                    Name = "Annihilation",
+                    Description = "[DEBUG] Instantly kill all enemies.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 0,
+                    TargetType = TargetType.AllEnemies,
+                    Tag = AbilityTag.Annihilation
                 }
             };
         }
@@ -357,7 +377,7 @@ namespace PixelWarriors
                 new AbilityData
                 {
                     Name = "Powder Bomb",
-                    Description = "Deals damage to all enemies (75% hit chance per target).",
+                    Description = "Deals damage to all enemies. Imprecise.",
                     Tab = AbilityTab.Attacks,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
@@ -367,7 +387,8 @@ namespace PixelWarriors
                     DamageMultiplier = 0.7f,
                     TargetType = TargetType.AllEnemies,
                     Tag = AbilityTag.PowderBomb,
-                    Range = AbilityRange.Reach
+                    Range = AbilityRange.Reach,
+                    HitChanceModifier = -0.10f
                 },
                 new AbilityData
                 {
@@ -665,7 +686,7 @@ namespace PixelWarriors
                 new AbilityData
                 {
                     Name = "Mass Confusion",
-                    Description = "Enemies may attack their own allies.",
+                    Description = "Enemies may attack their own allies. Imprecise.",
                     Tab = AbilityTab.Spells,
                     ActionCost = ActionPointType.Long,
                     LongPointCost = 1,
@@ -673,7 +694,8 @@ namespace PixelWarriors
                     Element = Element.Arcane,
                     TargetType = TargetType.AllEnemies,
                     Tag = AbilityTag.MassConfusion,
-                    Range = AbilityRange.Reach
+                    Range = AbilityRange.Reach,
+                    HitChanceModifier = -0.15f
                 },
                 new AbilityData
                 {

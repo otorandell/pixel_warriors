@@ -74,5 +74,10 @@ namespace PixelWarriors
             _contentRect.sizeDelta = new Vector2(0, 0);
             _contentRect.anchoredPosition = Vector2.zero;
         }
+
+        public void Unsubscribe()
+        {
+            GameEvents.OnCombatLogMessage -= AddMessage;
+        }
     }
 }

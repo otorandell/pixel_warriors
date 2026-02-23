@@ -99,14 +99,22 @@ namespace PixelWarriors
         {
             float spacing = 2f;
 
+            // Count characters per row for layout
+            int frontCount = 0, backCount = 0;
+            foreach (BattleCharacter c in characters)
+            {
+                if (c.Row == GridRow.Front) frontCount++;
+                else backCount++;
+            }
+
             foreach (BattleCharacter character in characters)
             {
                 CharacterCardUI card = new CharacterCardUI();
                 card.Build(grid, character);
 
-                float xMin, xMax, yMin, yMax;
-                GetCellBounds(character.Row, character.Column, characters.Count, invertRows,
-                    out xMin, out yMin, out xMax, out yMax);
+                int rowCount = character.Row == GridRow.Front ? frontCount : backCount;
+                GetCellBounds(character.Row, character.Column, characters.Count, rowCount,
+                    invertRows, out float xMin, out float yMin, out float xMax, out float yMax);
 
                 PanelBuilder.SetAnchored(card.Root, xMin, yMin, xMax, yMax,
                     spacing, spacing, -spacing, -spacing);
@@ -115,8 +123,8 @@ namespace PixelWarriors
             }
         }
 
-        private void GetCellBounds(GridRow row, GridColumn column, int totalCount, bool invertRows,
-            out float xMin, out float yMin, out float xMax, out float yMax)
+        private void GetCellBounds(GridRow row, GridColumn column, int totalCount, int rowCount,
+            bool invertRows, out float xMin, out float yMin, out float xMax, out float yMax)
         {
             bool isTopRow;
             if (invertRows)
@@ -134,15 +142,15 @@ namespace PixelWarriors
                 yMin = 0.25f;
                 yMax = 0.75f;
             }
-            else if (totalCount == 2)
+            else if (rowCount <= 1)
             {
-                xMin = column == GridColumn.Left ? 0f : 0.5f;
-                xMax = column == GridColumn.Left ? 0.5f : 1f;
-                yMin = 0.25f;
-                yMax = 0.75f;
+                // Sole character in this row: center horizontally
+                xMin = 0.15f;
+                xMax = 0.85f;
             }
             else
             {
+                // 2 characters in this row: split left/right
                 xMin = column == GridColumn.Left ? 0f : 0.5f;
                 xMax = column == GridColumn.Left ? 0.5f : 1f;
             }
@@ -178,10 +186,18 @@ namespace PixelWarriors
             float spacing = 2f;
             int totalCount = cards.Count;
 
+            int frontCount = 0, backCount = 0;
+            foreach (CharacterCardUI c in cards)
+            {
+                if (c.Character.Row == GridRow.Front) frontCount++;
+                else backCount++;
+            }
+
             foreach (CharacterCardUI card in cards)
             {
-                GetCellBounds(card.Character.Row, card.Character.Column, totalCount, invertRows,
-                    out float xMin, out float yMin, out float xMax, out float yMax);
+                int rowCount = card.Character.Row == GridRow.Front ? frontCount : backCount;
+                GetCellBounds(card.Character.Row, card.Character.Column, totalCount, rowCount,
+                    invertRows, out float xMin, out float yMin, out float xMax, out float yMax);
 
                 PanelBuilder.SetAnchored(card.Root, xMin, yMin, xMax, yMax,
                     spacing, spacing, -spacing, -spacing);

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace PixelWarriors
 {
@@ -10,17 +11,42 @@ namespace PixelWarriors
             {
                 Name = name,
                 Class = characterClass,
-                BaseStats = GetBaseStats(characterClass)
+                BaseStats = GetBaseStats(characterClass),
+                GrowthModifiers = GenerateGrowthModifiers()
             };
 
-            // Starting abilities from catalog
-            List<AbilityData> classAbilities = GetStartingAbilities(characterClass);
-            data.Abilities.AddRange(classAbilities);
+            // 1 starting class ability + generics
+            List<AbilityData> classAbilities = GetClassAbilityList(characterClass);
+            if (classAbilities.Count > 0)
+                data.Abilities.Add(classAbilities[0]);
             data.Abilities.AddRange(AbilityCatalog.GetGenericAbilities());
 
-            // Starting passive + class passives from catalog
+            // Starting basic passive only (class passives unlock at level 5, 10, ...)
             data.Passives.Add(GetBasicPassive(characterClass));
-            data.Passives.AddRange(GetClassPassives(characterClass));
+
+            // Initialize resources to max
+            data.InitializeResources();
+
+            return data;
+        }
+
+        public static CharacterData CreateCharacterAllAbilities(string name, CharacterClass characterClass)
+        {
+            CharacterData data = new CharacterData
+            {
+                Name = name,
+                Class = characterClass,
+                BaseStats = GetBaseStats(characterClass),
+                GrowthModifiers = GenerateGrowthModifiers()
+            };
+
+            data.Abilities.AddRange(GetClassAbilityList(characterClass));
+            data.Abilities.AddRange(AbilityCatalog.GetGenericAbilities());
+
+            data.Passives.Add(GetBasicPassive(characterClass));
+            data.Passives.AddRange(GetClassPassiveList(characterClass));
+
+            data.InitializeResources();
 
             return data;
         }
@@ -40,10 +66,23 @@ namespace PixelWarriors
             };
         }
 
-        private static List<AbilityData> GetStartingAbilities(CharacterClass characterClass)
+        private static CharacterStats GenerateGrowthModifiers()
         {
-            // TODO: When progression system is built, restrict to unlocked abilities only.
-            // For now, give all class abilities for testing.
+            return new CharacterStats(
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6),
+                Random.Range(-5, 6)
+            );
+        }
+
+        public static List<AbilityData> GetClassAbilityList(CharacterClass characterClass)
+        {
             return characterClass switch
             {
                 CharacterClass.Warrior      => AbilityCatalog.GetWarriorAbilities(),
@@ -52,16 +91,12 @@ namespace PixelWarriors
                 CharacterClass.Priest       => AbilityCatalog.GetPriestAbilities(),
                 CharacterClass.Elementalist => AbilityCatalog.GetElementalistAbilities(),
                 CharacterClass.Warlock      => AbilityCatalog.GetWarlockAbilities(),
-                _ => new List<AbilityData>
-                {
-                    AbilityData.CreateAttack("Attack", "Basic attack.", basePower: 0, damageMultiplier: 1.0f)
-                }
+                _ => new List<AbilityData>()
             };
         }
 
-        private static List<AbilityData> GetClassPassives(CharacterClass characterClass)
+        public static List<AbilityData> GetClassPassiveList(CharacterClass characterClass)
         {
-            // TODO: When progression system is built, restrict to unlocked passives only.
             return characterClass switch
             {
                 CharacterClass.Warrior => AbilityCatalog.GetWarriorPassives(),

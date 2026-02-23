@@ -148,6 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc14695447b9db54cb226a8ef84bedaf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PixelWarriors.GameBootstrap
+  _useTestBattle: 0
 --- !u!4 &395011209
 Transform:
   m_ObjectHideFlags: 0

@@ -114,5 +114,11 @@ namespace PixelWarriors
             _actionPointsText.text = $"<color=#{longColor}>\u25CF</color> <color=#{shortColor}>\u2022</color>";
         }
 
+        public void Unsubscribe()
+        {
+            GameEvents.OnTurnOrderUpdated -= HandleTurnOrderUpdated;
+            GameEvents.OnAbilityUsed -= HandleAbilityUsed;
+            GameEvents.OnBattleStateChanged -= HandleBattleStateChanged;
+        }
     }
 }

@@ -148,21 +148,19 @@ namespace PixelWarriors
             {
                 if (!target.IsAlive) continue;
 
-                // 75% hit chance per target
-                if (Random.value > 0.75f)
-                {
-                    Log($"{target.Data.Name} avoids the blast!");
-                    continue;
-                }
+                HitResult result = ActionExecutor.ResolveHit(user, ability, target);
+                GameEvents.RaiseHitResolved(target, result, ability.DamageType);
 
-                int weaponDmg = user.Data.GetWeaponDamage();
-                float armorPen = user.Data.GetArmorPenetration() + ability.AbilityArmorPen;
-                int damage = StatCalculator.CalculateWeaponDamage(
-                    weaponDmg, user.EffectiveStats.Strength, ability.DamageMultiplier,
-                    target.EffectiveStats.Armor, armorPen);
-                target.CurrentHP = Mathf.Max(0, target.CurrentHP - damage);
-                GameEvents.RaiseDamageDealt(target, damage, ability.DamageType);
-                Log($"{target.Data.Name} takes {damage} damage!");
+                if (result.IsEffective)
+                {
+                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
+                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
+                    Log($"{target.Data.Name} takes {result.Damage} damage!");
+                }
+                else
+                {
+                    LogMissOrDodge(user, target, result);
+                }
 
                 ActionExecutor.CheckDefeated(target);
             }

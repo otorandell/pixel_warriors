@@ -1,13 +1,10 @@
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
-using UnityEngine.UI;
 
 namespace PixelWarriors
 {
-    public class BattleScreenUI : MonoBehaviour
+    public class BattleScreenUI : IScreen
     {
-        private Canvas _canvas;
+        private GameObject _root;
         private BattleGridUI _battleGrid;
         private AbilityPanelUI _abilityPanel;
         private TurnInfoPanelUI _turnInfoPanel;
@@ -21,64 +18,59 @@ namespace PixelWarriors
         public AbilityPanelUI AbilityPanel => _abilityPanel;
         public CombatLogUI CombatLog => _combatLog;
 
-        private void Awake()
+        public void Build(Transform canvasParent)
         {
-            EnsureEventSystem();
-            BuildCanvas();
-            BuildLayout();
+            _root = new GameObject("BattleScreen");
+            RectTransform rootRect = _root.AddComponent<RectTransform>();
+            rootRect.SetParent(canvasParent, false);
+            PanelBuilder.SetFill(rootRect);
+
+            BuildLayout(rootRect);
         }
 
-        private void EnsureEventSystem()
+        public void Show()
         {
-            if (FindAnyObjectByType<EventSystem>() != null) return;
-
-            GameObject esGo = new GameObject("EventSystem");
-            esGo.AddComponent<EventSystem>();
-            esGo.AddComponent<InputSystemUIInputModule>();
+            if (_root != null) _root.SetActive(true);
         }
 
-        private void BuildCanvas()
+        public void Hide()
         {
-            // Canvas
-            GameObject canvasGo = new GameObject("BattleCanvas");
-            canvasGo.transform.SetParent(transform, false);
-            _canvas = canvasGo.AddComponent<Canvas>();
-            _canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            _canvas.sortingOrder = 0;
-
-            CanvasScaler scaler = canvasGo.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(960, 540);
-            scaler.matchWidthOrHeight = 0.5f;
-
-            canvasGo.AddComponent<GraphicRaycaster>();
-
-            // Background
-            GameObject bgGo = new GameObject("Background");
-            RectTransform bgRect = bgGo.AddComponent<RectTransform>();
-            bgRect.SetParent(_canvas.transform, false);
-            PanelBuilder.SetFill(bgRect);
-            Image bgImage = bgGo.AddComponent<Image>();
-            bgImage.color = UIStyleConfig.Background;
-            bgImage.raycastTarget = false;
+            if (_root != null) _root.SetActive(false);
         }
 
-        private void BuildLayout()
+        public void Destroy()
         {
-            Transform canvasTransform = _canvas.transform;
+            _combatLog?.Unsubscribe();
+            _selectionPanel?.Unsubscribe();
+            _turnInfoPanel?.Unsubscribe();
 
+            if (_characterPopup != null)
+                GameEvents.OnCharacterDetailRequested -= _characterPopup.ShowCharacterPopup;
+            if (_abilityPopup != null)
+                GameEvents.OnAbilityDetailRequested -= _abilityPopup.ShowAbilityPopup;
+            if (_turnOrderPopup != null)
+            {
+                GameEvents.OnTurnOrderDetailRequested -= _turnOrderPopup.ShowTurnOrderPopup;
+                _turnOrderPopup.UnsubscribeEvents();
+            }
+
+            if (_root != null) Object.Destroy(_root);
+        }
+
+        private void BuildLayout(Transform rootTransform)
+        {
             float topRatio = UIStyleConfig.TurnInfoHeightRatio;
             float bottomRatio = UIStyleConfig.BottomAreaHeightRatio;
             float selectionWidth = UIStyleConfig.BottomSelectionWidthRatio;
 
             // Turn info panel (top strip)
             _turnInfoPanel = new TurnInfoPanelUI();
-            _turnInfoPanel.Build(canvasTransform);
+            _turnInfoPanel.Build(rootTransform);
             PanelBuilder.SetAnchored(_turnInfoPanel.Root, 0, 1 - topRatio, 1, 1,
                 4, 2, -4, -4);
 
             // Main area (middle: BattleGrid + AbilityPanel)
-            RectTransform mainArea = PanelBuilder.CreateContainer("MainArea", canvasTransform);
+            RectTransform mainArea = PanelBuilder.CreateContainer("MainArea", rootTransform);
             PanelBuilder.SetAnchored(mainArea, 0, bottomRatio, 1, 1 - topRatio,
                 4, 2, -4, -2);
 
@@ -96,38 +88,30 @@ namespace PixelWarriors
 
             // Combat log (bottom-left)
             _combatLog = new CombatLogUI();
-            _combatLog.Build(canvasTransform);
+            _combatLog.Build(rootTransform);
             PanelBuilder.SetAnchored(_combatLog.Root, 0, 0, 1 - selectionWidth, bottomRatio,
                 4, 4, -2, -2);
 
             // Selection panel (bottom-right)
             _selectionPanel = new SelectionPanelUI();
-            _selectionPanel.Build(canvasTransform);
+            _selectionPanel.Build(rootTransform);
             PanelBuilder.SetAnchored(_selectionPanel.Root, 1 - selectionWidth, 0, 1, bottomRatio,
                 2, 4, -4, -2);
 
             // Detail popups (overlay everything, hidden by default, created last for z-order)
             _characterPopup = new CharacterPopupUI();
-            _characterPopup.Build(canvasTransform);
+            _characterPopup.Build(rootTransform);
 
             _abilityPopup = new AbilityPopupUI();
-            _abilityPopup.Build(canvasTransform);
+            _abilityPopup.Build(rootTransform);
 
             _turnOrderPopup = new TurnOrderPopupUI();
-            _turnOrderPopup.Build(canvasTransform);
+            _turnOrderPopup.Build(rootTransform);
             _turnOrderPopup.SubscribeEvents();
 
             GameEvents.OnCharacterDetailRequested += _characterPopup.ShowCharacterPopup;
             GameEvents.OnAbilityDetailRequested += _abilityPopup.ShowAbilityPopup;
             GameEvents.OnTurnOrderDetailRequested += _turnOrderPopup.ShowTurnOrderPopup;
-        }
-
-        private void OnDestroy()
-        {
-            GameEvents.OnCharacterDetailRequested -= _characterPopup.ShowCharacterPopup;
-            GameEvents.OnAbilityDetailRequested -= _abilityPopup.ShowAbilityPopup;
-            GameEvents.OnTurnOrderDetailRequested -= _turnOrderPopup.ShowTurnOrderPopup;
-            _turnOrderPopup.UnsubscribeEvents();
         }
     }
 }

@@ -241,7 +241,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 
 ---
 
-## Current State (2026-02-23)
+## Current State (2026-02-23, updated)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -274,7 +274,30 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - TurnInfoPanelUI, SelectionPanelUI, CombatLogUI
   - LongPressHandler, FontManager
 - **Audio system (procedural):** AudioConfig, SFXLibrary, AudioManager
-- **Bootstrap:** GameBootstrap creates 4 players with starting equipment (sword+shield, dagger, bow, staff) vs 4 enemies
+- **Bootstrap:** GameBootstrap with `_useTestBattle` toggle: test battle (4v4) or full game loop
+- **Screen system (Phase A):**
+  - IScreen interface (Build/Show/Hide/Destroy)
+  - ScreenManager (owns Canvas + EventSystem, manages screen transitions)
+  - BattleScreenUI refactored from MonoBehaviour to plain IScreen class
+  - MainMenuScreen (title, "New Run" button)
+  - GameStateManager (coroutine-based game flow: menu → battle → post-battle loop)
+  - RunData (persistent run state: act, floor, gold, party, fallen, inventory)
+  - RunConfig (static run parameters)
+  - BattleResult enum + BattleManager exposes Result property
+- **Leveling + Post-Battle (Phase B):**
+  - LevelingSystem (Fire Emblem growth rolls, Fibonacci ability unlocks, passive unlocks every 5 levels)
+  - GrowthRates (per-class growth rates 0-100 per stat)
+  - CharacterData with persistent HP/energy/mana, GrowthModifiers, ResourcesInitialized
+  - BattleCharacter uses persistent resources from CharacterData, SyncToData() writes back
+  - ClassDefinitions: CreateCharacter (1 ability + generics), CreateCharacterAllAbilities (test mode)
+  - PostBattleProcessor (XP, gold, permadeath, partial heal, room type multipliers)
+  - PostBattleScreen (victory screen: XP bars, level ups, stat gains, new abilities, fallen, gold)
+- **Room Choice + Floor Progression (Phase C):**
+  - FloorGenerator (weighted room pool, boss on floor 7, shop guaranteed on floor 4, no duplicate shops)
+  - RoomChoiceScreen (act/floor header, gold, party summary, 2 room cards with symbols/descriptions)
+  - EncounterGenerator (normal/elite/boss encounters, stat + weapon scaling per floor, party-size matching)
+  - RunConfig expanded with encounter sizing, floor stat scaling, elite/boss multipliers
+  - GameStateManager: room choice → branch by type → battle or stub. Rest heals party. PreviousRoom tracking.
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -327,37 +350,33 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - Recursion guard on defeat processing (corpse explosion chain)
 - 1 long + 1 short action points per turn
 - Elements: Fire, Earth, Water, Air, Arcane, None
+- Combat formulas: weapon-based physical (STR + weapon * multiplier - armor), WIL-scaled spells, DEX hit for weapons, INT hit for spells, armor/magic pen
+- HitChanceModifier per ability for imprecise attacks (PowderBomb -0.10, Mass Confusion -0.15)
+- Screen system: IScreen interface, ScreenManager owns canvas, GameStateManager drives flow
+- BattleScreenUI is a plain class (not MonoBehaviour), built under ScreenManager's canvas
+- GameBootstrap has `_useTestBattle` toggle for dev convenience
+- Roguelike run: room-by-room choice, partial heal, permadeath, start with 2 recruit to 4, 3 acts x 7 floors
 
 ## Roadmap
 
 ### Phase 1: Complete Battle -- DONE
-~~1. Death visuals~~ ~~2. Status effects system~~ ~~3. Generic abilities~~ ~~4. Class abilities~~ ~~5. Advanced abilities~~
-~~5b. Battle system rework: Close/Reach, Block, DoTs, Stun/Silence, Stances, full class ability sets (Warrior/Rogue/Elementalist/Warlock), passives, equipment foundations~~
-6. **Polish pass** — battle feel, edge cases, visual consistency
+~~1. Death visuals~~ ~~2. Status effects~~ ~~3. Generic abilities~~ ~~4. Class abilities~~ ~~5. Advanced abilities~~
+~~5b. Battle system rework~~ ~~5c. Combat formula rework (weapon damage, WIL scaling, unified hit, penetration)~~
 
-### Phase 2: Visual Feedback (DOTween)
-7. Damage numbers — floating text on hit/heal/miss
-8. Bar animations — smooth HP/energy/mana bar transitions
-9. Hit flashes & transitions — screen shake on crit, flash on damage, turn transitions
-10. **Polish pass** — timing, animation feel, mobile performance
+### Phase 2: Roguelike Loop (current)
+- **A. Foundation** — Screen system, game state machine, main menu ← **DONE**
+- **B. Leveling + Post-Battle** — XP, Fire Emblem growth, ability unlocks, post-battle screen ← **DONE**
+- **C. Room Choice + Floor Progression** — Room generation, floor/act advancement ← **DONE**
+- **D. Enemy Roster + Scaling** — New enemies, scaling, bosses
+- **E. Equipment + Loot** — Procedural equipment, loot tables
+- **F. Inventory + Shop** — Equipment management, buy/sell
+- **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
 
-### Phase 3: Progression
-11. XP / Leveling — post-battle XP, stat growth, skill unlocks (Fibonacci + passives at 5s)
-12. Inventory & Equipment UI — equip/unequip, inventory management, stat previews
-13. **Polish pass** — stat balance, UI flow, equipment preview feel
-
-### Phase 4: Roguelike Loop
-14. Map system — node-based map generation, branching paths
-15. Encounter types — standard battles, elite fights, bosses, shops, rest sites
-16. Shop system — buy/sell equipment, consumables
-17. **Polish pass** — map variety, encounter balance, run pacing
-
-### Phase 5: Final Polish & Save
-18. Save system — persist run state, party, inventory
-19. Full visual/UI/balance polish pass
+### Phase 3: Visual Feedback (DOTween) — deferred
+### Phase 4: Final Polish & Save — deferred
 
 ### Next Up
-Phase 1, Step 6: Polish pass (battle feel, edge cases, visual consistency)
+Phase 2D: Enemy Roster + Scaling
 
 ---
 

@@ -33,6 +33,9 @@ namespace PixelWarriors
                 case AbilityTag.Swap:
                     ExecuteSwap(user, targets);
                     return;
+                case AbilityTag.Reposition:
+                    ExecuteReposition(user);
+                    return;
                 case AbilityTag.Anticipate:
                     ExecuteAnticipate(user);
                     return;
@@ -47,6 +50,9 @@ namespace PixelWarriors
                     return;
                 case AbilityTag.Pass:
                     ExecutePass(user);
+                    return;
+                case AbilityTag.Annihilation:
+                    ExecuteAnnihilation(user, targets);
                     return;
 
                 // --- Warrior ---
@@ -226,6 +232,16 @@ namespace PixelWarriors
             Log($"{user.Data.Name} swaps position with {target.Data.Name}!");
         }
 
+        private static void ExecuteReposition(BattleCharacter user)
+        {
+            GridRow newRow = user.Row == GridRow.Front ? GridRow.Back : GridRow.Front;
+            user.Row = newRow;
+
+            GameEvents.RaiseAbilityUsed(user, null, user);
+            GameEvents.RaisePositionSwapped(user, user);
+            Log($"{user.Data.Name} moves to the {newRow.ToString().ToLower()} row!");
+        }
+
         private static void ExecuteAnticipate(BattleCharacter user)
         {
             user.Priority = Priority.Positive;
@@ -275,6 +291,20 @@ namespace PixelWarriors
 
             GameEvents.RaiseAbilityUsed(user, null, user);
             Log($"{user.Data.Name} passes.");
+        }
+
+        private static void ExecuteAnnihilation(BattleCharacter user, List<BattleCharacter> targets)
+        {
+            Log($"{user.Data.Name} unleashes ANNIHILATION!");
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+                int damage = target.CurrentHP;
+                target.CurrentHP = 0;
+                GameEvents.RaiseDamageDealt(target, damage, DamageType.Physical);
+                GameEvents.RaiseCharacterDefeated(target);
+                Log($"  {target.Data.Name} is obliterated!");
+            }
         }
 
         private static void ExecuteRitual(BattleCharacter user, AbilityData ability)
@@ -459,9 +489,13 @@ namespace PixelWarriors
             if (target.HasEffect(StatusEffect.UltimateReflexes))
                 return HitResult.Dodge();
 
-            // Hit chance: single contest
-            float hitChance = StatCalculator.CalculateHitChance(
-                user.EffectiveStats.Dexterity, target.EffectiveStats.Dexterity);
+            // Hit chance: DEX contest for weapons, INT contest for spells
+            int attackerHitStat = ability.IsWeaponAttack
+                ? user.EffectiveStats.Dexterity : user.EffectiveStats.Intellect;
+            int targetHitStat = ability.IsWeaponAttack
+                ? target.EffectiveStats.Dexterity : target.EffectiveStats.Intellect;
+            float hitChance = StatCalculator.CalculateHitChance(attackerHitStat, targetHitStat)
+                + ability.HitChanceModifier;
             if (Random.value > hitChance)
                 return HitResult.Miss();
 
@@ -506,6 +540,22 @@ namespace PixelWarriors
             }
 
             return HitResult.Hit(damage, isCrit);
+        }
+
+        /// <summary>
+        /// Hit check for status-only spells that don't deal damage.
+        /// Uses INT contest + ability HitChanceModifier.
+        /// </summary>
+        public static bool RollSpellHit(BattleCharacter user, AbilityData ability, BattleCharacter target)
+        {
+            if (target.HasEffect(StatusEffect.UltimateReflexes))
+                return false;
+
+            int attackerInt = user.EffectiveStats.Intellect;
+            int targetInt = target.EffectiveStats.Intellect;
+            float hitChance = StatCalculator.CalculateHitChance(attackerInt, targetInt)
+                + ability.HitChanceModifier;
+            return Random.value <= hitChance;
         }
 
         private static bool CheckBlock(BattleCharacter target)

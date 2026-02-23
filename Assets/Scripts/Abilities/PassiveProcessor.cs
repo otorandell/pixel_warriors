@@ -34,11 +34,10 @@ namespace PixelWarriors
 
             // Escape Plan: become concealed below 50% HP (once per battle)
             if (HasPassive(target, "Escape Plan") &&
-                !target.HasUsedOnce(AbilityTag.None) &&
+                !target.HasUsedOnce(AbilityTag.EscapePlan) &&
                 target.CurrentHP < target.MaxHP * 0.50f)
             {
-                // Use a special tracking — mark via the passive name
-                target.MarkUsedOnce(AbilityTag.Hide); // Reuse as once-per-battle flag
+                target.MarkUsedOnce(AbilityTag.EscapePlan);
                 target.AddEffect(new StatusEffectInstance(StatusEffect.Conceal, -1, 0, target));
                 GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Conceal, 0);
                 GameEvents.RaiseCombatLogMessage($"{target.Data.Name}'s escape plan triggers! Concealed!");

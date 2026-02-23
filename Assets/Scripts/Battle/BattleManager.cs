@@ -18,6 +18,11 @@ namespace PixelWarriors
         private PlayerInputHandler _playerInput;
         private BattleVisualController _visuals;
 
+        public BattleResult Result { get; private set; } = BattleResult.None;
+        public bool IsFinished => Result != BattleResult.None;
+        public List<BattleCharacter> Players => _players;
+        public List<BattleCharacter> Enemies => _enemies;
+
         public void StartBattle(List<BattleCharacter> players, List<BattleCharacter> enemies,
             BattleScreenUI battleScreen)
         {
@@ -153,6 +158,7 @@ namespace PixelWarriors
 
                         if (CheckVictory())
                         {
+                            Result = BattleResult.Victory;
                             SetState(BattleState.Victory);
                             _battleScreen.BattleGrid.ClearAllHighlights();
                             Log("Victory!");
@@ -162,6 +168,7 @@ namespace PixelWarriors
 
                         if (CheckDefeat())
                         {
+                            Result = BattleResult.Defeat;
                             SetState(BattleState.Defeat);
                             _battleScreen.BattleGrid.ClearAllHighlights();
                             Log("Defeat...");

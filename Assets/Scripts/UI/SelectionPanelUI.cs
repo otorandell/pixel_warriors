@@ -105,5 +105,12 @@ namespace PixelWarriors
             _stagedActionDescription = description;
             _stagedText.text = description;
         }
+
+        public void Unsubscribe()
+        {
+            GameEvents.OnPlayerInputPhaseChanged -= HandleInputPhaseChanged;
+            GameEvents.OnBattleStateChanged -= HandleBattleStateChanged;
+            GameEvents.OnStagedActionChanged -= HandleStagedActionChanged;
+        }
     }
 }

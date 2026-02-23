@@ -11,9 +11,16 @@ namespace PixelWarriors
         public int Level;
         public int CurrentXP;
         public CharacterStats BaseStats;
+        public CharacterStats GrowthModifiers;
         public List<AbilityData> Abilities;
         public List<AbilityData> Passives;
         public EquipmentData[] Equipment;
+
+        // Persistent resources (carry between battles)
+        public int CurrentHP;
+        public int CurrentEnergy;
+        public int CurrentMana;
+        public bool ResourcesInitialized;
 
         public CharacterData()
         {
@@ -22,6 +29,16 @@ namespace PixelWarriors
             Abilities = new List<AbilityData>();
             Passives = new List<AbilityData>();
             Equipment = new EquipmentData[6];
+            GrowthModifiers = new CharacterStats();
+        }
+
+        public void InitializeResources()
+        {
+            CharacterStats total = GetTotalStats();
+            CurrentHP = StatCalculator.CalculateMaxHP(total);
+            CurrentEnergy = StatCalculator.CalculateMaxEnergy(total);
+            CurrentMana = StatCalculator.CalculateMaxMana(total);
+            ResourcesInitialized = true;
         }
 
         public CharacterStats GetTotalStats()
