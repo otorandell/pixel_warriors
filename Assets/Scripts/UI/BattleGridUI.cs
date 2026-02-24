@@ -85,6 +85,27 @@ namespace PixelWarriors
             foreach (CharacterCardUI card in _playerCards) card.SetStagedHighlight(false);
         }
 
+        public void AddEnemy(BattleCharacter enemy)
+        {
+            // Remove any dead card at the same grid position
+            for (int i = _enemyCards.Count - 1; i >= 0; i--)
+            {
+                CharacterCardUI existing = _enemyCards[i];
+                if (!existing.Character.IsAlive &&
+                    existing.Character.Row == enemy.Row &&
+                    existing.Character.Column == enemy.Column)
+                {
+                    Object.Destroy(existing.Root.gameObject);
+                    _enemyCards.RemoveAt(i);
+                }
+            }
+
+            CharacterCardUI card = new CharacterCardUI();
+            card.Build(_enemyGrid, enemy);
+            _enemyCards.Add(card);
+            RepositionCards(_enemyCards, invertRows: true);
+        }
+
         public CharacterCardUI FindCard(BattleCharacter character)
         {
             foreach (CharacterCardUI card in _enemyCards)

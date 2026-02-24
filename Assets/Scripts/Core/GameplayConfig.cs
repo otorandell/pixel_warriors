@@ -93,6 +93,9 @@ namespace PixelWarriors
         public const float PostActionDelay = 0.3f;
         public const float EnemyThinkDelay = 0.5f;
 
+        // --- Reinforcements ---
+        public const float ReinforcementSpawnDelay = 0.8f;
+
         // --- Energy / Mana Regen ---
         public const float EnergyRegenPerTurn = 0.20f;
         public const float ManaRegenPerTurn = 0.05f;

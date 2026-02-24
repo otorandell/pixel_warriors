@@ -18,17 +18,23 @@ namespace PixelWarriors
         private PlayerInputHandler _playerInput;
         private BattleVisualController _visuals;
 
+        // Reinforcement system
+        private List<ReinforcementWave> _pendingWaves = new();
+
         public BattleResult Result { get; private set; } = BattleResult.None;
         public bool IsFinished => Result != BattleResult.None;
         public List<BattleCharacter> Players => _players;
         public List<BattleCharacter> Enemies => _enemies;
 
-        public void StartBattle(List<BattleCharacter> players, List<BattleCharacter> enemies,
-            BattleScreenUI battleScreen)
+        public void StartBattle(List<BattleCharacter> players, List<BattleCharacter> initialEnemies,
+            EncounterData encounterData, BattleScreenUI battleScreen)
         {
             _players = players;
-            _enemies = enemies;
+            _enemies = initialEnemies;
             _battleScreen = battleScreen;
+
+            // Copy waves so we can mutate the list as they trigger
+            _pendingWaves = new List<ReinforcementWave>(encounterData.Waves);
 
             _visuals = new BattleVisualController(battleScreen);
             _playerInput = new PlayerInputHandler(battleScreen, _visuals);
@@ -105,6 +111,13 @@ namespace PixelWarriors
             WarriorAbilityHandler.ResetBladedanceCounts();
             Log("Battle begins!");
 
+            // Notify UI of initial wave count
+            if (_pendingWaves.Count > 0)
+            {
+                GameEvents.RaiseReinforcementWaveCountChanged(_pendingWaves.Count);
+                Log($"Warning: {_pendingWaves.Count} reinforcement wave(s) detected!");
+            }
+
             _battleScreen.BattleGrid.SetPlayers(_players);
             _battleScreen.BattleGrid.SetEnemies(_enemies);
             _battleScreen.BattleGrid.RefreshAll();
@@ -154,6 +167,10 @@ namespace PixelWarriors
                         }
 
                         _battleScreen.BattleGrid.RefreshAll();
+
+                        // Check reinforcements after each action
+                        yield return CheckAndSpawnReinforcements();
+
                         yield return new WaitForSeconds(GameplayConfig.PostActionDelay);
 
                         if (CheckVictory())
@@ -190,6 +207,9 @@ namespace PixelWarriors
 
                     // Check for deaths from DoT effects
                     _battleScreen.BattleGrid.RefreshAll();
+
+                    // Check reinforcements after turn end (DoT kills may trigger)
+                    yield return CheckAndSpawnReinforcements();
 
                     if (CheckVictory())
                     {
@@ -243,6 +263,90 @@ namespace PixelWarriors
             }
         }
 
+        // --- Reinforcement System ---
+
+        private IEnumerator CheckAndSpawnReinforcements()
+        {
+            // Check waves in reverse so we can remove triggered ones
+            for (int i = _pendingWaves.Count - 1; i >= 0; i--)
+            {
+                if (IsWaveTriggered(_pendingWaves[i]))
+                {
+                    ReinforcementWave wave = _pendingWaves[i];
+                    _pendingWaves.RemoveAt(i);
+                    yield return SpawnReinforcementWave(wave);
+                }
+            }
+        }
+
+        private bool IsWaveTriggered(ReinforcementWave wave)
+        {
+            switch (wave.Trigger)
+            {
+                case ReinforcementTrigger.OnEnemyCount:
+                    int aliveCount = _enemies.Count(e => e.IsAlive);
+                    return aliveCount <= wave.TriggerValue;
+
+                case ReinforcementTrigger.OnRoundNumber:
+                    return _roundNumber >= wave.TriggerValue;
+
+                case ReinforcementTrigger.OnBossHPPercent:
+                    bool anyBossExists = false;
+                    foreach (BattleCharacter enemy in _enemies)
+                    {
+                        if (!enemy.Data.IsBoss) continue;
+                        anyBossExists = true;
+
+                        // Dead boss = 0% HP, triggers any threshold
+                        if (!enemy.IsAlive)
+                            return true;
+
+                        float hpPercent = (float)enemy.CurrentHP / enemy.MaxHP * 100f;
+                        if (hpPercent <= wave.TriggerValue)
+                            return true;
+                    }
+                    // No boss found at all — discard wave (shouldn't happen)
+                    return !anyBossExists;
+
+                default:
+                    return false;
+            }
+        }
+
+        private IEnumerator SpawnReinforcementWave(ReinforcementWave wave)
+        {
+            var emptySlots = GridSlotUtil.GetEmptySlots(_enemies);
+            if (emptySlots.Count == 0) yield break;
+
+            // Place reinforcements into available slots
+            int spawnCount = Mathf.Min(wave.Enemies.Count, emptySlots.Count);
+            List<BattleCharacter> spawned = new();
+
+            for (int i = 0; i < spawnCount; i++)
+            {
+                BattleCharacter bc = new BattleCharacter(
+                    wave.Enemies[i], TeamSide.Enemy, emptySlots[i].Row, emptySlots[i].Col);
+                _enemies.Add(bc);
+                _battleScreen.BattleGrid.AddEnemy(bc);
+                spawned.Add(bc);
+            }
+
+            // Fire passive battle-start hooks for new enemies
+            foreach (BattleCharacter bc in spawned)
+                PassiveProcessor.OnBattleStart(bc);
+
+            // Announce
+            Log(wave.AnnouncementText);
+            GameEvents.RaiseReinforcementsSpawned(wave.AnnouncementText, spawnCount);
+            GameEvents.RaiseReinforcementWaveCountChanged(_pendingWaves.Count);
+
+            _battleScreen.BattleGrid.RefreshAll();
+
+            yield return new WaitForSeconds(GameplayConfig.ReinforcementSpawnDelay);
+        }
+
+        // --- State Management ---
+
         private void SetState(BattleState newState)
         {
             _currentState = newState;
@@ -254,7 +358,7 @@ namespace PixelWarriors
             return _players.Concat(_enemies).ToList();
         }
 
-        private bool CheckVictory() => _enemies.TrueForAll(e => !e.IsAlive);
+        private bool CheckVictory() => _enemies.TrueForAll(e => !e.IsAlive) && _pendingWaves.Count == 0;
         private bool CheckDefeat() => _players.TrueForAll(p => !p.IsAlive);
 
         private void Log(string message) => GameEvents.RaiseCombatLogMessage(message);

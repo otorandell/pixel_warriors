@@ -6,96 +6,55 @@ namespace PixelWarriors
         {
             return enemyType switch
             {
-                EnemyType.GoblinArcher => CreateGoblinArcher(),
-                EnemyType.Ratman => CreateRatman(),
-                EnemyType.Minotaur => CreateMinotaur(),
-                _ => CreateRatman()
+                // === Act 1 ===
+                EnemyType.Ratman => Act1Enemies.CreateRatman(),
+                EnemyType.Skeleton => Act1Enemies.CreateSkeleton(),
+                EnemyType.ZombieShambler => Act1Enemies.CreateZombieShambler(),
+                EnemyType.FungusCreeper => Act1Enemies.CreateFungusCreeper(),
+                EnemyType.GoblinArcher => Act1Enemies.CreateGoblinArcher(),
+                EnemyType.SwarmBat => Act1Enemies.CreateSwarmBat(),
+                EnemyType.TunnelRat => Act1Enemies.CreateTunnelRat(),
+                EnemyType.Minotaur => Act1Enemies.CreateMinotaur(),
+                EnemyType.GiantSpider => Act1Enemies.CreateGiantSpider(),
+                EnemyType.BoneLord => Act1Enemies.CreateBoneLord(),
+                EnemyType.GoblinKing => Act1Enemies.CreateGoblinKing(),
+                EnemyType.CatacombGuardian => Act1Enemies.CreateCatacombGuardian(),
+
+                // === Act 2 ===
+                EnemyType.Spider => Act2Enemies.CreateSpider(),
+                EnemyType.Bandit => Act2Enemies.CreateBandit(),
+                EnemyType.OrcWarrior => Act2Enemies.CreateOrcWarrior(),
+                EnemyType.StoneSentinel => Act2Enemies.CreateStoneSentinel(),
+                EnemyType.BerserkerCultist => Act2Enemies.CreateBerserkerCultist(),
+                EnemyType.DarkMage => Act2Enemies.CreateDarkMage(),
+                EnemyType.HerbalistShaman => Act2Enemies.CreateHerbalistShaman(),
+                EnemyType.CrossbowBandit => Act2Enemies.CreateCrossbowBandit(),
+                EnemyType.FireImp => Act2Enemies.CreateFireImp(),
+                EnemyType.OrcBrute => Act2Enemies.CreateOrcBrute(),
+                EnemyType.WyvernKnight => Act2Enemies.CreateWyvernKnight(),
+                EnemyType.NecromancerAdept => Act2Enemies.CreateNecromancerAdept(),
+                EnemyType.BladeDancer => Act2Enemies.CreateBladeDancer(),
+                EnemyType.MinotaurLord => Act2Enemies.CreateMinotaurLord(),
+                EnemyType.BanditWarlord => Act2Enemies.CreateBanditWarlord(),
+
+                // === Act 3 ===
+                EnemyType.DarkKnight => Act3Enemies.CreateDarkKnight(),
+                EnemyType.AbyssalGolem => Act3Enemies.CreateAbyssalGolem(),
+                EnemyType.PlagueBringer => Act3Enemies.CreatePlagueBringer(),
+                EnemyType.DeathCultist => Act3Enemies.CreateDeathCultist(),
+                EnemyType.ChainDevil => Act3Enemies.CreateChainDevil(),
+                EnemyType.ShadowAssassin => Act3Enemies.CreateShadowAssassin(),
+                EnemyType.LichAcolyte => Act3Enemies.CreateLichAcolyte(),
+                EnemyType.BloodMage => Act3Enemies.CreateBloodMage(),
+                EnemyType.VoidSpeaker => Act3Enemies.CreateVoidSpeaker(),
+                EnemyType.VampireLord => Act3Enemies.CreateVampireLord(),
+                EnemyType.TwinWraith => Act3Enemies.CreateTwinWraith(),
+                EnemyType.DemonChampion => Act3Enemies.CreateDemonChampion(),
+                EnemyType.Lich => Act3Enemies.CreateLich(),
+                EnemyType.ArchDemon => Act3Enemies.CreateArchDemon(),
+
+                _ => Act1Enemies.CreateRatman()
             };
-        }
-
-        private static CharacterData CreateGoblinArcher()
-        {
-            var data = new CharacterData
-            {
-                Name = "Goblin Archer",
-                Class = CharacterClass.Ranger,
-                BaseStats = new CharacterStats(3, 4, 2, 3, 5, 2, 1, 5, 6)
-            };
-
-            data.Equipment[(int)EquipmentSlot.Hand1] = new EquipmentData
-            {
-                Name = "Crude Bow",
-                Slot = EquipmentSlot.Hand1,
-                WeaponType = WeaponType.Bow,
-                BaseDamage = 4
-            };
-
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Shoot", "Fires an arrow.", basePower: 0, range: AbilityRange.Reach,
-                damageMultiplier: 1.0f));
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Poison Arrow", "Fires a poisoned arrow.", basePower: 0, energyCost: 2,
-                range: AbilityRange.Reach, damageMultiplier: 0.8f));
-
-            return data;
-        }
-
-        private static CharacterData CreateRatman()
-        {
-            var data = new CharacterData
-            {
-                Name = "Ratman",
-                Class = CharacterClass.Warrior,
-                BaseStats = new CharacterStats(5, 4, 1, 5, 4, 1, 3, 5, 4)
-            };
-
-            data.Equipment[(int)EquipmentSlot.Hand1] = new EquipmentData
-            {
-                Name = "Claws",
-                Slot = EquipmentSlot.Hand1,
-                WeaponType = WeaponType.Sword,
-                BaseDamage = 5
-            };
-
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Claw", "Slashes with claws.", basePower: 0, range: AbilityRange.Close,
-                damageMultiplier: 1.0f));
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Bite", "A vicious bite.", basePower: 0, energyCost: 2, range: AbilityRange.Close,
-                damageMultiplier: 1.3f));
-
-            return data;
-        }
-
-        private static CharacterData CreateMinotaur()
-        {
-            var data = new CharacterData
-            {
-                Name = "Minotaur",
-                Class = CharacterClass.Warrior,
-                BaseStats = new CharacterStats(12, 6, 2, 10, 3, 3, 8, 8, 2)
-            };
-
-            data.Equipment[(int)EquipmentSlot.Hand1] = new EquipmentData
-            {
-                Name = "Horns",
-                Slot = EquipmentSlot.Hand1,
-                WeaponType = WeaponType.TwoHanded,
-                BaseDamage = 8
-            };
-
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Gore", "Charges and gores the target.", basePower: 0, range: AbilityRange.Close,
-                damageMultiplier: 1.8f));
-            data.Abilities.Add(AbilityData.CreateAttack(
-                "Stomp", "Stomps the ground, hitting all enemies.", basePower: 0,
-                targetType: TargetType.AllEnemies, range: AbilityRange.Close,
-                damageMultiplier: 1.0f));
-            data.Abilities.Add(AbilityData.CreateSkill(
-                "Enrage", "Increases strength temporarily.", basePower: 0, energyCost: 4,
-                targetType: TargetType.Self));
-
-            return data;
         }
     }
 }

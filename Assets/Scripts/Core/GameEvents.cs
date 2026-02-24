@@ -48,6 +48,10 @@ namespace PixelWarriors
         // --- Turn Order Detail ---
         public static event Action OnTurnOrderDetailRequested;
 
+        // --- Reinforcements ---
+        public static event Action<string, int> OnReinforcementsSpawned;
+        public static event Action<int> OnReinforcementWaveCountChanged;
+
         // --- Staging / Confirmation ---
         public static event Action OnActionConfirmed;
         public static event Action OnActionCancelled;
@@ -116,5 +120,11 @@ namespace PixelWarriors
 
         public static void RaiseTurnOrderDetailRequested()
             => OnTurnOrderDetailRequested?.Invoke();
+
+        public static void RaiseReinforcementsSpawned(string announcement, int count)
+            => OnReinforcementsSpawned?.Invoke(announcement, count);
+
+        public static void RaiseReinforcementWaveCountChanged(int remainingWaves)
+            => OnReinforcementWaveCountChanged?.Invoke(remainingWaves);
     }
 }

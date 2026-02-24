@@ -34,6 +34,7 @@ namespace PixelWarriors
             _clips[SFXType.Victory] = GenerateArpeggio("Victory", new[] { 262f, 330f, 392f, 523f, 659f, 784f }, 0.10f, WaveType.Sine);
             _clips[SFXType.BattleDefeat] = GenerateArpeggio("BattleDefeat", new[] { 262f, 233f, 196f, 165f }, 0.125f, WaveType.Square);
             _clips[SFXType.TurnNotify] = GenerateSineTone("TurnNotify", 660f, 0.06f);
+            _clips[SFXType.Reinforcements] = GenerateReinforcementAlert("Reinforcements", 0.35f);
 
             _initialized = true;
         }
@@ -234,6 +235,37 @@ namespace PixelWarriors
                 }
 
                 samples[i] = (sweep + noise) * env;
+            }
+
+            return CreateClip(name, samples);
+        }
+
+        private static AudioClip GenerateReinforcementAlert(string name, float duration)
+        {
+            int sampleCount = (int)(duration * AudioConfig.SampleRate);
+            float[] samples = new float[sampleCount];
+            float phase = 0f;
+
+            // Low rumble + ascending horn: signals incoming danger
+            for (int i = 0; i < sampleCount; i++)
+            {
+                float t = i / (float)AudioConfig.SampleRate;
+                float progress = t / duration;
+
+                // Ascending square wave horn (150 → 400 Hz)
+                float hornFreq = Mathf.Lerp(150f, 400f, progress);
+                phase += hornFreq / AudioConfig.SampleRate;
+                float horn = SampleWave(WaveType.Square, phase) * 0.25f;
+
+                // Low rumble noise
+                float rumble = WhiteNoise() * 0.15f * (1f - progress);
+
+                // Envelope: quick attack, sustain, quick release
+                float env = 1f;
+                if (t < 0.02f) env = t / 0.02f;
+                if (t > duration - 0.05f) env = (duration - t) / 0.05f;
+
+                samples[i] = (horn + rumble) * Mathf.Max(0f, env);
             }
 
             return CreateClip(name, samples);

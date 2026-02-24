@@ -218,9 +218,64 @@ namespace PixelWarriors
 
     public enum EnemyType
     {
+        // ===== ACT 1: Sewers/Catacombs =====
+        // Regular - Frontline
         Ratman,
+        Skeleton,
+        ZombieShambler,
+        FungusCreeper,
+        // Regular - Backline
         GoblinArcher,
-        Minotaur
+        SwarmBat,
+        TunnelRat,
+        // Elite
+        Minotaur,
+        GiantSpider,
+        BoneLord,
+        // Boss
+        GoblinKing,
+        CatacombGuardian,
+
+        // ===== ACT 2: Wilderness/Fortress =====
+        // Regular - Frontline
+        Spider,
+        Bandit,
+        OrcWarrior,
+        StoneSentinel,
+        BerserkerCultist,
+        // Regular - Backline
+        DarkMage,
+        HerbalistShaman,
+        CrossbowBandit,
+        FireImp,
+        // Elite
+        OrcBrute,
+        WyvernKnight,
+        NecromancerAdept,
+        BladeDancer,
+        // Boss
+        MinotaurLord,
+        BanditWarlord,
+
+        // ===== ACT 3: Dark Citadel =====
+        // Regular - Frontline
+        DarkKnight,
+        AbyssalGolem,
+        PlagueBringer,
+        DeathCultist,
+        ChainDevil,
+        // Regular - Backline
+        ShadowAssassin,
+        LichAcolyte,
+        BloodMage,
+        VoidSpeaker,
+        // Elite
+        VampireLord,
+        TwinWraith,
+        DemonChampion,
+        // Boss
+        Lich,
+        ArchDemon
     }
 
     public enum GameScreen
@@ -255,6 +310,13 @@ namespace PixelWarriors
         Defeat
     }
 
+    public enum ReinforcementTrigger
+    {
+        OnEnemyCount,      // Spawn when alive enemy count <= TriggerValue
+        OnRoundNumber,     // Spawn when round number >= TriggerValue
+        OnBossHPPercent    // Spawn when any boss HP% <= TriggerValue (0-100)
+    }
+
     public enum PlayerInputPhase
     {
         SelectingAbility,
@@ -285,6 +347,7 @@ namespace PixelWarriors
         BattleStart,
         Victory,
         BattleDefeat,
-        TurnNotify
+        TurnNotify,
+        Reinforcements
     }
 }

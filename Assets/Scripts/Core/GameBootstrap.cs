@@ -92,8 +92,11 @@ namespace PixelWarriors
                     TeamSide.Enemy, GridRow.Back, GridColumn.Right),
             };
 
+            // Create empty encounter data for test battle (no reinforcements)
+            EncounterData encounterData = new();
+
             _battleManager = gameObject.AddComponent<BattleManager>();
-            _battleManager.StartBattle(players, enemies, _battleScreen);
+            _battleManager.StartBattle(players, enemies, encounterData, _battleScreen);
         }
 
         private static void EquipDefaultWeapon(CharacterData data, CharacterClass characterClass)

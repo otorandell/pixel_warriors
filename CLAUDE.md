@@ -229,19 +229,76 @@ Sword, Dagger, TwoHanded, Shield, Staff, Bow, Mace. Some abilities require speci
 
 ---
 
-## Enemies (Initial Set)
+## Enemies (~46 total)
 
-| Enemy | Role |
-|-------|------|
-| Goblin Archer | Weak backliner |
-| Ratman | Weak frontliner |
-| Minotaur | Powerful elite |
+### Act 1 (Sewers/Catacombs) — 12 enemies
+| Type | Role | Identity |
+|------|------|----------|
+| Ratman | Frontline | Basic physical, claws/bite |
+| Skeleton | Frontline | Sword + shield, can block |
+| Zombie | Frontline | High HP, very slow, hits hard |
+| Fungus Creeper | Frontline | Poison on hit, spore cloud AoE |
+| Goblin Archer | Backline | Bow, poison arrow |
+| Swarm Bat | Backline | Multi-hit (3x), chips shields |
+| Tunnel Rat | Backline | Healer, priority kill target |
+| Minotaur | Elite | AoE stomp + gore, enrage |
+| Giant Spider | Elite | Stun (web) + poison, crowd control |
+| Bone Lord | Elite | Gang leader, dark magic |
+| Goblin King | Boss | Mace + shield, sweeping strike |
+| Catacomb Guardian | Boss | Very high armor, AoE slam, enrages at low HP |
 
-Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
+### Act 2 (Wilderness/Fortress) — 15 enemies
+| Type | Role | Identity |
+|------|------|----------|
+| Spider | Frontline | Poison bite + web spit |
+| Bandit | Frontline | Fast dagger, cheap shot, knife throw |
+| Orc Warrior | Frontline | Tank, shield wall, reckless swing |
+| Stone Sentinel | Frontline | Extreme armor, low HP — test magic/pen |
+| Berserker Cultist | Frontline | Gets stronger, frenzy AoE |
+| Dark Mage | Backline | Shadow bolt, curse |
+| Herbalist Shaman | Backline | Heals allies, purifies |
+| Crossbow Bandit | Backline | High single-target ranged physical |
+| Fire Imp | Backline | Burn DoT, low HP |
+| Orc Brute | Elite | Cleave AoE + overhead smash |
+| Wyvern Knight | Elite | High mobility, aerial strikes |
+| Necromancer Adept | Elite | DoTs + death bolt + dark ritual |
+| Blade Dancer | Elite | Multi-hit (3x), precise strike |
+| Minotaur Lord | Boss | Devastating gore, earthquake AoE |
+| Bandit Warlord | Boss | Power strike, rallies troops |
+
+### Act 3 (Dark Citadel) — 14 enemies
+| Type | Role | Identity |
+|------|------|----------|
+| Dark Knight | Frontline | High armor+MR, counter stance |
+| Abyssal Golem | Frontline | Very high MRS, slow, must use physical |
+| Plague Bringer | Frontline | AoE poison, rot |
+| Death Cultist | Frontline | Sacrifices HP for massive damage |
+| Chain Devil | Frontline | Hook (reach), constrict |
+| Shadow Assassin | Backline | High DEX/INI, throat slit (2x), fade |
+| Lich Acolyte | Backline | Silence + shadow bolt |
+| Blood Mage | Backline | Self-damages for powerful AoE hemorrhage |
+| Void Speaker | Backline | AoE void scream + mind blast |
+| Vampire Lord | Elite | Drain strike, blood feast, self-heal |
+| Twin Wraith | Elite | Multi-hit spectral barrage, shadow bond |
+| Demon Champion | Elite | Mixed physical/magical, AoE + single target |
+| The Lich | Boss | Death bolt, soul drain AoE, dark pact |
+| Arch Demon | Boss | Cataclysm AoE, doom strike (2.2x), hellfire |
+
+Enemy AI: 1-3 abilities per enemy, randomized selection and targeting. Bosses are flagged with `IsBoss` for HP-threshold reinforcement triggers.
+
+### Reinforcement System
+Battles can have reinforcement waves that spawn mid-battle:
+- **Normal battles**: 40% chance of 1 wave (1-2 enemies) when alive enemies <= 1
+- **Elite battles**: 1-2 waves of regular adds when alive enemies <= 1 (gang leader pattern)
+- **Boss battles**: Waves at 75% and 40% boss HP thresholds (+ 20% for Act 3)
+- Triggers: `OnEnemyCount`, `OnRoundNumber`, `OnBossHPPercent`
+- Reinforcements join next round's turn order (not current round)
+- UI shows wave count indicator `[+N]` in turn info panel
+- Dead card positions are reused by spawning reinforcements
 
 ---
 
-## Current State (2026-02-23, updated)
+## Current State (2026-02-24, updated)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -251,13 +308,13 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - AbilityCatalog (master catalog: all abilities per class, generic abilities)
   - PassiveProcessor (OnBattleStart, OnTurnStart, OnDamageTaken, OnCharacterDefeated hooks)
   - Per-class ability handlers: WarriorAbilityHandler, RogueAbilityHandler, ElementalistAbilityHandler, WarlockAbilityHandler
-- **Enemy system:** EnemyDefinitions (Ratman/Goblin Archer/Minotaur with Close/Reach ranges), EnemyAI (Mass Confusion redirect)
+- **Enemy system:** EnemyDefinitions (router) → Act1Enemies/Act2Enemies/Act3Enemies (~46 types), EncounterGenerator (act-based pools, scaling, reinforcement waves), EncounterData + ReinforcementWave, EnemyAI (Mass Confusion redirect)
 - **Status effect system:**
   - StatusEffectInstance (type, duration, value, source)
   - StatusEffectProcessor (DoT processing: Bleed/Poison/Burn/LeechLife, Stun/Silence/Chilled, stance energy drain, aggro modifiers for Conceal/Taunt/Levitate/Hide)
   - 29 status effects fully implemented
 - **Battle engine:**
-  - BattleManager (~250 lines, orchestration + passive event hooks + caltrops)
+  - BattleManager (~300 lines, orchestration + passive event hooks + caltrops + reinforcement spawning)
   - PlayerInputHandler (staged confirmation flow)
   - BattleVisualController (highlight management)
   - TurnOrderCalculator, TargetSelector (Close/Reach filtering, concealment fallback)
@@ -265,7 +322,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - EnemyAI (Mass Confusion: redirect targeting to own team)
   - HitResult (Miss/Dodge/Block/Hit)
 - **UI framework (all code-first, TextMeshPro):**
-  - PanelBuilder, BattleScreenUI, BattleGridUI
+  - PanelBuilder, BattleScreenUI, BattleGridUI (AddEnemy for mid-battle spawning)
   - CharacterCardUI (expanded status indicators: [T][C][B][Po][Fi][Ch][!][X][Df][Br][Bk][Bl] etc.)
   - AbilityPanelUI (5 tabs, [C]/[R] range tags on buttons)
   - AbilityPopupUI (range, weapon requirements, once-per-battle, frontline-only, concealed requirement display)
@@ -298,6 +355,17 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
   - EncounterGenerator (normal/elite/boss encounters, stat + weapon scaling per floor, party-size matching)
   - RunConfig expanded with encounter sizing, floor stat scaling, elite/boss multipliers
   - GameStateManager: room choice → branch by type → battle or stub. Rest heals party. PreviousRoom tracking.
+- **Phase D — Reinforcement Mechanic + Expanded Enemy Roster:**
+  - EncounterData + ReinforcementWave classes (trigger types: OnEnemyCount, OnRoundNumber, OnBossHPPercent)
+  - GridSlotUtil (grid slot management, character placement)
+  - BattleGridUI.AddEnemy (mid-battle card creation, dead card replacement)
+  - EncounterGenerator returns EncounterData with waves, ScaleStats is public
+  - BattleManager: CheckAndSpawnReinforcements, wave tracking, modified victory (all dead + no pending waves)
+  - GameStateManager uses EncounterData + GridSlotUtil flow
+  - TurnInfoPanelUI shows wave count indicator [+N]
+  - SFXType.Reinforcements + AudioManager subscription
+  - EnemyDefinitions split into Act1/Act2/Act3Enemies (~46 enemy types total)
+  - 2 bosses per act for randomization (BossPools array)
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -316,6 +384,9 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - **Mass Confusion:** Enemies redirect attacks to fellow enemies
 - **Corpse Explosion / Soul Harvest:** Triggered on character death
 - **Elementalist energy bolt:** Changes effect based on last spell element used
+- **Reinforcement system:** Enemies spawn mid-battle based on triggers (enemy count, round, boss HP%). Waves join next round. UI shows [+N] indicator. SFX on spawn.
+- **~46 enemy types** across 3 acts with diverse stat profiles and mechanics
+- **2 bosses per act** for encounter randomization
 - Equipment with weapon types, block chances
 - Ability popup shows range, weapon requirements, once-per-battle, frontline-only
 - All previous UI features (staging, popups, combat log, etc.)
@@ -356,6 +427,12 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - BattleScreenUI is a plain class (not MonoBehaviour), built under ScreenManager's canvas
 - GameBootstrap has `_useTestBattle` toggle for dev convenience
 - Roguelike run: room-by-room choice, partial heal, permadeath, start with 2 recruit to 4, 3 acts x 7 floors
+- Reinforcements join next round (not mid-turn) — simpler + gives player a round to react
+- Dead enemy cards replaced by reinforcements at same grid position
+- EncounterData wraps CharacterData (not BattleCharacter) — grid placement deferred to spawn time
+- EnemyDefinitions split by act (Act1/Act2/Act3Enemies) to keep files under 300 lines
+- CharacterData.IsBoss flag for HP-threshold reinforcement triggers
+- Boss pools: 2 per act for randomization
 
 ## Roadmap
 
@@ -367,7 +444,7 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 - **A. Foundation** — Screen system, game state machine, main menu ← **DONE**
 - **B. Leveling + Post-Battle** — XP, Fire Emblem growth, ability unlocks, post-battle screen ← **DONE**
 - **C. Room Choice + Floor Progression** — Room generation, floor/act advancement ← **DONE**
-- **D. Enemy Roster + Scaling** — New enemies, scaling, bosses
+- **D. Enemy Roster + Scaling + Reinforcements** — 46 enemies, reinforcement mechanic, 2 bosses/act ← **DONE**
 - **E. Equipment + Loot** — Procedural equipment, loot tables
 - **F. Inventory + Shop** — Equipment management, buy/sell
 - **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
@@ -376,7 +453,21 @@ Enemy AI: 1-3 abilities per enemy, randomized selection and targeting for now.
 ### Phase 4: Final Polish & Save — deferred
 
 ### Next Up
-Phase 2D: Enemy Roster + Scaling
+Phase 2E: Equipment + Loot
+
+### Pending Proposals (review next session)
+New player abilities to complement longer reinforcement battles:
+
+**Ranger** (most under-developed, needs full kit):
+Volley (AoE ranged), Snipe (ignores frontline), Trap (damages/stuns spawning enemies), Hunter's Focus (self-buff stacking), Barrage (multi-hit 3x), Pin (position lock), Tracking Shot (more enemies = more damage)
+
+**Priest** (needs offensive + utility):
+Prayer of Mending (HoT), Smite (holy damage), Holy Ward (group shield), Purify (cleanse debuffs), Resurrect (once per battle), Blessing (ally +damage buff), Divine Intervention (1-turn immunity)
+
+**Warrior** (2 additions): Rally Cry (team +1 short action), Iron Will (status immunity 2 turns)
+**Rogue** (2 additions): Fan of Knives (AoE poison), Shadow Step (teleport attack)
+**Wizard** (2 additions): Chain Lightning (bounces), Frozen Tomb (stun + invuln)
+**Warlock** (2 additions): Soul Link (damage sharing), Drain Soul (escalating damage)
 
 ---
 

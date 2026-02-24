@@ -36,6 +36,12 @@ namespace PixelWarriors
         public const float BossStatMultiplier = 2.0f;
         public const float FloorStatScaling = 0.08f; // +8% per floor
 
+        // --- Reinforcements ---
+        public const float NormalReinforcementChance = 0.40f;
+        public const int NormalReinforcementWaveSize = 2;
+        public const int EliteReinforcementWaveSize = 2;
+        public const int BossReinforcementWaveSize = 2;
+
         // --- XP/Gold multipliers by room type ---
         public const float EliteXPMultiplier = 1.8f;
         public const float BossXPMultiplier = 2.5f;

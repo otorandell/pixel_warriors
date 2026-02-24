@@ -133,11 +133,13 @@ namespace PixelWarriors
             _screenManager.TransitionTo(battleScreen);
 
             List<BattleCharacter> players = CreateBattleParty();
-            List<BattleCharacter> enemies = EncounterGenerator.GenerateEncounter(
-                _runData, _runData.CurrentRoom ?? RoomType.Battle);
+            RoomType roomType = _runData.CurrentRoom ?? RoomType.Battle;
+            EncounterData encounterData = EncounterGenerator.GenerateEncounter(_runData, roomType);
+            List<BattleCharacter> enemies = GridSlotUtil.PlaceCharacters(
+                encounterData.InitialEnemies, TeamSide.Enemy);
 
             BattleManager battleManager = gameObject.AddComponent<BattleManager>();
-            battleManager.StartBattle(players, enemies, battleScreen);
+            battleManager.StartBattle(players, enemies, encounterData, battleScreen);
 
             while (!battleManager.IsFinished)
                 yield return null;
@@ -145,8 +147,8 @@ namespace PixelWarriors
             BattleResult result = battleManager.Result;
             _runData.TotalBattles++;
 
-            // Count kills
-            foreach (BattleCharacter enemy in enemies)
+            // Count kills (includes reinforcements that were added to the enemies list)
+            foreach (BattleCharacter enemy in battleManager.Enemies)
             {
                 if (!enemy.IsAlive) _runData.TotalKills++;
             }
@@ -219,17 +221,7 @@ namespace PixelWarriors
 
         private List<BattleCharacter> CreateBattleParty()
         {
-            List<BattleCharacter> players = new();
-            GridRow[] rows = { GridRow.Front, GridRow.Front, GridRow.Back, GridRow.Back };
-            GridColumn[] cols = { GridColumn.Left, GridColumn.Right, GridColumn.Left, GridColumn.Right };
-
-            for (int i = 0; i < _runData.Party.Count; i++)
-            {
-                players.Add(new BattleCharacter(
-                    _runData.Party[i], TeamSide.Player, rows[i], cols[i]));
-            }
-
-            return players;
+            return GridSlotUtil.PlaceCharacters(_runData.Party, TeamSide.Player);
         }
 
         private static void EquipDefaultWeapon(CharacterData data, CharacterClass characterClass)

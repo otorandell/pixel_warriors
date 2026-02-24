@@ -47,6 +47,7 @@ namespace PixelWarriors
             GameEvents.OnBattleStarted += HandleBattleStarted;
             GameEvents.OnBattleStateChanged += HandleBattleStateChanged;
             GameEvents.OnTurnStarted += HandleTurnStarted;
+            GameEvents.OnReinforcementsSpawned += HandleReinforcements;
         }
 
         private void UnsubscribeEvents()
@@ -66,6 +67,7 @@ namespace PixelWarriors
             GameEvents.OnBattleStarted -= HandleBattleStarted;
             GameEvents.OnBattleStateChanged -= HandleBattleStateChanged;
             GameEvents.OnTurnStarted -= HandleTurnStarted;
+            GameEvents.OnReinforcementsSpawned -= HandleReinforcements;
         }
 
         // --- UI Handlers ---
@@ -168,6 +170,11 @@ namespace PixelWarriors
             // Only notify for player turns to avoid constant pinging
             if (character.Side == TeamSide.Player)
                 PlaySFX(SFXType.TurnNotify, AudioConfig.TurnNotifyVolume);
+        }
+
+        private void HandleReinforcements(string announcement, int count)
+        {
+            PlaySFX(SFXType.Reinforcements, AudioConfig.ReinforcementsVolume);
         }
 
         // --- Playback ---

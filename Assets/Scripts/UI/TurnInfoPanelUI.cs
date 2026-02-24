@@ -13,8 +13,10 @@ namespace PixelWarriors
         private TextMeshProUGUI _roundText;
         private TextMeshProUGUI _activeText;
         private TextMeshProUGUI _actionPointsText;
+        private TextMeshProUGUI _waveText;
         private TextMeshProUGUI _orderText;
         private BattleCharacter _activeCharacter;
+        private int _remainingWaves;
 
         public void Build(Transform parent)
         {
@@ -40,10 +42,15 @@ namespace PixelWarriors
             _actionPointsText.richText = true;
             PanelBuilder.SetAnchored(_actionPointsText.GetComponent<RectTransform>(), 0.40f, 0, 0.50f, 1);
 
-            // Turn order sequence (right ~50%)
+            // Wave indicator (~8%)
+            _waveText = PanelBuilder.CreateText("WaveText", content, "",
+                UIStyleConfig.FontSizeTiny, TextAlignmentOptions.Center, UIStyleConfig.AccentRed);
+            PanelBuilder.SetAnchored(_waveText.GetComponent<RectTransform>(), 0.50f, 0, 0.58f, 1);
+
+            // Turn order sequence (right ~42%)
             _orderText = PanelBuilder.CreateText("OrderText", content, "",
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.MidlineLeft, UIStyleConfig.TextDimmed);
-            PanelBuilder.SetAnchored(_orderText.GetComponent<RectTransform>(), 0.50f, 0, 1, 1);
+            PanelBuilder.SetAnchored(_orderText.GetComponent<RectTransform>(), 0.58f, 0, 1, 1);
             _orderText.overflowMode = TextOverflowModes.Ellipsis;
 
             // Long-press for detail popup
@@ -55,6 +62,7 @@ namespace PixelWarriors
             GameEvents.OnTurnOrderUpdated += HandleTurnOrderUpdated;
             GameEvents.OnAbilityUsed += HandleAbilityUsed;
             GameEvents.OnBattleStateChanged += HandleBattleStateChanged;
+            GameEvents.OnReinforcementWaveCountChanged += HandleWaveCountChanged;
         }
 
         private void HandleTurnOrderUpdated(int roundNumber, BattleCharacter active, List<BattleCharacter> remaining)
@@ -101,6 +109,12 @@ namespace PixelWarriors
             }
         }
 
+        private void HandleWaveCountChanged(int remainingWaves)
+        {
+            _remainingWaves = remainingWaves;
+            _waveText.text = remainingWaves > 0 ? $"+{remainingWaves}" : "";
+        }
+
         private void RefreshActionPoints()
         {
             if (_activeCharacter == null) return;
@@ -119,6 +133,7 @@ namespace PixelWarriors
             GameEvents.OnTurnOrderUpdated -= HandleTurnOrderUpdated;
             GameEvents.OnAbilityUsed -= HandleAbilityUsed;
             GameEvents.OnBattleStateChanged -= HandleBattleStateChanged;
+            GameEvents.OnReinforcementWaveCountChanged -= HandleWaveCountChanged;
         }
     }
 }

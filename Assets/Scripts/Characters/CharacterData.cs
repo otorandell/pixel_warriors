@@ -16,6 +16,8 @@ namespace PixelWarriors
         public List<AbilityData> Passives;
         public EquipmentData[] Equipment;
 
+        public bool IsBoss;
+
         // Persistent resources (carry between battles)
         public int CurrentHP;
         public int CurrentEnergy;

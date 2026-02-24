@@ -5,19 +5,52 @@ namespace PixelWarriors
 {
     public static class EncounterGenerator
     {
-        public static List<BattleCharacter> GenerateEncounter(RunData runData, RoomType roomType)
+        // Frontliner pools by act progression
+        private static readonly EnemyType[][] FrontlinerPools =
+        {
+            new[] { EnemyType.Ratman, EnemyType.Skeleton, EnemyType.ZombieShambler, EnemyType.FungusCreeper },
+            new[] { EnemyType.Spider, EnemyType.Bandit, EnemyType.OrcWarrior, EnemyType.StoneSentinel, EnemyType.BerserkerCultist },
+            new[] { EnemyType.DarkKnight, EnemyType.AbyssalGolem, EnemyType.PlagueBringer, EnemyType.DeathCultist, EnemyType.ChainDevil }
+        };
+
+        // Backliner pools by act progression
+        private static readonly EnemyType[][] BacklinerPools =
+        {
+            new[] { EnemyType.GoblinArcher, EnemyType.SwarmBat, EnemyType.TunnelRat },
+            new[] { EnemyType.DarkMage, EnemyType.HerbalistShaman, EnemyType.CrossbowBandit, EnemyType.FireImp },
+            new[] { EnemyType.ShadowAssassin, EnemyType.LichAcolyte, EnemyType.BloodMage, EnemyType.VoidSpeaker }
+        };
+
+        // Elite pools by act progression
+        private static readonly EnemyType[][] ElitePools =
+        {
+            new[] { EnemyType.Minotaur, EnemyType.GiantSpider, EnemyType.BoneLord },
+            new[] { EnemyType.OrcBrute, EnemyType.WyvernKnight, EnemyType.NecromancerAdept, EnemyType.BladeDancer },
+            new[] { EnemyType.VampireLord, EnemyType.TwinWraith, EnemyType.DemonChampion }
+        };
+
+        // Boss pools by act (2 per act for randomization)
+        private static readonly EnemyType[][] BossPools =
+        {
+            new[] { EnemyType.GoblinKing, EnemyType.CatacombGuardian },
+            new[] { EnemyType.MinotaurLord, EnemyType.BanditWarlord },
+            new[] { EnemyType.Lich, EnemyType.ArchDemon }
+        };
+
+        public static EncounterData GenerateEncounter(RunData runData, RoomType roomType)
         {
             int partySize = runData.Party.Count;
             int floor = runData.TotalFloor;
+            int actIndex = Mathf.Clamp(runData.CurrentAct - 1, 0, 2);
 
-            List<CharacterData> enemyData = roomType switch
+            EncounterData encounter = roomType switch
             {
-                RoomType.EliteBattle => GenerateEliteEncounter(floor),
-                RoomType.BossBattle => GenerateBossEncounter(runData.CurrentAct),
-                _ => GenerateNormalEncounter(floor, partySize)
+                RoomType.EliteBattle => GenerateEliteEncounter(actIndex),
+                RoomType.BossBattle => GenerateBossEncounter(runData.CurrentAct, actIndex),
+                _ => GenerateNormalEncounter(actIndex, partySize)
             };
 
-            // Apply floor scaling
+            // Apply floor scaling to initial enemies
             float floorMultiplier = 1f + (floor - 1) * RunConfig.FloorStatScaling;
             float typeMultiplier = roomType switch
             {
@@ -26,97 +59,181 @@ namespace PixelWarriors
                 _ => 1f
             };
 
-            foreach (CharacterData data in enemyData)
+            float totalMultiplier = floorMultiplier * typeMultiplier;
+
+            foreach (CharacterData data in encounter.InitialEnemies)
+                ScaleStats(data, totalMultiplier);
+
+            // Scale reinforcement waves too
+            foreach (ReinforcementWave wave in encounter.Waves)
             {
-                ScaleStats(data, floorMultiplier * typeMultiplier);
+                foreach (CharacterData data in wave.Enemies)
+                    ScaleStats(data, totalMultiplier);
             }
 
-            // Place on grid
-            List<BattleCharacter> enemies = new();
-            GridRow[] rows = { GridRow.Front, GridRow.Front, GridRow.Back, GridRow.Back };
-            GridColumn[] cols = { GridColumn.Left, GridColumn.Right, GridColumn.Left, GridColumn.Right };
-
-            for (int i = 0; i < enemyData.Count && i < 4; i++)
-            {
-                enemies.Add(new BattleCharacter(
-                    enemyData[i], TeamSide.Enemy, rows[i], cols[i]));
-            }
-
-            return enemies;
+            return encounter;
         }
 
-        private static List<CharacterData> GenerateNormalEncounter(int floor, int partySize)
+        private static EncounterData GenerateNormalEncounter(int actIndex, int partySize)
         {
-            int count = Mathf.Max(RunConfig.MinEnemies, partySize);
-            count = Mathf.Min(count, RunConfig.MaxEnemies);
+            int count = Mathf.Clamp(partySize, RunConfig.MinEnemies, RunConfig.MaxEnemies);
+            EncounterData encounter = new();
 
-            List<CharacterData> enemies = new();
-
-            // Pool: frontliners for front row slots, backliners for back row slots
             for (int i = 0; i < count; i++)
             {
                 bool isFrontRow = i < 2;
-                EnemyType type = isFrontRow ? PickFrontliner(floor) : PickBackliner(floor);
-                enemies.Add(EnemyDefinitions.CreateEnemy(type));
+                EnemyType type = isFrontRow
+                    ? PickFromPool(FrontlinerPools[actIndex])
+                    : PickFromPool(BacklinerPools[actIndex]);
+                encounter.InitialEnemies.Add(EnemyDefinitions.CreateEnemy(type));
             }
 
-            return enemies;
+            // Chance of one reinforcement wave
+            if (Random.value < RunConfig.NormalReinforcementChance)
+            {
+                int waveSize = Random.Range(1, RunConfig.NormalReinforcementWaveSize + 1);
+                ReinforcementWave wave = new()
+                {
+                    Trigger = ReinforcementTrigger.OnEnemyCount,
+                    TriggerValue = 1,
+                    AnnouncementText = "More enemies arrive!"
+                };
+
+                for (int i = 0; i < waveSize; i++)
+                {
+                    EnemyType type = Random.value < 0.6f
+                        ? PickFromPool(FrontlinerPools[actIndex])
+                        : PickFromPool(BacklinerPools[actIndex]);
+                    wave.Enemies.Add(EnemyDefinitions.CreateEnemy(type));
+                }
+
+                encounter.Waves.Add(wave);
+            }
+
+            return encounter;
         }
 
-        private static List<CharacterData> GenerateEliteEncounter(int floor)
+        private static EncounterData GenerateEliteEncounter(int actIndex)
         {
-            // 1-2 strong enemies
-            List<CharacterData> enemies = new();
-            enemies.Add(EnemyDefinitions.CreateEnemy(EnemyType.Minotaur));
+            EncounterData encounter = new();
 
-            // 50% chance of an add
+            // 1 elite + 0-1 regular adds
+            EnemyType eliteType = PickFromPool(ElitePools[actIndex]);
+            encounter.InitialEnemies.Add(EnemyDefinitions.CreateEnemy(eliteType));
+
             if (Random.value > 0.5f)
             {
-                enemies.Add(EnemyDefinitions.CreateEnemy(PickFrontliner(floor)));
+                encounter.InitialEnemies.Add(EnemyDefinitions.CreateEnemy(
+                    PickFromPool(FrontlinerPools[actIndex])));
             }
 
-            return enemies;
-        }
-
-        private static List<CharacterData> GenerateBossEncounter(int act)
-        {
-            // Boss + 0-2 adds based on act
-            List<CharacterData> enemies = new();
-
-            // Use Minotaur as boss for all acts for now (Phase D will add proper bosses)
-            enemies.Add(EnemyDefinitions.CreateEnemy(EnemyType.Minotaur));
-            enemies[0].Name = act switch
+            // Wave 1: regular adds when most enemies are down
+            ReinforcementWave wave1 = new()
             {
-                1 => "Goblin King",
-                2 => "Minotaur Lord",
-                3 => "The Lich",
-                _ => "Boss"
+                Trigger = ReinforcementTrigger.OnEnemyCount,
+                TriggerValue = 1,
+                AnnouncementText = "The elite calls for backup!"
             };
+            for (int i = 0; i < RunConfig.EliteReinforcementWaveSize; i++)
+            {
+                EnemyType type = Random.value < 0.5f
+                    ? PickFromPool(FrontlinerPools[actIndex])
+                    : PickFromPool(BacklinerPools[actIndex]);
+                wave1.Enemies.Add(EnemyDefinitions.CreateEnemy(type));
+            }
+            encounter.Waves.Add(wave1);
 
-            // Act 2+: 1 add
+            // 50% chance of a second wave
+            if (Random.value < 0.5f)
+            {
+                ReinforcementWave wave2 = new()
+                {
+                    Trigger = ReinforcementTrigger.OnEnemyCount,
+                    TriggerValue = 1,
+                    AnnouncementText = "Even more enemies appear!"
+                };
+                int wave2Size = Random.Range(1, RunConfig.EliteReinforcementWaveSize + 1);
+                for (int i = 0; i < wave2Size; i++)
+                {
+                    wave2.Enemies.Add(EnemyDefinitions.CreateEnemy(
+                        PickFromPool(FrontlinerPools[actIndex])));
+                }
+                encounter.Waves.Add(wave2);
+            }
+
+            return encounter;
+        }
+
+        private static EncounterData GenerateBossEncounter(int act, int actIndex)
+        {
+            EncounterData encounter = new();
+
+            // Boss per act (randomized from pool of 2)
+            EnemyType bossType = PickFromPool(BossPools[actIndex]);
+            CharacterData bossData = EnemyDefinitions.CreateEnemy(bossType);
+            bossData.IsBoss = true;
+            encounter.InitialEnemies.Add(bossData);
+
+            // Act 2+: 1 frontline add
             if (act >= 2)
-                enemies.Add(EnemyDefinitions.CreateEnemy(PickFrontliner(act * RunConfig.FloorsPerAct)));
+                encounter.InitialEnemies.Add(EnemyDefinitions.CreateEnemy(
+                    PickFromPool(FrontlinerPools[actIndex])));
 
-            // Act 3: 2nd add
+            // Wave 1: adds at 75% boss HP
+            ReinforcementWave wave1 = new()
+            {
+                Trigger = ReinforcementTrigger.OnBossHPPercent,
+                TriggerValue = 75,
+                AnnouncementText = "The boss summons reinforcements!"
+            };
+            for (int i = 0; i < RunConfig.BossReinforcementWaveSize; i++)
+            {
+                EnemyType type = Random.value < 0.5f
+                    ? PickFromPool(FrontlinerPools[actIndex])
+                    : PickFromPool(BacklinerPools[actIndex]);
+                wave1.Enemies.Add(EnemyDefinitions.CreateEnemy(type));
+            }
+            encounter.Waves.Add(wave1);
+
+            // Wave 2: adds at 40% boss HP
+            ReinforcementWave wave2 = new()
+            {
+                Trigger = ReinforcementTrigger.OnBossHPPercent,
+                TriggerValue = 40,
+                AnnouncementText = "The boss is enraged! More enemies pour in!"
+            };
+            for (int i = 0; i < RunConfig.BossReinforcementWaveSize; i++)
+            {
+                wave2.Enemies.Add(EnemyDefinitions.CreateEnemy(
+                    PickFromPool(FrontlinerPools[actIndex])));
+            }
+            encounter.Waves.Add(wave2);
+
+            // Act 3: extra wave at 20%
             if (act >= 3)
-                enemies.Add(EnemyDefinitions.CreateEnemy(PickBackliner(act * RunConfig.FloorsPerAct)));
+            {
+                ReinforcementWave wave3 = new()
+                {
+                    Trigger = ReinforcementTrigger.OnBossHPPercent,
+                    TriggerValue = 20,
+                    AnnouncementText = "A final desperate wave attacks!"
+                };
+                wave3.Enemies.Add(EnemyDefinitions.CreateEnemy(
+                    PickFromPool(BacklinerPools[actIndex])));
+                wave3.Enemies.Add(EnemyDefinitions.CreateEnemy(
+                    PickFromPool(FrontlinerPools[actIndex])));
+                encounter.Waves.Add(wave3);
+            }
 
-            return enemies;
+            return encounter;
         }
 
-        private static EnemyType PickFrontliner(int floor)
+        private static EnemyType PickFromPool(EnemyType[] pool)
         {
-            // For now only Ratman as frontliner. Phase D adds more.
-            return EnemyType.Ratman;
+            return pool[Random.Range(0, pool.Length)];
         }
 
-        private static EnemyType PickBackliner(int floor)
-        {
-            // For now only GoblinArcher as backliner. Phase D adds more.
-            return EnemyType.GoblinArcher;
-        }
-
-        private static void ScaleStats(CharacterData data, float multiplier)
+        public static void ScaleStats(CharacterData data, float multiplier)
         {
             if (multiplier <= 1f) return;
 

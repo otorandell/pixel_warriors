@@ -28,6 +28,7 @@ namespace PixelWarriors
         public const float VictoryVolume = 0.6f;
         public const float BattleDefeatVolume = 0.5f;
         public const float TurnNotifyVolume = 0.2f;
+        public const float ReinforcementsVolume = 0.55f;
 
         // --- Music ---
         public const float MusicVolume = 0.7f;
