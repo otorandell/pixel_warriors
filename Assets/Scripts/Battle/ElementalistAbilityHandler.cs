@@ -374,6 +374,80 @@ namespace PixelWarriors
             Log($"{user.Data.Name} imbues their staff! Attacks deal bonus damage for 3 turns.");
         }
 
+        public static void ExecuteChainLightning(BattleCharacter user, AbilityData ability,
+            List<BattleCharacter> targets, List<BattleCharacter> allEnemies)
+        {
+            user.LastSpellElement = Element.Air;
+
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                GameEvents.RaiseAbilityUsed(user, ability, target);
+                Log($"{user.Data.Name} casts Chain Lightning at {target.Data.Name}!");
+
+                HitResult result = ActionExecutor.ResolveHit(user, ability, target);
+                GameEvents.RaiseHitResolved(target, result, ability.DamageType);
+
+                if (result.IsEffective)
+                {
+                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
+                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
+                    Log($"{result.Damage} damage!");
+
+                    // Bounce to up to 2 other enemies at 50% damage
+                    List<BattleCharacter> bounceTargets = allEnemies
+                        .Where(e => e.IsAlive && e != target).ToList();
+
+                    int bounces = Mathf.Min(GameplayConfig.ChainLightningMaxBounces, bounceTargets.Count);
+                    int bounceDamage = Mathf.Max(1,
+                        Mathf.RoundToInt(result.Damage * GameplayConfig.ChainLightningBounceMultiplier));
+
+                    for (int i = 0; i < bounces; i++)
+                    {
+                        int idx = Random.Range(0, bounceTargets.Count);
+                        BattleCharacter bounceTarget = bounceTargets[idx];
+                        bounceTargets.RemoveAt(idx);
+
+                        bounceTarget.CurrentHP = Mathf.Max(0, bounceTarget.CurrentHP - bounceDamage);
+                        GameEvents.RaiseDamageDealt(bounceTarget, bounceDamage, ability.DamageType);
+                        Log($"Lightning bounces to {bounceTarget.Data.Name} for {bounceDamage}!");
+                        ActionExecutor.CheckDefeated(bounceTarget);
+                    }
+                }
+                else
+                {
+                    LogMissOrDodge(user, target, result);
+                }
+
+                ActionExecutor.CheckDefeated(target);
+            }
+        }
+
+        public static void ExecuteFrozenTomb(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            user.LastSpellElement = Element.Water;
+
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                GameEvents.RaiseAbilityUsed(user, ability, target);
+
+                if (!ActionExecutor.RollSpellHit(user, ability, target))
+                {
+                    Log($"{target.Data.Name} resists the Frozen Tomb!");
+                    continue;
+                }
+
+                var effect = new StatusEffectInstance(StatusEffect.FrozenTomb,
+                    GameplayConfig.FrozenTombDuration, 0, user);
+                target.AddEffect(effect);
+                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.FrozenTomb, 0);
+                Log($"{user.Data.Name} entombs {target.Data.Name} in ice! Stunned but immune.");
+            }
+        }
+
         private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
         {
             if (result.Missed) Log($"{user.Data.Name} missed!");

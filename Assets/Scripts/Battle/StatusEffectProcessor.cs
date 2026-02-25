@@ -37,12 +37,23 @@ namespace PixelWarriors
                 GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.React);
             }
 
+            // FrozenTomb: zero all actions (like Stun), ticks down naturally
+            if (character.HasEffect(StatusEffect.FrozenTomb))
+            {
+                character.LongActionsRemaining = 0;
+                character.ShortActionsRemaining = 0;
+                GameEvents.RaiseCombatLogMessage($"{character.Data.Name} is frozen in a tomb of ice!");
+            }
+
             // Hide: removed at turn start (lasted since last turn)
             if (character.HasEffect(StatusEffect.Hide))
             {
                 character.RemoveEffect(StatusEffect.Hide);
                 GameEvents.RaiseStatusEffectRemoved(character, StatusEffect.Hide);
             }
+
+            // Regeneration (HoT): heal per turn
+            ProcessRegeneration(character);
         }
 
         public static void ProcessTurnEnd(BattleCharacter character)
@@ -52,6 +63,9 @@ namespace PixelWarriors
             ProcessPoison(character);
             ProcessBurn(character);
             ProcessLeechLife(character);
+
+            // DrainSoul: escalating DoT
+            ProcessDrainSoul(character);
 
             // Tick durations
             for (int i = character.StatusEffects.Count - 1; i >= 0; i--)
@@ -152,10 +166,63 @@ namespace PixelWarriors
             }
         }
 
+        private static void ProcessRegeneration(BattleCharacter character)
+        {
+            StatusEffectInstance regen = character.GetEffect(StatusEffect.Regeneration);
+            if (regen == null) return;
+
+            int healAmount = regen.Value;
+
+            // Poison impairs healing
+            if (character.HasEffect(StatusEffect.Poison))
+                healAmount = UnityEngine.Mathf.RoundToInt(healAmount * (1f - GameplayConfig.PoisonHealingReduction));
+
+            int previousHP = character.CurrentHP;
+            character.CurrentHP = UnityEngine.Mathf.Min(character.CurrentHP + healAmount, character.MaxHP);
+            int actualHeal = character.CurrentHP - previousHP;
+
+            if (actualHeal > 0)
+            {
+                GameEvents.RaiseHealingReceived(character, actualHeal);
+                GameEvents.RaiseCombatLogMessage($"{character.Data.Name} regenerates {actualHeal} HP!");
+            }
+        }
+
+        private static void ProcessDrainSoul(BattleCharacter character)
+        {
+            StatusEffectInstance drain = character.GetEffect(StatusEffect.DrainSoul);
+            if (drain == null) return;
+
+            int damage = drain.Value;
+            character.CurrentHP = Mathf.Max(0, character.CurrentHP - damage);
+            GameEvents.RaiseDamageDealt(character, damage, DamageType.Magical);
+            GameEvents.RaiseCombatLogMessage($"{character.Data.Name} takes {damage} soul drain damage!");
+
+            // Heal the source
+            if (drain.Source != null && drain.Source.IsAlive)
+            {
+                drain.Source.CurrentHP = Mathf.Min(drain.Source.CurrentHP + damage, drain.Source.MaxHP);
+                GameEvents.RaiseHealingReceived(drain.Source, damage);
+            }
+
+            // Escalate for next tick
+            drain.Value += GameplayConfig.DrainSoulEscalation;
+
+            if (!character.IsAlive) GameEvents.RaiseCharacterDefeated(character);
+        }
+
         // --- Modifier Queries ---
 
         public static int AbsorbDamage(BattleCharacter target, int damage)
         {
+            // Divine Intervention: full immunity
+            if (target.HasEffect(StatusEffect.DivineIntervention))
+                return 0;
+
+            // Frozen Tomb: immune to damage while frozen
+            if (target.HasEffect(StatusEffect.FrozenTomb))
+                return 0;
+
             StatusEffectInstance shield = target.GetEffect(StatusEffect.Shield);
             if (shield == null) return damage;
 

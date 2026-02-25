@@ -84,6 +84,13 @@ namespace PixelWarriors
 
         public void AddEffect(StatusEffectInstance effect)
         {
+            // Iron Will: block negative status effects
+            if (HasEffect(StatusEffect.IronWill) && IsNegativeEffect(effect.Type))
+            {
+                GameEvents.RaiseCombatLogMessage($"{Data.Name}'s Iron Will resists {effect.Type}!");
+                return;
+            }
+
             // Stackable effects always add a new instance
             if (effect.Type == StatusEffect.Bleed)
             {
@@ -237,6 +244,18 @@ namespace PixelWarriors
             return type == StatusEffect.StanceDefensive ||
                    type == StatusEffect.StanceBrawling ||
                    type == StatusEffect.StanceBerserker;
+        }
+
+        private static bool IsNegativeEffect(StatusEffect type)
+        {
+            return type == StatusEffect.Bleed || type == StatusEffect.Poison ||
+                   type == StatusEffect.Burn || type == StatusEffect.Stun ||
+                   type == StatusEffect.Silence || type == StatusEffect.Terror ||
+                   type == StatusEffect.Chilled || type == StatusEffect.Confusion ||
+                   type == StatusEffect.Mark || type == StatusEffect.Pin ||
+                   type == StatusEffect.SteamBeamDebuff || type == StatusEffect.DrainSoul ||
+                   type == StatusEffect.SoulLink || type == StatusEffect.CorpseExplosion ||
+                   type == StatusEffect.LeechLife || type == StatusEffect.FrozenTomb;
         }
     }
 }

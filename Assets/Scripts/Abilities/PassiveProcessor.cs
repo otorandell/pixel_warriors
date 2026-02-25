@@ -26,6 +26,28 @@ namespace PixelWarriors
                 character.LongActionsRemaining += 1;
                 GameEvents.RaiseCombatLogMessage($"{character.Data.Name} is enraged! +1 action!");
             }
+
+            // Survivalist: regen energy at turn start
+            if (HasPassive(character, "Survivalist"))
+            {
+                int gain = GameplayConfig.SurvivalistEnergyRegen;
+                int prev = character.CurrentEnergy;
+                character.CurrentEnergy = Mathf.Min(character.CurrentEnergy + gain, character.MaxEnergy);
+                int actual = character.CurrentEnergy - prev;
+                if (actual > 0)
+                    GameEvents.RaiseCombatLogMessage($"{character.Data.Name} recovers {actual} energy (Survivalist).");
+            }
+
+            // Inner Light: regen mana at turn start
+            if (HasPassive(character, "Inner Light"))
+            {
+                int gain = GameplayConfig.InnerLightManaRegen;
+                int prev = character.CurrentMana;
+                character.CurrentMana = Mathf.Min(character.CurrentMana + gain, character.MaxMana);
+                int actual = character.CurrentMana - prev;
+                if (actual > 0)
+                    GameEvents.RaiseCombatLogMessage($"{character.Data.Name} recovers {actual} mana (Inner Light).");
+            }
         }
 
         public static void OnDamageTaken(BattleCharacter target, int damage, List<BattleCharacter> allCharacters)
@@ -100,7 +122,7 @@ namespace PixelWarriors
             }
         }
 
-        private static bool HasPassive(BattleCharacter character, string passiveName)
+        public static bool HasPassive(BattleCharacter character, string passiveName)
         {
             return character.Data.Passives.Any(p => p.Name == passiveName);
         }

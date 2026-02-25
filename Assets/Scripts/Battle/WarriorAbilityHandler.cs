@@ -194,6 +194,28 @@ namespace PixelWarriors
                 _bladedanceCounts[key] = 1;
         }
 
+        public static void ExecuteRallyCry(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            GameEvents.RaiseAbilityUsed(user, ability, user);
+            Log($"{user.Data.Name} rallies the team!");
+
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+                target.ShortActionsRemaining += 1;
+                Log($"  {target.Data.Name} gains +1 short action!");
+            }
+        }
+
+        public static void ExecuteIronWill(BattleCharacter user)
+        {
+            var effect = new StatusEffectInstance(StatusEffect.IronWill, GameplayConfig.IronWillDuration, 0, user);
+            user.AddEffect(effect);
+            GameEvents.RaiseAbilityUsed(user, null, user);
+            GameEvents.RaiseStatusEffectApplied(user, StatusEffect.IronWill, 0);
+            Log($"{user.Data.Name}'s will is iron! Immune to negative effects for {GameplayConfig.IronWillDuration} turns.");
+        }
+
         // Stance on-damage triggers (called from damage pipeline)
         public static void ProcessStanceTriggers(BattleCharacter attacker, BattleCharacter target, int damage)
         {

@@ -99,5 +99,47 @@ namespace PixelWarriors
         // --- Energy / Mana Regen ---
         public const float EnergyRegenPerTurn = 0.20f;
         public const float ManaRegenPerTurn = 0.05f;
+
+        // --- Ranger ---
+        public const int TrapDamage = 8;
+        public const int HuntersFocusBonusDamage = 3;
+        public const int HuntersFocusDuration = 3;
+        public const float TrackingShotBaseMultiplier = 0.8f;
+        public const float TrackingShotPerEnemyBonus = 0.15f;
+        public const float SniperBonusCrit = 0.10f;
+        public const int PinDuration = 2;
+
+        // --- Priest ---
+        public const int RegenerationHealPerTurn = 4;
+        public const int RegenerationDuration = 3;
+        public const float ResurrectHPPercent = 0.30f;
+        public const float BlessingDamageBonus = 0.20f;
+        public const int BlessingDuration = 3;
+        public const int DevotionShieldValue = 3;
+        public const float FaithHealingBonus = 0.20f;
+
+        // --- Warrior (additions) ---
+        public const int IronWillDuration = 2;
+
+        // --- Elementalist (additions) ---
+        public const float ChainLightningBounceMultiplier = 0.50f;
+        public const int ChainLightningMaxBounces = 2;
+        public const int FrozenTombDuration = 2;
+
+        // --- Warlock (additions) ---
+        public const float SoulLinkSplashPercent = 0.30f;
+        public const int SoulLinkDuration = 3;
+        public const int DrainSoulBaseDamage = 3;
+        public const int DrainSoulEscalation = 2;
+        public const int DrainSoulDuration = 3;
+
+        // --- Passives ---
+        public const int SurvivalistEnergyRegen = 2;
+        public const float PredatorDamageBonus = 0.15f;
+        public const float SteadyAimHitBonus = 0.05f;
+        public const float SteadyAimCritBonus = 0.05f;
+        public const float KeenEyeHitBonus = 0.05f;
+        public const float KeenEyeCritBonus = 0.05f;
+        public const int InnerLightManaRegen = 2;
     }
 }

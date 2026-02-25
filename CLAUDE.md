@@ -177,6 +177,16 @@ Long points can be spent as short points. Short points cannot be spent as long p
 | LeechLife | DoT | Drains HP to caster each turn |
 | Caltrops | Buff | Enemies take damage when changing position |
 | UltimateReflexes | Buff | Dodge all attacks, 1 turn |
+| Regeneration | HoT | Heals 4/turn, 3 turns (Prayer of Mending) |
+| Blessing | Buff | +20% damage, 3 turns |
+| DivineIntervention | Buff | Immune to all damage, 1 turn |
+| Pin | Debuff | Cannot swap/reposition, 2 turns |
+| HuntersFocus | Buff | +3 bonus damage on attacks, 3 turns |
+| IronWill | Buff | Blocks all negative status effects, 2 turns |
+| FrozenTomb | Debuff | Stunned + immune to damage, 2 turns |
+| SoulLink | Debuff | 30% of damage splashes to other enemies, 3 turns |
+| DrainSoul | DoT | Escalating damage (3→5→7), heals caster, 3 turns |
+| Trap | Buff | Next enemy that moves takes 8 dmg + stun (single-use) |
 
 ---
 
@@ -191,17 +201,26 @@ Long points can be spent as short points. Short points cannot be spent as long p
 | Elementalist | Elemental/arcane mage | Energy Bolt: inherits element of last spell used |
 | Warlock | Dark magic, life-steal | Ritual: lose HP to gain Mana |
 
-### Warrior Abilities (11 + 4 passives)
-Crush Armor, Bulwark, Defensive/Brawling/Berserker Stances, Cleave, Second Wind, Block, Bodyguard, Bladedance
+### Warrior Abilities (13 + 4 passives)
+Crushing Blow, Powerful Bash, Crush Armor, Bulwark, Defensive/Brawling/Berserker Stances, Cleave, Second Wind, Block, Bodyguard, Bladedance, Rally Cry (team +1S action), Iron Will (status immunity 2 turns)
 
-### Rogue Abilities (10 + 7 passives)
-Quick Stab, Sucker Punch, Ambush, Vanish, Envenom, Ultimate Reflexes, Dagger Throw, Assassination, Powder Bomb, Caltrops
+### Rogue Abilities (12 + 7 passives)
+Quick Stab, Sucker Punch, Ambush, Vanish, Envenom, Ultimate Reflexes, Dagger Throw, Assassination, Powder Bomb, Caltrops, Fan of Knives (AoE + poison), Shadow Step (reach dagger attack)
 
-### Elementalist Abilities (14)
-Energy Bolt, Ignite, Earthquake, Steam Beam, Wave Crash, Levitate, Seal of Elements, Arcane Burst, Splinters, Invisibility, Meltdown, Elemental Armor, Imbue Staff. Elements: Fire, Earth, Water, Air, Arcane.
+### Ranger Abilities (8 + 3 passives)
+Mark, Volley (AoE ranged), Snipe (1.8x +crit), Barrage (3-hit), Hunter's Focus (+3 dmg buff), Trap (dmg+stun on move), Pin (block movement), Tracking Shot (scales with enemy count)
+Passives: Survivalist (+2EN/turn), Predator (+15% vs marked), Steady Aim (+5% hit/crit ranged)
 
-### Warlock Abilities (8 + 3 passives)
-Ritual, Terror, Curse, Hex, Consume, Mass Confusion, Corpse Explosion, Leech Life
+### Priest Abilities (8 + 3 passives)
+Word of Protection, Smite, Prayer of Mending (HoT), Holy Ward (group shield), Purify (cleanse), Resurrect (revive dead ally, once/battle), Blessing (+20% dmg buff), Divine Intervention (1-turn immunity, once/battle)
+Passives: Inner Light (+2MP/turn), Martyr (prevent ally death once/battle), Devotion (healing grants shield)
+Basic passive: Faith (+20% healing)
+
+### Elementalist Abilities (15)
+Energy Bolt, Ignite, Earthquake, Steam Beam, Wave Crash, Levitate, Seal of Elements, Arcane Burst, Splinters, Invisibility, Meltdown, Elemental Armor, Imbue Staff, Chain Lightning (bounces to 2 others at 50%), Frozen Tomb (stun + immune). Elements: Fire, Earth, Water, Air, Arcane.
+
+### Warlock Abilities (10 + 3 passives)
+Ritual, Terror, Curse, Hex, Consume, Mass Confusion, Corpse Explosion, Leech Life, Soul Link (30% damage splash), Drain Soul (escalating DoT + heals caster)
 
 ---
 
@@ -298,7 +317,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-02-24, updated)
+## Current State (2026-02-25, updated)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -307,23 +326,23 @@ Battles can have reinforcement waves that spawn mid-battle:
   - AbilityData with Range, OncePerBattle, RequiresConcealed, RequiredWeapon, RequiresFrontline
   - AbilityCatalog (master catalog: all abilities per class, generic abilities)
   - PassiveProcessor (OnBattleStart, OnTurnStart, OnDamageTaken, OnCharacterDefeated hooks)
-  - Per-class ability handlers: WarriorAbilityHandler, RogueAbilityHandler, ElementalistAbilityHandler, WarlockAbilityHandler
+  - Per-class ability handlers: WarriorAbilityHandler, RogueAbilityHandler, RangerAbilityHandler, PriestAbilityHandler, ElementalistAbilityHandler, WarlockAbilityHandler
 - **Enemy system:** EnemyDefinitions (router) → Act1Enemies/Act2Enemies/Act3Enemies (~46 types), EncounterGenerator (act-based pools, scaling, reinforcement waves), EncounterData + ReinforcementWave, EnemyAI (Mass Confusion redirect)
 - **Status effect system:**
   - StatusEffectInstance (type, duration, value, source)
   - StatusEffectProcessor (DoT processing: Bleed/Poison/Burn/LeechLife, Stun/Silence/Chilled, stance energy drain, aggro modifiers for Conceal/Taunt/Levitate/Hide)
-  - 29 status effects fully implemented
+  - 39 status effects fully implemented (10 new: Regeneration, Blessing, DivineIntervention, Pin, HuntersFocus, IronWill, FrozenTomb, SoulLink, DrainSoul, Trap)
 - **Battle engine:**
-  - BattleManager (~300 lines, orchestration + passive event hooks + caltrops + reinforcement spawning)
+  - BattleManager (~350 lines, orchestration + passive event hooks + caltrops/trap processing + reinforcement spawning)
   - PlayerInputHandler (staged confirmation flow)
   - BattleVisualController (highlight management)
-  - TurnOrderCalculator, TargetSelector (Close/Reach filtering, concealment fallback)
-  - ActionExecutor (tag-based routing to per-class handlers, block mechanic, ProcessPostHitEffects for stance triggers/Envenom, Imbue bonus damage)
+  - TurnOrderCalculator, TargetSelector (Close/Reach filtering, concealment fallback, SingleDeadAlly for Resurrect)
+  - ActionExecutor (tag-based routing to 6 class handlers, block mechanic, ProcessPostHitEffects for stance triggers/Envenom/SoulLink splash, damage modifiers: Imbue/HuntersFocus/Blessing/Predator, battle context for cross-system access, Martyr passive in CheckDefeated)
   - EnemyAI (Mass Confusion: redirect targeting to own team)
   - HitResult (Miss/Dodge/Block/Hit)
 - **UI framework (all code-first, TextMeshPro):**
   - PanelBuilder, BattleScreenUI, BattleGridUI (AddEnemy for mid-battle spawning)
-  - CharacterCardUI (expanded status indicators: [T][C][B][Po][Fi][Ch][!][X][Df][Br][Bk][Bl] etc.)
+  - CharacterCardUI (expanded status indicators: [T][C][B][Po][Fi][Ch][!][X][Df][Br][Bk][Bl][Re][+][DI][Pi][HF][IW][FT][SL][DS][Tr], SetResurrectable for dead-ally targeting, revive visual reset)
   - AbilityPanelUI (5 tabs, [C]/[R] range tags on buttons)
   - AbilityPopupUI (range, weapon requirements, once-per-battle, frontline-only, concealed requirement display)
   - UIFormatUtil (FormatAbilityRange, improved FormatAbilityCost with AP indicators)
@@ -370,8 +389,8 @@ Battles can have reinforcement waves that spawn mid-battle:
 ### What Works
 - Full battle loop with all new mechanics
 - **7 generic abilities:** Attack, Swap (Long), Anticipate, React, Hide, Taunt (frontline only, 2 turns), Pass
-- **43+ class abilities across 4 classes** (Warrior 11, Rogue 10, Elementalist 14, Warlock 8) + Ranger Mark, Priest Word of Protection
-- **14 passives** (Warrior 4, Rogue 7, Warlock 3) — hooks wired into battle loop
+- **66 class abilities across 6 classes** (Warrior 13, Rogue 12, Ranger 8, Priest 8, Elementalist 15, Warlock 10)
+- **20 passives** (Warrior 4, Rogue 7, Ranger 3, Priest 3, Warlock 3) + 6 basic passives (Tough, Evasive, Keen Eye, Faith, Arcane Affinity, Dark Pact)
 - **Close/Reach targeting:** Close abilities only hit frontline, Reach can hit backline
 - **Block mechanic:** Shield-based block chance, Defensive Stance block, guaranteed Block ability, Berserker cannot block
 - **DoTs:** Bleed (stackable), Poison (reduces healing), Burn, LeechLife (heals caster)
@@ -380,10 +399,24 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Concealment system:** Vanish→Ambush combo, 0 aggro, Strategist passive, Escape Plan passive
 - **Envenom:** Attacks apply Poison while active
 - **Imbue:** Bonus damage on all attacks while active
-- **Caltrops:** Enemies take damage on position change (wired via OnPositionSwapped)
+- **Caltrops + Trap:** Enemies take damage on position change. Trap also stuns (single-use).
 - **Mass Confusion:** Enemies redirect attacks to fellow enemies
 - **Corpse Explosion / Soul Harvest:** Triggered on character death
 - **Elementalist energy bolt:** Changes effect based on last spell element used
+- **Chain Lightning:** Bounces to 1-2 other enemies at 50% damage
+- **Frozen Tomb:** Target stunned + immune to damage for 2 turns
+- **Soul Link:** 30% of damage to linked target splashes to other enemies
+- **Drain Soul:** Escalating DoT (3→5→7) that heals caster
+- **Priest healing kit:** Prayer of Mending (HoT), Holy Ward (group shield), Purify (cleanse), Resurrect (revive dead), Blessing (+dmg buff), Divine Intervention (full immunity)
+- **Resurrect dead-ally targeting:** Dead character cards become selectable, revived characters restore visuals
+- **Ranger combat kit:** Snipe (+crit), Barrage (3-hit), Hunter's Focus (+dmg buff), Pin (block movement), Tracking Shot (scales with enemy count)
+- **Iron Will:** Blocks all negative status effect application for 2 turns
+- **Rally Cry:** All allies gain +1 short action
+- **Martyr passive:** Prevents ally death once per battle (heals to 1 HP)
+- **Devotion passive:** Healing spells grant bonus shield
+- **Faith passive:** +20% healing effectiveness
+- **Survivalist/Inner Light passives:** Energy/mana regen at turn start
+- **Predator/Steady Aim/Keen Eye passives:** Damage and accuracy bonuses wired into damage pipeline
 - **Reinforcement system:** Enemies spawn mid-battle based on triggers (enemy count, round, boss HP%). Waves join next round. UI shows [+N] indicator. SFX on spawn.
 - **~46 enemy types** across 3 acts with diverse stat profiles and mechanics
 - **2 bosses per act** for encounter randomization
@@ -397,7 +430,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - No visual feedback for status effect application/removal (no floating text, no animations)
 - Shield value not shown in character detail popup (only on card HP line)
 - Custom ability handlers (CrushArmor, SuckerPunch, etc.) don't call ProcessPostHitEffects — stance triggers/Envenom only apply through ExecuteDamage path
-- Ranger and Priest ability sets are minimal (deferred)
+- RangerAbilityHandler has its own ApplyModifiersAndDeal helper that duplicates the ActionExecutor pipeline
 
 ## Decisions Made
 - All UI built in code (code-first)
@@ -417,7 +450,9 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Mass Confusion: enemies redirect attacks to fellow enemies with real damage/defense calcs
 - Berserker Stance: gains energy when taking damage (being hit)
 - Event-driven communication via static GameEvents
-- BattleManager subscribes to OnDamageDealt/OnCharacterDefeated/OnPositionSwapped for passive/caltrops hooks
+- BattleManager subscribes to OnDamageDealt/OnCharacterDefeated/OnPositionSwapped for passive/caltrops/trap hooks
+- ActionExecutor.SetBattleContext provides static access to player/enemy lists for cross-system features (SoulLink splash, Martyr, TrackingShot, ChainLightning)
+- Martyr uses dedicated AbilityTag.Martyr (not AbilityTag.Resurrect) to avoid once-per-battle flag collision
 - Recursion guard on defeat processing (corpse explosion chain)
 - 1 long + 1 short action points per turn
 - Elements: Fire, Earth, Water, Air, Arcane, None
@@ -445,6 +480,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **B. Leveling + Post-Battle** — XP, Fire Emblem growth, ability unlocks, post-battle screen ← **DONE**
 - **C. Room Choice + Floor Progression** — Room generation, floor/act advancement ← **DONE**
 - **D. Enemy Roster + Scaling + Reinforcements** — 46 enemies, reinforcement mechanic, 2 bosses/act ← **DONE**
+- **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
 - **E. Equipment + Loot** — Procedural equipment, loot tables
 - **F. Inventory + Shop** — Equipment management, buy/sell
 - **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
@@ -454,20 +490,6 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ### Next Up
 Phase 2E: Equipment + Loot
-
-### Pending Proposals (review next session)
-New player abilities to complement longer reinforcement battles:
-
-**Ranger** (most under-developed, needs full kit):
-Volley (AoE ranged), Snipe (ignores frontline), Trap (damages/stuns spawning enemies), Hunter's Focus (self-buff stacking), Barrage (multi-hit 3x), Pin (position lock), Tracking Shot (more enemies = more damage)
-
-**Priest** (needs offensive + utility):
-Prayer of Mending (HoT), Smite (holy damage), Holy Ward (group shield), Purify (cleanse debuffs), Resurrect (once per battle), Blessing (ally +damage buff), Divine Intervention (1-turn immunity)
-
-**Warrior** (2 additions): Rally Cry (team +1 short action), Iron Will (status immunity 2 turns)
-**Rogue** (2 additions): Fan of Knives (AoE poison), Shadow Step (teleport attack)
-**Wizard** (2 additions): Chain Lightning (bounces), Frozen Tomb (stun + invuln)
-**Warlock** (2 additions): Soul Link (damage sharing), Drain Soul (escalating damage)
 
 ---
 

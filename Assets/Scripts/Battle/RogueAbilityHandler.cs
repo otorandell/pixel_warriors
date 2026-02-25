@@ -175,6 +175,41 @@ namespace PixelWarriors
             Log($"{user.Data.Name} scatters caltrops! Enemies take damage on position change.");
         }
 
+        public static void ExecuteFanOfKnives(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            GameEvents.RaiseAbilityUsed(user, ability, user);
+            Log($"{user.Data.Name} throws a fan of knives!");
+
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                HitResult result = ActionExecutor.ResolveHit(user, ability, target);
+                GameEvents.RaiseHitResolved(target, result, ability.DamageType);
+
+                if (result.IsEffective)
+                {
+                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
+                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
+                    Log($"  {target.Data.Name} takes {result.Damage} damage!");
+
+                    if (target.IsAlive)
+                    {
+                        var poison = new StatusEffectInstance(StatusEffect.Poison, GameplayConfig.PoisonDuration, 0, user);
+                        target.AddEffect(poison);
+                        GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Poison, 0);
+                        Log($"  {target.Data.Name} is poisoned!");
+                    }
+                }
+                else
+                {
+                    LogMissOrDodge(user, target, result);
+                }
+
+                ActionExecutor.CheckDefeated(target);
+            }
+        }
+
         private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
         {
             if (result.Missed) Log($"{user.Data.Name} missed!");

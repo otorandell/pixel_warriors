@@ -222,6 +222,53 @@ namespace PixelWarriors
             }
         }
 
+        public static void ExecuteSoulLink(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                GameEvents.RaiseAbilityUsed(user, ability, target);
+
+                if (!ActionExecutor.RollSpellHit(user, ability, target))
+                {
+                    Log($"{target.Data.Name} resists the Soul Link!");
+                    continue;
+                }
+
+                var effect = new StatusEffectInstance(StatusEffect.SoulLink,
+                    GameplayConfig.SoulLinkDuration, 0, user);
+                target.AddEffect(effect);
+                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.SoulLink, 0);
+                Log($"{user.Data.Name} links {target.Data.Name}'s soul! " +
+                    $"{Mathf.RoundToInt(GameplayConfig.SoulLinkSplashPercent * 100)}% damage splashes.");
+            }
+        }
+
+        public static void ExecuteDrainSoul(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                GameEvents.RaiseAbilityUsed(user, ability, target);
+
+                if (!ActionExecutor.RollSpellHit(user, ability, target))
+                {
+                    Log($"{target.Data.Name} resists Drain Soul!");
+                    continue;
+                }
+
+                var effect = new StatusEffectInstance(StatusEffect.DrainSoul,
+                    GameplayConfig.DrainSoulDuration, GameplayConfig.DrainSoulBaseDamage, user);
+                target.AddEffect(effect);
+                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.DrainSoul,
+                    GameplayConfig.DrainSoulBaseDamage);
+                Log($"{user.Data.Name} drains {target.Data.Name}'s soul! " +
+                    $"{GameplayConfig.DrainSoulBaseDamage} damage/turn, escalating.");
+            }
+        }
+
         private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
         {
             if (result.Missed) Log($"{user.Data.Name} missed!");

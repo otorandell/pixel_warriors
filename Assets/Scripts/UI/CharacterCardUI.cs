@@ -103,6 +103,16 @@ namespace PixelWarriors
                 return;
             }
 
+            // Revived: clear death state
+            if (_isDead && _character.IsAlive)
+            {
+                _isDead = false;
+                _nameText.color = UIFormatUtil.GetClassColor(_character.Data.Class);
+                _classLevelText.color = UIStyleConfig.TextDimmed;
+                _hpText.color = UIStyleConfig.HPBarColor;
+                SetBorderColor(UIStyleConfig.PanelBorder);
+            }
+
             if (_isDead) return;
 
             // HP line — append shield value if active
@@ -159,6 +169,17 @@ namespace PixelWarriors
             SetBorderColor(staged ? UIStyleConfig.StagedHighlight : UIStyleConfig.PanelBorder);
         }
 
+        /// <summary>
+        /// Makes a dead card targetable for Resurrect-type abilities.
+        /// Bypasses the _isDead check that normally blocks interaction.
+        /// </summary>
+        public void SetResurrectable(bool resurrectable)
+        {
+            if (!_isDead) return;
+            _button.interactable = resurrectable;
+            SetBorderColor(resurrectable ? UIStyleConfig.TargetHighlight : UIStyleConfig.DeathBorderColor);
+        }
+
         private void SetDead()
         {
             _isDead = true;
@@ -194,6 +215,16 @@ namespace PixelWarriors
             if (_character.HasEffect(StatusEffect.StanceBrawling)) s += "[Br]";
             if (_character.HasEffect(StatusEffect.StanceBerserker)) s += "[Bk]";
             if (_character.HasEffect(StatusEffect.Block)) s += "[Bl]";
+            if (_character.HasEffect(StatusEffect.Regeneration)) s += "[Re]";
+            if (_character.HasEffect(StatusEffect.Blessing)) s += "[+]";
+            if (_character.HasEffect(StatusEffect.DivineIntervention)) s += "[DI]";
+            if (_character.HasEffect(StatusEffect.Pin)) s += "[Pi]";
+            if (_character.HasEffect(StatusEffect.HuntersFocus)) s += "[HF]";
+            if (_character.HasEffect(StatusEffect.IronWill)) s += "[IW]";
+            if (_character.HasEffect(StatusEffect.FrozenTomb)) s += "[FT]";
+            if (_character.HasEffect(StatusEffect.SoulLink)) s += "[SL]";
+            if (_character.HasEffect(StatusEffect.DrainSoul)) s += "[DS]";
+            if (_character.HasEffect(StatusEffect.Trap)) s += "[Tr]";
             return s;
         }
 

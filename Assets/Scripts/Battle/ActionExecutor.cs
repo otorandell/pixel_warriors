@@ -5,6 +5,25 @@ namespace PixelWarriors
 {
     public static class ActionExecutor
     {
+        private static List<BattleCharacter> _allPlayers;
+        private static List<BattleCharacter> _allEnemies;
+
+        public static void SetBattleContext(List<BattleCharacter> players, List<BattleCharacter> enemies)
+        {
+            _allPlayers = players;
+            _allEnemies = enemies;
+        }
+
+        public static List<BattleCharacter> GetEnemiesOf(BattleCharacter character)
+        {
+            return character.Side == TeamSide.Player ? _allEnemies : _allPlayers;
+        }
+
+        public static List<BattleCharacter> GetAlliesOf(BattleCharacter character)
+        {
+            return character.Side == TeamSide.Player ? _allPlayers : _allEnemies;
+        }
+
         public static void ExecuteAbility(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
         {
             if (!user.CanUseAbility(ability))
@@ -183,14 +202,82 @@ namespace PixelWarriors
                     WarlockAbilityHandler.ExecuteLeechLife(user, ability, targets);
                     return;
 
+                // --- Warrior (new) ---
+                case AbilityTag.RallyCry:
+                    WarriorAbilityHandler.ExecuteRallyCry(user, ability, targets);
+                    return;
+                case AbilityTag.IronWill:
+                    WarriorAbilityHandler.ExecuteIronWill(user);
+                    return;
+
+                // --- Rogue (new) ---
+                case AbilityTag.FanOfKnives:
+                    RogueAbilityHandler.ExecuteFanOfKnives(user, ability, targets);
+                    return;
+                case AbilityTag.ShadowStep:
+                    ExecuteDamage(user, ability, targets);
+                    return;
+
+                // --- Elementalist (new) ---
+                case AbilityTag.ChainLightning:
+                    ElementalistAbilityHandler.ExecuteChainLightning(user, ability, targets, GetEnemiesOf(user));
+                    return;
+                case AbilityTag.FrozenTomb:
+                    ElementalistAbilityHandler.ExecuteFrozenTomb(user, ability, targets);
+                    return;
+
+                // --- Warlock (new) ---
+                case AbilityTag.SoulLink:
+                    WarlockAbilityHandler.ExecuteSoulLink(user, ability, targets);
+                    return;
+                case AbilityTag.DrainSoul:
+                    WarlockAbilityHandler.ExecuteDrainSoul(user, ability, targets);
+                    return;
+
                 // --- Priest ---
                 case AbilityTag.WordOfProtection:
                     ExecuteWordOfProtection(user, ability, targets);
+                    return;
+                case AbilityTag.Smite:
+                    ExecuteDamage(user, ability, targets);
+                    return;
+                case AbilityTag.PrayerOfMending:
+                    PriestAbilityHandler.ExecutePrayerOfMending(user, ability, targets);
+                    return;
+                case AbilityTag.HolyWard:
+                    PriestAbilityHandler.ExecuteHolyWard(user, ability, targets);
+                    return;
+                case AbilityTag.Purify:
+                    PriestAbilityHandler.ExecutePurify(user, ability, targets);
+                    return;
+                case AbilityTag.Resurrect:
+                    PriestAbilityHandler.ExecuteResurrect(user, ability, targets);
+                    return;
+                case AbilityTag.Blessing:
+                    PriestAbilityHandler.ExecuteBlessing(user, ability, targets);
+                    return;
+                case AbilityTag.DivineIntervention:
+                    PriestAbilityHandler.ExecuteDivineIntervention(user, ability, targets);
                     return;
 
                 // --- Ranger ---
                 case AbilityTag.Mark:
                     ExecuteMark(user, ability, targets);
+                    return;
+                case AbilityTag.Snipe:
+                    RangerAbilityHandler.ExecuteSnipe(user, ability, targets);
+                    return;
+                case AbilityTag.HuntersFocus:
+                    RangerAbilityHandler.ExecuteHuntersFocus(user);
+                    return;
+                case AbilityTag.Trap:
+                    RangerAbilityHandler.ExecuteTrap(user);
+                    return;
+                case AbilityTag.Pin:
+                    RangerAbilityHandler.ExecutePin(user, ability, targets);
+                    return;
+                case AbilityTag.TrackingShot:
+                    RangerAbilityHandler.ExecuteTrackingShot(user, ability, targets, GetEnemiesOf(user));
                     return;
             }
 
@@ -220,6 +307,17 @@ namespace PixelWarriors
             if (targets.Count == 0) return;
             BattleCharacter target = targets[0];
 
+            if (user.HasEffect(StatusEffect.Pin))
+            {
+                Log($"{user.Data.Name} is pinned and cannot swap!");
+                return;
+            }
+            if (target.HasEffect(StatusEffect.Pin))
+            {
+                Log($"{target.Data.Name} is pinned and cannot swap!");
+                return;
+            }
+
             GridRow tempRow = user.Row;
             GridColumn tempCol = user.Column;
             user.Row = target.Row;
@@ -234,6 +332,12 @@ namespace PixelWarriors
 
         private static void ExecuteReposition(BattleCharacter user)
         {
+            if (user.HasEffect(StatusEffect.Pin))
+            {
+                Log($"{user.Data.Name} is pinned and cannot reposition!");
+                return;
+            }
+
             GridRow newRow = user.Row == GridRow.Front ? GridRow.Back : GridRow.Front;
             user.Row = newRow;
 
@@ -411,11 +515,13 @@ namespace PixelWarriors
 
                 int healAmount = ability.BasePower;
 
+                // Faith passive: +20% healing
+                if (PassiveProcessor.HasPassive(user, "Faith"))
+                    healAmount = Mathf.RoundToInt(healAmount * (1f + GameplayConfig.FaithHealingBonus));
+
                 // Poison impairs healing
                 if (target.HasEffect(StatusEffect.Poison))
-                {
                     healAmount = Mathf.RoundToInt(healAmount * (1f - GameplayConfig.PoisonHealingReduction));
-                }
 
                 int previousHP = target.CurrentHP;
                 target.CurrentHP = Mathf.Min(target.CurrentHP + healAmount, target.MaxHP);
@@ -430,6 +536,14 @@ namespace PixelWarriors
                 {
                     Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Already at full HP.");
                 }
+
+                // Devotion passive: healing also grants small shield
+                if (PassiveProcessor.HasPassive(user, "Devotion") && target.IsAlive)
+                {
+                    var shield = new StatusEffectInstance(StatusEffect.Shield, -1, GameplayConfig.DevotionShieldValue, user);
+                    target.AddEffect(shield);
+                    GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Shield, GameplayConfig.DevotionShieldValue);
+                }
             }
         }
 
@@ -443,8 +557,21 @@ namespace PixelWarriors
             if (user != null && user.HasEffect(StatusEffect.Imbue))
                 damage += GameplayConfig.ImbueBonusDamage;
 
+            // Hunter's Focus: bonus damage vs tracked target
+            if (user != null && user.HasEffect(StatusEffect.HuntersFocus))
+                damage += GameplayConfig.HuntersFocusBonusDamage;
+
             float markMult = StatusEffectProcessor.GetMarkBonus(target);
             damage = Mathf.RoundToInt(damage * markMult);
+
+            // Blessing: +20% damage
+            if (user != null && user.HasEffect(StatusEffect.Blessing))
+                damage = Mathf.RoundToInt(damage * (1f + GameplayConfig.BlessingDamageBonus));
+
+            // Predator passive: +15% vs marked
+            if (user != null && target.HasEffect(StatusEffect.Mark) && PassiveProcessor.HasPassive(user, "Predator"))
+                damage = Mathf.RoundToInt(damage * (1f + GameplayConfig.PredatorDamageBonus));
+
             damage = StatusEffectProcessor.AbsorbDamage(target, damage);
             return damage;
         }
@@ -469,12 +596,83 @@ namespace PixelWarriors
                 GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Poison, 0);
                 Log($"{target.Data.Name} is poisoned by envenomed weapon!");
             }
+
+            // Soul Link: splash damage to other enemies on same side
+            if (target.HasEffect(StatusEffect.SoulLink))
+            {
+                int splashDamage = Mathf.Max(1,
+                    Mathf.RoundToInt(damage * GameplayConfig.SoulLinkSplashPercent));
+                List<BattleCharacter> sameTeam = GetEnemiesOf(attacker);
+                if (sameTeam != null)
+                {
+                    foreach (BattleCharacter other in sameTeam)
+                    {
+                        if (!other.IsAlive || other == target) continue;
+                        other.CurrentHP = Mathf.Max(0, other.CurrentHP - splashDamage);
+                        GameEvents.RaiseDamageDealt(other, splashDamage, damageType);
+                        Log($"Soul Link splashes {splashDamage} to {other.Data.Name}!");
+                        CheckDefeated(other);
+                    }
+                }
+            }
         }
 
         public static void CheckDefeated(BattleCharacter target)
         {
             if (!target.IsAlive)
             {
+                // Martyr: check if any living ally has Martyr passive (unused)
+                if (target.Side == TeamSide.Player)
+                {
+                    BattleCharacter martyr = FindMartyr(target);
+                    if (martyr != null)
+                    {
+                        target.CurrentHP = 1;
+                        martyr.MarkUsedOnce(AbilityTag.Martyr);
+                        Log($"{martyr.Data.Name}'s Martyr saves {target.Data.Name} from death!");
+                        GameEvents.RaiseHealingReceived(target, 1);
+                        return;
+                    }
+                }
+
+                Log($"{target.Data.Name} was defeated!");
+                GameEvents.RaiseCharacterDefeated(target);
+            }
+        }
+
+        private static BattleCharacter FindMartyr(BattleCharacter dying)
+        {
+            List<BattleCharacter> allies = GetAlliesOf(dying);
+            if (allies == null) return null;
+
+            foreach (BattleCharacter ally in allies)
+            {
+                if (!ally.IsAlive || ally == dying) continue;
+                if (!PassiveProcessor.HasPassive(ally, "Martyr")) continue;
+                if (ally.HasUsedOnce(AbilityTag.Martyr)) continue;
+                return ally;
+            }
+            return null;
+        }
+
+        public static void CheckDefeated(BattleCharacter target, List<BattleCharacter> allies)
+        {
+            if (!target.IsAlive)
+            {
+                // Martyr: check allies
+                foreach (BattleCharacter ally in allies)
+                {
+                    if (!ally.IsAlive || ally == target) continue;
+                    if (!PassiveProcessor.HasPassive(ally, "Martyr")) continue;
+                    if (ally.HasUsedOnce(AbilityTag.Martyr)) continue;
+
+                    target.CurrentHP = 1;
+                    ally.MarkUsedOnce(AbilityTag.Martyr);
+                    Log($"{ally.Data.Name}'s Martyr saves {target.Data.Name} from death!");
+                    GameEvents.RaiseHealingReceived(target, 1);
+                    return;
+                }
+
                 Log($"{target.Data.Name} was defeated!");
                 GameEvents.RaiseCharacterDefeated(target);
             }
@@ -496,6 +694,15 @@ namespace PixelWarriors
                 ? target.EffectiveStats.Dexterity : target.EffectiveStats.Intellect;
             float hitChance = StatCalculator.CalculateHitChance(attackerHitStat, targetHitStat)
                 + ability.HitChanceModifier;
+
+            // Keen Eye passive: +5% hit
+            if (PassiveProcessor.HasPassive(user, "Keen Eye"))
+                hitChance += GameplayConfig.KeenEyeHitBonus;
+
+            // Steady Aim passive: +5% hit on Reach attacks
+            if (ability.Range == AbilityRange.Reach && PassiveProcessor.HasPassive(user, "Steady Aim"))
+                hitChance += GameplayConfig.SteadyAimHitBonus;
+
             if (Random.value > hitChance)
                 return HitResult.Miss();
 
@@ -533,6 +740,14 @@ namespace PixelWarriors
 
             // Crit
             float critChance = StatCalculator.CalculateCritChance(user.EffectiveStats.Dexterity) + bonusCrit;
+
+            // Keen Eye passive: +5% crit
+            if (PassiveProcessor.HasPassive(user, "Keen Eye"))
+                critChance += GameplayConfig.KeenEyeCritBonus;
+
+            // Steady Aim passive: +5% crit on Reach attacks
+            if (ability.Range == AbilityRange.Reach && PassiveProcessor.HasPassive(user, "Steady Aim"))
+                critChance += GameplayConfig.SteadyAimCritBonus;
             bool isCrit = Random.value < critChance;
             if (isCrit)
             {

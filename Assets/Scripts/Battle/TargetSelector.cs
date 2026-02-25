@@ -17,6 +17,7 @@ namespace PixelWarriors
             {
                 TargetType.SingleEnemy => foes.Where(c => c.IsAlive).ToList(),
                 TargetType.SingleAlly => allies.Where(c => c.IsAlive).ToList(),
+                TargetType.SingleDeadAlly => allies.Where(c => !c.IsAlive).ToList(),
                 TargetType.Self => new List<BattleCharacter> { user },
                 TargetType.AllEnemies => foes.Where(c => c.IsAlive).ToList(),
                 TargetType.AllAllies => allies.Where(c => c.IsAlive).ToList(),
@@ -67,7 +68,8 @@ namespace PixelWarriors
 
         public static bool RequiresManualTargetSelection(TargetType targetType)
         {
-            return targetType == TargetType.SingleEnemy || targetType == TargetType.SingleAlly;
+            return targetType == TargetType.SingleEnemy || targetType == TargetType.SingleAlly
+                || targetType == TargetType.SingleDeadAlly;
         }
 
         public static float GetAggroPercent(BattleCharacter character, List<BattleCharacter> team)

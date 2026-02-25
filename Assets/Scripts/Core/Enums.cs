@@ -138,7 +138,22 @@ namespace PixelWarriors
         Levitate,
         Imbue,
         ElementalArmor,
-        Bodyguard
+        Bodyguard,
+        // Ranger
+        HuntersFocus,
+        Trap,
+        Pin,
+        // Priest
+        Regeneration,
+        Blessing,
+        DivineIntervention,
+        // Warrior
+        IronWill,
+        // Elementalist
+        FrozenTomb,
+        // Warlock
+        SoulLink,
+        DrainSoul
     }
 
     public enum AbilityTag
@@ -200,8 +215,36 @@ namespace PixelWarriors
         LeechLife,
         // Priest
         WordOfProtection,
+        Smite,
+        PrayerOfMending,
+        HolyWard,
+        Purify,
+        Resurrect,
+        Blessing,
+        DivineIntervention,
         // Ranger
         Mark,
+        Volley,
+        Snipe,
+        Barrage,
+        HuntersFocus,
+        Trap,
+        Pin,
+        TrackingShot,
+        // Warrior (additions)
+        RallyCry,
+        IronWill,
+        // Rogue (additions)
+        FanOfKnives,
+        ShadowStep,
+        // Elementalist (additions)
+        ChainLightning,
+        FrozenTomb,
+        // Warlock (additions)
+        SoulLink,
+        DrainSoul,
+        // Passive flags
+        Martyr,
         // Debug
         Annihilation
     }
@@ -213,7 +256,8 @@ namespace PixelWarriors
         Self,
         AllEnemies,
         AllAllies,
-        All
+        All,
+        SingleDeadAlly
     }
 
     public enum EnemyType

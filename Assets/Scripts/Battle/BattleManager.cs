@@ -40,6 +40,7 @@ namespace PixelWarriors
             _playerInput = new PlayerInputHandler(battleScreen, _visuals);
             _playerInput.SubscribeEvents();
             SubscribePassiveEvents();
+            ActionExecutor.SetBattleContext(_players, _enemies);
 
             StartCoroutine(BattleLoop());
         }
@@ -83,6 +84,8 @@ namespace PixelWarriors
         {
             ProcessCaltrops(a);
             if (a != b) ProcessCaltrops(b);
+            ProcessTrap(a);
+            if (a != b) ProcessTrap(b);
         }
 
         private void ProcessCaltrops(BattleCharacter movedCharacter)
@@ -99,6 +102,37 @@ namespace PixelWarriors
                 movedCharacter.CurrentHP = Mathf.Max(0, movedCharacter.CurrentHP - damage);
                 GameEvents.RaiseDamageDealt(movedCharacter, damage, DamageType.Physical);
                 Log($"{movedCharacter.Data.Name} steps on caltrops! {damage} damage!");
+                ActionExecutor.CheckDefeated(movedCharacter);
+                break;
+            }
+        }
+
+        private void ProcessTrap(BattleCharacter movedCharacter)
+        {
+            if (!movedCharacter.IsAlive) return;
+
+            List<BattleCharacter> opponents = movedCharacter.Side == TeamSide.Player ? _enemies : _players;
+            foreach (BattleCharacter opponent in opponents)
+            {
+                if (!opponent.IsAlive) continue;
+                if (!opponent.HasEffect(StatusEffect.Trap)) continue;
+
+                // Trap triggers: damage + stun, then remove
+                int damage = GameplayConfig.TrapDamage;
+                movedCharacter.CurrentHP = Mathf.Max(0, movedCharacter.CurrentHP - damage);
+                GameEvents.RaiseDamageDealt(movedCharacter, damage, DamageType.Physical);
+                Log($"{movedCharacter.Data.Name} triggers a trap! {damage} damage!");
+
+                if (movedCharacter.IsAlive)
+                {
+                    var stun = new StatusEffectInstance(StatusEffect.Stun, 1, 0, opponent);
+                    movedCharacter.AddEffect(stun);
+                    GameEvents.RaiseStatusEffectApplied(movedCharacter, StatusEffect.Stun, 0);
+                    Log($"{movedCharacter.Data.Name} is stunned!");
+                }
+
+                opponent.RemoveEffect(StatusEffect.Trap);
+                GameEvents.RaiseStatusEffectRemoved(opponent, StatusEffect.Trap);
                 ActionExecutor.CheckDefeated(movedCharacter);
                 break;
             }

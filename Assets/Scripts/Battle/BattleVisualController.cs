@@ -18,7 +18,10 @@ namespace PixelWarriors
                 CharacterCardUI card = _battleScreen.BattleGrid.FindCard(target);
                 if (card != null)
                 {
-                    card.SetTargetable(true);
+                    if (!target.IsAlive)
+                        card.SetResurrectable(true);
+                    else
+                        card.SetTargetable(true);
                     card.OnCardClicked += HandleCardClicked;
                 }
             }
@@ -30,9 +33,15 @@ namespace PixelWarriors
             _battleScreen.BattleGrid.SetHighlight(activeCharacter, true);
 
             foreach (CharacterCardUI card in _battleScreen.BattleGrid.EnemyCards)
+            {
                 card.OnCardClicked -= HandleCardClicked;
+                if (!card.Character.IsAlive) card.SetResurrectable(false);
+            }
             foreach (CharacterCardUI card in _battleScreen.BattleGrid.PlayerCards)
+            {
                 card.OnCardClicked -= HandleCardClicked;
+                if (!card.Character.IsAlive) card.SetResurrectable(false);
+            }
         }
 
         public void ShowStagedHighlights(List<BattleCharacter> targets)
@@ -49,7 +58,10 @@ namespace PixelWarriors
                 CharacterCardUI card = _battleScreen.BattleGrid.FindCard(target);
                 if (card != null)
                 {
-                    card.SetClickable(true);
+                    if (!target.IsAlive)
+                        card.SetResurrectable(true);
+                    else
+                        card.SetClickable(true);
                     card.OnCardClicked += HandleCardClicked;
                 }
             }
@@ -61,11 +73,13 @@ namespace PixelWarriors
             {
                 card.SetClickable(false);
                 card.OnCardClicked -= HandleCardClicked;
+                if (!card.Character.IsAlive) card.SetResurrectable(false);
             }
             foreach (CharacterCardUI card in _battleScreen.BattleGrid.PlayerCards)
             {
                 card.SetClickable(false);
                 card.OnCardClicked -= HandleCardClicked;
+                if (!card.Character.IsAlive) card.SetResurrectable(false);
             }
         }
 

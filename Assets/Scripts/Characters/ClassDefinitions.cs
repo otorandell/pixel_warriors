@@ -99,9 +99,11 @@ namespace PixelWarriors
         {
             return characterClass switch
             {
-                CharacterClass.Warrior => AbilityCatalog.GetWarriorPassives(),
-                CharacterClass.Rogue   => AbilityCatalog.GetRoguePassives(),
-                CharacterClass.Warlock => AbilityCatalog.GetWarlockPassives(),
+                CharacterClass.Warrior      => AbilityCatalog.GetWarriorPassives(),
+                CharacterClass.Rogue        => AbilityCatalog.GetRoguePassives(),
+                CharacterClass.Ranger       => AbilityCatalog.GetRangerPassives(),
+                CharacterClass.Priest       => AbilityCatalog.GetPriestPassives(),
+                CharacterClass.Warlock      => AbilityCatalog.GetWarlockPassives(),
                 _ => new List<AbilityData>()
             };
         }

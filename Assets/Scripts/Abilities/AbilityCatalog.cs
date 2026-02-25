@@ -243,6 +243,28 @@ namespace PixelWarriors
                     Tag = AbilityTag.Bladedance,
                     RequiredWeapon = WeaponType.Sword,
                     Range = AbilityRange.Close
+                },
+                new AbilityData
+                {
+                    Name = "Rally Cry",
+                    Description = "All allies gain +1 short action this turn.",
+                    Tab = AbilityTab.Skills,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 5,
+                    TargetType = TargetType.AllAllies,
+                    Tag = AbilityTag.RallyCry
+                },
+                new AbilityData
+                {
+                    Name = "Iron Will",
+                    Description = "Become immune to negative status effects for 2 turns.",
+                    Tab = AbilityTab.Skills,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    EnergyCost = 3,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.IronWill
                 }
             };
         }
@@ -400,6 +422,35 @@ namespace PixelWarriors
                     EnergyCost = 3,
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.Caltrops
+                },
+                new AbilityData
+                {
+                    Name = "Fan of Knives",
+                    Description = "Throw knives at all enemies. Applies poison.",
+                    Tab = AbilityTab.Attacks,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 4,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 0.5f,
+                    TargetType = TargetType.AllEnemies,
+                    Tag = AbilityTag.FanOfKnives,
+                    Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Shadow Step",
+                    Description = "Teleport behind an enemy and strike. Requires dagger.",
+                    Tab = AbilityTab.Attacks,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 4,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 1.5f,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.ShadowStep,
+                    RequiredWeapon = WeaponType.Dagger,
+                    Range = AbilityRange.Reach
                 }
             };
         }
@@ -605,6 +656,35 @@ namespace PixelWarriors
                     Element = Element.Arcane,
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.ImbueStaff
+                },
+                new AbilityData
+                {
+                    Name = "Chain Lightning",
+                    Description = "Lightning that bounces between enemies.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 5,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Air,
+                    BasePower = 10,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.ChainLightning,
+                    Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Frozen Tomb",
+                    Description = "Entombs an enemy in ice. Stunned but immune to damage.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 5,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Water,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.FrozenTomb,
+                    Range = AbilityRange.Reach
                 }
             };
         }
@@ -725,6 +805,32 @@ namespace PixelWarriors
                     TargetType = TargetType.SingleEnemy,
                     Tag = AbilityTag.LeechLife,
                     Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Soul Link",
+                    Description = "Links an enemy's soul. Damage splashes to other enemies.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 5,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.SoulLink,
+                    Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Drain Soul",
+                    Description = "Drains the target's soul. Escalating damage, heals caster.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 4,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Arcane,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.DrainSoul,
+                    Range = AbilityRange.Reach
                 }
             };
         }
@@ -739,7 +845,7 @@ namespace PixelWarriors
             };
         }
 
-        // --- Ranger (deferred — basic only) ---
+        // --- Ranger ---
 
         public static List<AbilityData> GetRangerAbilities()
         {
@@ -759,11 +865,91 @@ namespace PixelWarriors
                     TargetType = TargetType.SingleEnemy,
                     Tag = AbilityTag.Mark,
                     Range = AbilityRange.Reach
+                },
+                AbilityData.CreateAttack("Volley", "Fires a volley of arrows at all enemies.",
+                    basePower: 0, energyCost: 3, targetType: TargetType.AllEnemies,
+                    range: AbilityRange.Reach, damageMultiplier: 0.6f),
+                new AbilityData
+                {
+                    Name = "Snipe",
+                    Description = "A precise, high-damage shot. Increased critical chance.",
+                    Tab = AbilityTab.Attacks,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 4,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 1.8f,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.Snipe,
+                    Range = AbilityRange.Reach
+                },
+                AbilityData.CreateAttack("Barrage", "A rapid flurry of arrows.",
+                    basePower: 0, energyCost: 3, range: AbilityRange.Reach,
+                    damageMultiplier: 0.5f, hitCount: 3),
+                new AbilityData
+                {
+                    Name = "Hunter's Focus",
+                    Description = "Focus on targets. Attacks deal bonus damage.",
+                    Tab = AbilityTab.Skills,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    EnergyCost = 2,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.HuntersFocus
+                },
+                new AbilityData
+                {
+                    Name = "Trap",
+                    Description = "Set a trap. Next enemy that moves takes damage and is stunned.",
+                    Tab = AbilityTab.Skills,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 3,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Trap
+                },
+                new AbilityData
+                {
+                    Name = "Pin",
+                    Description = "Pins an enemy in place, preventing movement.",
+                    Tab = AbilityTab.Attacks,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    EnergyCost = 2,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 0.5f,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.Pin,
+                    Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Tracking Shot",
+                    Description = "Damage increases with more enemies alive.",
+                    Tab = AbilityTab.Attacks,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    EnergyCost = 4,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 0.8f,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.TrackingShot,
+                    Range = AbilityRange.Reach
                 }
             };
         }
 
-        // --- Priest (deferred — basic only) ---
+        public static List<AbilityData> GetRangerPassives()
+        {
+            return new List<AbilityData>
+            {
+                new AbilityData { Name = "Survivalist", Description = "Regenerate 2 energy at turn start.", IsPassive = true, Tag = AbilityTag.None },
+                new AbilityData { Name = "Predator", Description = "+15% damage against marked targets.", IsPassive = true, Tag = AbilityTag.None },
+                new AbilityData { Name = "Steady Aim", Description = "+5% accuracy and crit with ranged attacks.", IsPassive = true, Tag = AbilityTag.None }
+            };
+        }
+
+        // --- Priest ---
 
         public static List<AbilityData> GetPriestAbilities()
         {
@@ -782,7 +968,107 @@ namespace PixelWarriors
                     BasePower = 8,
                     TargetType = TargetType.SingleAlly,
                     Tag = AbilityTag.WordOfProtection
+                },
+                new AbilityData
+                {
+                    Name = "Smite",
+                    Description = "Strikes an enemy with holy power.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 3,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Arcane,
+                    BasePower = 8,
+                    TargetType = TargetType.SingleEnemy,
+                    Tag = AbilityTag.Smite,
+                    Range = AbilityRange.Reach
+                },
+                new AbilityData
+                {
+                    Name = "Prayer of Mending",
+                    Description = "Heals an ally over time.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 4,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Arcane,
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.PrayerOfMending
+                },
+                new AbilityData
+                {
+                    Name = "Holy Ward",
+                    Description = "Shields all allies with a protective ward.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 6,
+                    DamageType = DamageType.Magical,
+                    Element = Element.Arcane,
+                    BasePower = 5,
+                    TargetType = TargetType.AllAllies,
+                    Tag = AbilityTag.HolyWard
+                },
+                new AbilityData
+                {
+                    Name = "Purify",
+                    Description = "Removes all negative effects from an ally.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    ManaCost = 3,
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.Purify
+                },
+                new AbilityData
+                {
+                    Name = "Resurrect",
+                    Description = "Revives a fallen ally at 30% HP. Once per battle.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 8,
+                    TargetType = TargetType.SingleDeadAlly,
+                    Tag = AbilityTag.Resurrect,
+                    OncePerBattle = true
+                },
+                new AbilityData
+                {
+                    Name = "Blessing",
+                    Description = "Blesses an ally, increasing their damage.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 4,
+                    Element = Element.Arcane,
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.Blessing
+                },
+                new AbilityData
+                {
+                    Name = "Divine Intervention",
+                    Description = "Makes an ally immune to all damage for 1 turn. Once per battle.",
+                    Tab = AbilityTab.Spells,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    ManaCost = 7,
+                    Element = Element.Arcane,
+                    TargetType = TargetType.SingleAlly,
+                    Tag = AbilityTag.DivineIntervention,
+                    OncePerBattle = true
                 }
+            };
+        }
+
+        public static List<AbilityData> GetPriestPassives()
+        {
+            return new List<AbilityData>
+            {
+                new AbilityData { Name = "Inner Light", Description = "Regenerate 2 mana at turn start.", IsPassive = true, Tag = AbilityTag.None },
+                new AbilityData { Name = "Martyr", Description = "When an ally would die, heal them to 1 HP instead. Once per battle.", IsPassive = true, Tag = AbilityTag.None },
+                new AbilityData { Name = "Devotion", Description = "Healing spells also grant a small shield.", IsPassive = true, Tag = AbilityTag.None }
             };
         }
     }
