@@ -15,7 +15,6 @@ namespace PixelWarriors
         private int _hitCounter;
 
         // Track persistent effects so we can kill them when removed
-        private readonly Dictionary<BattleCharacter, Tween> _statusPulseTweens = new();
         private readonly Dictionary<BattleCharacter, Tween> _stunWobbleTweens = new();
         private readonly Dictionary<BattleCharacter, Tween> _lowHPFlickerTweens = new();
 
@@ -34,6 +33,7 @@ namespace PixelWarriors
             GameEvents.OnCharacterDefeated += HandleCharacterDefeated;
             GameEvents.OnStatusEffectApplied += HandleStatusEffectApplied;
             GameEvents.OnStatusEffectRemoved += HandleStatusEffectRemoved;
+            GameEvents.OnDamageDealt += HandleDamageDealt;
         }
 
         private void OnDisable()
@@ -45,14 +45,13 @@ namespace PixelWarriors
             GameEvents.OnCharacterDefeated -= HandleCharacterDefeated;
             GameEvents.OnStatusEffectApplied -= HandleStatusEffectApplied;
             GameEvents.OnStatusEffectRemoved -= HandleStatusEffectRemoved;
+            GameEvents.OnDamageDealt -= HandleDamageDealt;
         }
 
         private void OnDestroy()
         {
-            foreach (Tween t in _statusPulseTweens.Values) t?.Kill();
             foreach (Tween t in _stunWobbleTweens.Values) t?.Kill();
             foreach (Tween t in _lowHPFlickerTweens.Values) t?.Kill();
-            _statusPulseTweens.Clear();
             _stunWobbleTweens.Clear();
             _lowHPFlickerTweens.Clear();
             DOTween.Kill(this);
@@ -216,11 +215,11 @@ namespace PixelWarriors
                     break;
 
                 case StatusEffect.Poison:
-                    StartStatusBorderPulse(target, card, UIStyleConfig.AccentGreen);
+                    PlayColorFlash(card, UIStyleConfig.AccentGreen, 0f);
                     break;
 
                 case StatusEffect.Burn:
-                    StartStatusBorderPulse(target, card, UIStyleConfig.AccentRed);
+                    PlayColorFlash(card, UIStyleConfig.AccentRed, 0f);
                     break;
 
                 case StatusEffect.Stun:
@@ -240,15 +239,23 @@ namespace PixelWarriors
         {
             switch (effect)
             {
-                case StatusEffect.Poison:
-                case StatusEffect.Burn:
-                    StopStatusBorderPulse(target);
-                    break;
-
                 case StatusEffect.Stun:
                     StopStunWobble(target);
                     break;
             }
+        }
+
+        private void HandleDamageDealt(BattleCharacter target, int damage, DamageType type)
+        {
+            if (_battleScreen == null) return;
+            CharacterCardUI card = _battleScreen.BattleGrid.FindCard(target);
+            if (card == null) return;
+
+            // Flash on DoT tick: check if character has poison/burn active
+            if (target.HasEffect(StatusEffect.Poison))
+                PlayColorFlash(card, UIStyleConfig.AccentGreen, 0f);
+            if (target.HasEffect(StatusEffect.Burn))
+                PlayColorFlash(card, UIStyleConfig.AccentRed, 0f);
         }
 
         // --- Core Animation Methods ---
@@ -450,38 +457,6 @@ namespace PixelWarriors
 
         // --- Persistent Status Effects ---
 
-        private void StartStatusBorderPulse(BattleCharacter character, CharacterCardUI card, Color pulseColor)
-        {
-            StopStatusBorderPulse(character);
-
-            Image bg = card.BackgroundImage;
-            if (bg == null) return;
-
-            Color baseColor = UIStyleConfig.PanelBackground;
-            Color targetColor = Color.Lerp(baseColor, pulseColor, 0.3f);
-
-            Tween tween = bg.DOColor(targetColor, AnimationConfig.StatusPulseDuration)
-                .SetLoops(-1, LoopType.Yoyo)
-                .SetEase(Ease.InOutSine)
-                .SetTarget(bg)
-                .SetId("statusPulse");
-
-            _statusPulseTweens[character] = tween;
-        }
-
-        private void StopStatusBorderPulse(BattleCharacter character)
-        {
-            if (!_statusPulseTweens.TryGetValue(character, out Tween tween)) return;
-
-            tween?.Kill();
-            _statusPulseTweens.Remove(character);
-
-            // Restore background color
-            CharacterCardUI card = _battleScreen?.BattleGrid.FindCard(character);
-            if (card?.BackgroundImage != null)
-                card.BackgroundImage.color = UIStyleConfig.PanelBackground;
-        }
-
         private void StartStunWobble(BattleCharacter character, CharacterCardUI card)
         {
             StopStunWobble(character);
@@ -564,7 +539,6 @@ namespace PixelWarriors
 
         private void StopPersistentEffects(BattleCharacter character)
         {
-            StopStatusBorderPulse(character);
             StopStunWobble(character);
             StopLowHPFlicker(character);
         }

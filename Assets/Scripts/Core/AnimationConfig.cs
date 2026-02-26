@@ -71,10 +71,6 @@ namespace PixelWarriors
         // --- Buff Glow ---
         public const float BuffGlowDuration = 0.3f;
 
-        // --- Poison/Burn Border Pulse ---
-        public const float StatusPulseDuration = 0.8f;
-        public const float StatusPulseMinAlpha = 0.3f;
-
         // --- Stun Wobble ---
         public const float StunWobbleAngle = 3f;
         public const float StunWobbleDuration = 0.5f;
