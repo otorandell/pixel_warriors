@@ -82,18 +82,8 @@ namespace PixelWarriors
                     ShortPointCost = 0,
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.Pass
-                },
-                new AbilityData
-                {
-                    Name = "Annihilation",
-                    Description = "[DEBUG] Instantly kill all enemies.",
-                    Tab = AbilityTab.Generic,
-                    ActionCost = ActionPointType.Short,
-                    ShortPointCost = 0,
-                    TargetType = TargetType.AllEnemies,
-                    Tag = AbilityTag.Annihilation
                 }
-            };
+};
         }
 
         // --- Warrior ---

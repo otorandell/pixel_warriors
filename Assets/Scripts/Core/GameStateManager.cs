@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 
 namespace PixelWarriors
@@ -8,6 +9,7 @@ namespace PixelWarriors
     {
         private ScreenManager _screenManager;
         private RunData _runData;
+        private bool _continueRun;
 
         public void Initialize(ScreenManager screenManager)
         {
@@ -26,21 +28,64 @@ namespace PixelWarriors
 
         private IEnumerator MainMenuPhase()
         {
+            _continueRun = false;
+
             var menuScreen = new MainMenuScreen();
             _screenManager.TransitionTo(menuScreen);
 
-            while (!menuScreen.StartPressed)
+            while (!menuScreen.StartPressed && !menuScreen.ContinuePressed)
                 yield return null;
 
+            if (menuScreen.StartPressed && SaveManager.HasSave())
+                SaveManager.DeleteSave();
+
+            _continueRun = menuScreen.ContinuePressed;
             menuScreen.Hide();
+        }
+
+        private IEnumerator PartySetupPhase()
+        {
+            var setupScreen = new PartySetupScreen();
+            yield return FadeTransitionTo(setupScreen);
+
+            while (!setupScreen.Done)
+                yield return null;
+
+            List<CharacterClass> chosen = setupScreen.SelectedClasses;
+            string[] names = { "Aldric", "Shade", "Elara", "Maren", "Zephyr", "Nyx" };
+
+            // Shuffle names so party members get varied names each run
+            ShuffleArray(names);
+
+            for (int i = 0; i < chosen.Count; i++)
+            {
+                CharacterData data = ClassDefinitions.CreateCharacter(names[i], chosen[i]);
+                EquipDefaultWeapon(data, chosen[i]);
+                _runData.Party.Add(data);
+            }
+
+            setupScreen.Destroy();
         }
 
         private IEnumerator RunPhase()
         {
-            _runData = new RunData();
+            if (_continueRun)
+            {
+                _runData = SaveManager.Load();
+                if (_runData == null)
+                {
+                    Debug.LogWarning("[GameStateManager] Save corrupted, starting new run.");
+                    _runData = new RunData();
+                    yield return PartySetupPhase();
+                }
+            }
+            else
+            {
+                _runData = new RunData();
+                yield return PartySetupPhase();
+            }
 
-            // TODO Phase G: PartySetupScreen. For now, create 2 random characters.
-            CreateStartingParty();
+            SaveManager.Save(_runData);
 
             while (!_runData.IsRunComplete)
             {
@@ -82,6 +127,7 @@ namespace PixelWarriors
 
                 _runData.PreviousRoom = _runData.CurrentRoom;
                 _runData.AdvanceFloor();
+                SaveManager.Save(_runData);
             }
 
             yield return GameOverPhase(true);
@@ -98,10 +144,19 @@ namespace PixelWarriors
                 yield break;
             }
 
+            bool firstShow = true;
             while (true)
             {
                 var choiceScreen = new RoomChoiceScreen(_runData, choices);
-                _screenManager.TransitionTo(choiceScreen);
+                if (firstShow)
+                {
+                    yield return FadeTransitionTo(choiceScreen);
+                    firstShow = false;
+                }
+                else
+                {
+                    _screenManager.TransitionTo(choiceScreen);
+                }
 
                 while (choiceScreen.SelectedRoom == null && !choiceScreen.InventoryRequested)
                     yield return null;
@@ -126,18 +181,11 @@ namespace PixelWarriors
             }
         }
 
-        private IEnumerator StubRoomPhase(RoomType room)
-        {
-            string roomName = FloorGenerator.GetRoomName(room);
-            Debug.Log($"[{roomName}] Not yet implemented — skipping.");
-            yield return new WaitForSeconds(0.5f);
-        }
-
         private IEnumerator RestPhase()
         {
             EventData restEvent = EventCatalog.GetRestEvent();
             var eventScreen = new EventScreen(restEvent, _runData);
-            _screenManager.TransitionTo(eventScreen);
+            yield return FadeTransitionTo(eventScreen);
 
             while (!eventScreen.Done)
                 yield return null;
@@ -149,7 +197,7 @@ namespace PixelWarriors
         {
             EventData eventData = EventCatalog.RollEvent(_runData);
             var eventScreen = new EventScreen(eventData, _runData);
-            _screenManager.TransitionTo(eventScreen);
+            yield return FadeTransitionTo(eventScreen);
 
             while (!eventScreen.Done)
                 yield return null;
@@ -161,10 +209,19 @@ namespace PixelWarriors
         {
             ShopStock stock = ShopGenerator.GenerateShopStock(_runData);
 
+            bool firstShow = true;
             while (true)
             {
                 var shopScreen = new ShopScreen(_runData, stock);
-                _screenManager.TransitionTo(shopScreen);
+                if (firstShow)
+                {
+                    yield return FadeTransitionTo(shopScreen);
+                    firstShow = false;
+                }
+                else
+                {
+                    _screenManager.TransitionTo(shopScreen);
+                }
 
                 while (!shopScreen.ExitRequested && !shopScreen.InventoryRequested)
                     yield return null;
@@ -232,7 +289,7 @@ namespace PixelWarriors
             }
 
             var recruitScreen = new RecruitScreen(candidates, _runData);
-            _screenManager.TransitionTo(recruitScreen);
+            yield return FadeTransitionTo(recruitScreen);
 
             while (!recruitScreen.Done)
                 yield return null;
@@ -248,7 +305,7 @@ namespace PixelWarriors
         private IEnumerator BattlePhase()
         {
             var battleScreen = new BattleScreenUI();
-            _screenManager.TransitionTo(battleScreen);
+            yield return FadeTransitionTo(battleScreen);
 
             List<BattleCharacter> players = CreateBattleParty();
             RoomType roomType = _runData.CurrentRoom ?? RoomType.Battle;
@@ -293,7 +350,7 @@ namespace PixelWarriors
                 PostBattleResult postResult = PostBattleProcessor.Process(_runData, players, room);
 
                 var postScreen = new PostBattleScreen(postResult, _runData.Party, _runData);
-                _screenManager.TransitionTo(postScreen);
+                yield return FadeTransitionTo(postScreen);
 
                 while (true)
                 {
@@ -328,37 +385,23 @@ namespace PixelWarriors
 
         private IEnumerator GameOverPhase(bool victory)
         {
-            // TODO Phase G: GameOverScreen. For now, log and return to menu.
-            var menuScreen = new MainMenuScreen();
-            _screenManager.TransitionTo(menuScreen);
+            SaveManager.DeleteSave();
 
-            // Show a simple message via the menu for now
-            Debug.Log(victory
-                ? $"Run complete! Battles: {_runData.TotalBattles}, Kills: {_runData.TotalKills}"
-                : $"Game Over. Battles: {_runData.TotalBattles}, Kills: {_runData.TotalKills}");
+            var gameOverScreen = new GameOverScreen(_runData, victory);
+            yield return FadeTransitionTo(gameOverScreen);
 
-            while (!menuScreen.StartPressed)
+            while (!gameOverScreen.MenuPressed)
                 yield return null;
 
-            menuScreen.Hide();
+            gameOverScreen.Destroy();
         }
 
-        private void CreateStartingParty()
+
+        private IEnumerator FadeTransitionTo(IScreen screen)
         {
-            CharacterClass[] allClasses = {
-                CharacterClass.Warrior, CharacterClass.Rogue, CharacterClass.Ranger,
-                CharacterClass.Priest, CharacterClass.Elementalist, CharacterClass.Warlock
-            };
-            ShuffleArray(allClasses);
-
-            string[] names = { "Aldric", "Shade", "Elara", "Maren", "Zephyr", "Nyx" };
-
-            for (int i = 0; i < RunConfig.StartingPartySize; i++)
-            {
-                CharacterData data = ClassDefinitions.CreateCharacter(names[i], allClasses[i]);
-                EquipDefaultWeapon(data, allClasses[i]);
-                _runData.Party.Add(data);
-            }
+            yield return _screenManager.FadeOut().WaitForCompletion();
+            _screenManager.TransitionTo(screen);
+            yield return _screenManager.FadeIn().WaitForCompletion();
         }
 
         private List<BattleCharacter> CreateBattleParty()

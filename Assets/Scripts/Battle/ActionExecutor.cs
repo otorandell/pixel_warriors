@@ -74,10 +74,6 @@ namespace PixelWarriors
                 case AbilityTag.Pass:
                     ExecutePass(user);
                     return;
-                case AbilityTag.Annihilation:
-                    ExecuteAnnihilation(user, targets);
-                    return;
-
                 // --- Warrior ---
                 case AbilityTag.CrushArmor:
                     WarriorAbilityHandler.ExecuteCrushArmor(user, ability, targets);
@@ -419,20 +415,6 @@ namespace PixelWarriors
 
             GameEvents.RaiseAbilityUsed(user, null, user);
             Log($"{user.Data.Name} passes.");
-        }
-
-        private static void ExecuteAnnihilation(BattleCharacter user, List<BattleCharacter> targets)
-        {
-            Log($"{user.Data.Name} unleashes ANNIHILATION!");
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                int damage = target.CurrentHP;
-                target.CurrentHP = 0;
-                GameEvents.RaiseDamageDealt(target, damage, DamageType.Physical);
-                GameEvents.RaiseCharacterDefeated(target);
-                Log($"  {target.Data.Name} is obliterated!");
-            }
         }
 
         private static void ExecuteRitual(BattleCharacter user, AbilityData ability)

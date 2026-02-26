@@ -51,7 +51,7 @@ namespace PixelWarriors
             return data;
         }
 
-        private static CharacterStats GetBaseStats(CharacterClass characterClass)
+        public static CharacterStats GetBaseStats(CharacterClass characterClass)
         {
             return characterClass switch
             {
@@ -108,7 +108,7 @@ namespace PixelWarriors
             };
         }
 
-        private static AbilityData GetBasicPassive(CharacterClass characterClass)
+        public static AbilityData GetBasicPassive(CharacterClass characterClass)
         {
             return characterClass switch
             {

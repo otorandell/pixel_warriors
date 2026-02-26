@@ -79,5 +79,9 @@ namespace PixelWarriors
         public const float LowHPThreshold = 0.20f;
         public const float LowHPFlickerMinAlpha = 0.5f;
         public const float LowHPFlickerDuration = 0.4f;
+
+        // --- Screen Fade Transition ---
+        public const float ScreenFadeOutDuration = 0.2f;
+        public const float ScreenFadeInDuration = 0.25f;
     }
 }

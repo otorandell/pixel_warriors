@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -9,6 +10,7 @@ namespace PixelWarriors
     {
         private Canvas _canvas;
         private IScreen _currentScreen;
+        private CanvasGroup _fadeOverlay;
 
         public Transform CanvasParent => _canvas.transform;
 
@@ -36,12 +38,30 @@ namespace PixelWarriors
             _currentScreen = newScreen;
             _currentScreen.Build(CanvasParent);
             _currentScreen.Show();
+
+            // Keep fade overlay on top
+            _fadeOverlay.transform.SetAsLastSibling();
         }
 
         public void HideAll()
         {
             _currentScreen?.Hide();
             _currentScreen = null;
+        }
+
+        public Tween FadeOut(float duration = -1f)
+        {
+            if (duration < 0f) duration = AnimationConfig.ScreenFadeOutDuration;
+            _fadeOverlay.blocksRaycasts = true;
+            return _fadeOverlay.DOFade(1f, duration).SetEase(Ease.Linear);
+        }
+
+        public Tween FadeIn(float duration = -1f)
+        {
+            if (duration < 0f) duration = AnimationConfig.ScreenFadeInDuration;
+            return _fadeOverlay.DOFade(0f, duration)
+                .SetEase(Ease.Linear)
+                .OnComplete(() => _fadeOverlay.blocksRaycasts = false);
         }
 
         private void EnsureEventSystem()
@@ -75,6 +95,19 @@ namespace PixelWarriors
             Image bgImage = bgGo.AddComponent<Image>();
             bgImage.color = UIStyleConfig.Background;
             bgImage.raycastTarget = false;
+
+            // Fade overlay (full-screen black, starts transparent)
+            GameObject fadeGo = new GameObject("FadeOverlay");
+            RectTransform fadeRect = fadeGo.AddComponent<RectTransform>();
+            fadeRect.SetParent(_canvas.transform, false);
+            PanelBuilder.SetFill(fadeRect);
+            Image fadeImage = fadeGo.AddComponent<Image>();
+            fadeImage.color = Color.black;
+            fadeImage.raycastTarget = true;
+
+            _fadeOverlay = fadeGo.AddComponent<CanvasGroup>();
+            _fadeOverlay.alpha = 0f;
+            _fadeOverlay.blocksRaycasts = false;
         }
     }
 }
