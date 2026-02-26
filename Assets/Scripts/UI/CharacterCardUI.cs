@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -9,6 +10,9 @@ namespace PixelWarriors
     {
         public RectTransform Root { get; private set; }
         public BattleCharacter Character => _character;
+        public Image BackgroundImage => _bgImage;
+        public CanvasGroup CanvasGroup => _canvasGroup;
+        public bool IsDead => _isDead;
 
         public event Action<BattleCharacter> OnCardClicked;
 
@@ -20,7 +24,9 @@ namespace PixelWarriors
         private TextMeshProUGUI _aggroText;
         private BattleCharacter _character;
         private Button _button;
+        private Image _bgImage;
         private Image[] _borderImages;
+        private CanvasGroup _canvasGroup;
         private LongPressHandler _longPress;
         private bool _isDead;
 
@@ -29,6 +35,12 @@ namespace PixelWarriors
             _character = character;
 
             Root = PanelBuilder.CreatePanel("Card_" + character.Data.Name, parent);
+
+            // Cache background image (first Image on root = panel bg)
+            _bgImage = Root.GetComponent<Image>();
+
+            // Add CanvasGroup for fade effects
+            _canvasGroup = Root.gameObject.AddComponent<CanvasGroup>();
 
             _button = Root.gameObject.AddComponent<Button>();
             _button.interactable = false;
@@ -107,9 +119,13 @@ namespace PixelWarriors
             if (_isDead && _character.IsAlive)
             {
                 _isDead = false;
+                _canvasGroup.alpha = 1f;
+                Root.localScale = Vector3.one;
                 _nameText.color = UIFormatUtil.GetClassColor(_character.Data.Class);
                 _classLevelText.color = UIStyleConfig.TextDimmed;
                 _hpText.color = UIStyleConfig.HPBarColor;
+                _energyText.color = UIStyleConfig.EnergyBarColor;
+                _manaText.color = UIStyleConfig.ManaBarColor;
                 SetBorderColor(UIStyleConfig.PanelBorder);
             }
 
@@ -180,12 +196,27 @@ namespace PixelWarriors
             SetBorderColor(resurrectable ? UIStyleConfig.TargetHighlight : UIStyleConfig.DeathBorderColor);
         }
 
+        public void SetBorderColor(Color color)
+        {
+            if (_borderImages == null) return;
+
+            foreach (Image img in _borderImages)
+            {
+                if (img.gameObject.name.StartsWith("Border_"))
+                {
+                    img.color = color;
+                }
+            }
+        }
+
         /// <summary>
         /// Kill all DOTween tweens targeting this card's components. Call before destroying.
         /// </summary>
         public void Cleanup()
         {
-            DG.Tweening.DOTween.Kill(Root);
+            DOTween.Kill(Root);
+            if (_canvasGroup != null) DOTween.Kill(_canvasGroup);
+            if (_bgImage != null) DOTween.Kill(_bgImage);
         }
 
         private void SetDead()
@@ -203,6 +234,8 @@ namespace PixelWarriors
             _aggroText.text = "";
 
             SetBorderColor(UIStyleConfig.DeathBorderColor);
+
+            // Death animation: shrink + fade (handled by BattleAnimationController via event)
         }
 
         private string BuildStatusIndicators()
@@ -234,19 +267,6 @@ namespace PixelWarriors
             if (_character.HasEffect(StatusEffect.DrainSoul)) s += "[DS]";
             if (_character.HasEffect(StatusEffect.Trap)) s += "[Tr]";
             return s;
-        }
-
-        private void SetBorderColor(Color color)
-        {
-            if (_borderImages == null) return;
-
-            foreach (Image img in _borderImages)
-            {
-                if (img.gameObject.name.StartsWith("Border_"))
-                {
-                    img.color = color;
-                }
-            }
         }
     }
 }

@@ -7,12 +7,12 @@ namespace PixelWarriors
         // --- Floating Text ---
         public const float FloatingTextDuration = 0.8f;
         public const float FloatingTextRiseDistance = 60f;
-        public const float FloatingTextFadeDelay = 0.4f;       // Start fading at this point
-        public const float FloatingTextFadeDuration = 0.4f;     // Fade over this duration
+        public const float FloatingTextFadeDelay = 0.4f;
+        public const float FloatingTextFadeDuration = 0.4f;
         public const float FloatingTextFontSize = 14f;
         public const float FloatingTextCritFontSize = 18f;
         public const float FloatingTextSpawnOffsetY = 20f;
-        public const float FloatingTextStaggerDelay = 0.1f;     // Stagger multi-hit numbers
+        public const float FloatingTextStaggerDelay = 0.1f;
         public const int FloatingTextPoolSize = 16;
 
         // --- Attacker Lunge ---
@@ -40,7 +40,48 @@ namespace PixelWarriors
         public static readonly Ease TurnPulseEase = Ease.OutBack;
 
         // --- Hit Visual Delay ---
-        // Damage numbers and receiver shake are delayed to appear after lunge peak
         public const float HitVisualDelay = 0.12f;
+
+        // --- Hit Squeeze/Stretch ---
+        public const float SqueezeX = 0.85f;       // Squash horizontally
+        public const float SqueezeY = 1.15f;        // Stretch vertically
+        public const float SqueezeDuration = 0.08f;  // Squash in
+        public const float SqueezeReturnDuration = 0.15f; // Spring back
+        public static readonly Ease SqueezeEase = Ease.OutQuad;
+        public static readonly Ease SqueezeReturnEase = Ease.OutBack;
+
+        // --- Color Flash (on damage) ---
+        public const float ColorFlashDuration = 0.15f;
+
+        // --- Death: Shrink + Fade ---
+        public const float DeathShrinkDuration = 0.4f;
+        public const float DeathFadeDuration = 0.3f;
+        public const float DeathShrinkScale = 0f;
+        public static readonly Ease DeathShrinkEase = Ease.InBack;
+
+        // --- Heal Pulse ---
+        public const float HealPulseScale = 1.04f;
+        public const float HealPulseDuration = 0.2f;
+        public const float HealBorderFlashDuration = 0.3f;
+
+        // --- Shield Shimmer ---
+        public const float ShieldShimmerDuration = 0.3f;
+        public const int ShieldShimmerLoops = 2;
+
+        // --- Buff Glow ---
+        public const float BuffGlowDuration = 0.3f;
+
+        // --- Poison/Burn Border Pulse ---
+        public const float StatusPulseDuration = 0.8f;
+        public const float StatusPulseMinAlpha = 0.3f;
+
+        // --- Stun Wobble ---
+        public const float StunWobbleAngle = 3f;
+        public const float StunWobbleDuration = 0.5f;
+
+        // --- Low HP Flicker ---
+        public const float LowHPThreshold = 0.20f;
+        public const float LowHPFlickerMinAlpha = 0.5f;
+        public const float LowHPFlickerDuration = 0.4f;
     }
 }
