@@ -17,6 +17,8 @@ namespace PixelWarriors
 
         private PlayerInputHandler _playerInput;
         private BattleVisualController _visuals;
+        private BattleAnimationController _animController;
+        private RunData _runData;
 
         // Reinforcement system
         private List<ReinforcementWave> _pendingWaves = new();
@@ -27,11 +29,12 @@ namespace PixelWarriors
         public List<BattleCharacter> Enemies => _enemies;
 
         public void StartBattle(List<BattleCharacter> players, List<BattleCharacter> initialEnemies,
-            EncounterData encounterData, BattleScreenUI battleScreen)
+            EncounterData encounterData, BattleScreenUI battleScreen, RunData runData = null)
         {
             _players = players;
             _enemies = initialEnemies;
             _battleScreen = battleScreen;
+            _runData = runData;
 
             // Copy waves so we can mutate the list as they trigger
             _pendingWaves = new List<ReinforcementWave>(encounterData.Waves);
@@ -42,6 +45,13 @@ namespace PixelWarriors
             SubscribePassiveEvents();
             ActionExecutor.SetBattleContext(_players, _enemies);
 
+            _animController = gameObject.AddComponent<BattleAnimationController>();
+            _animController.Initialize(_battleScreen);
+
+            // Pass RunData to ability panel for consumable items
+            if (_runData != null)
+                _battleScreen.AbilityPanel.SetRunData(_runData);
+
             StartCoroutine(BattleLoop());
         }
 
@@ -49,6 +59,9 @@ namespace PixelWarriors
         {
             _playerInput?.UnsubscribeEvents();
             UnsubscribePassiveEvents();
+
+            if (_animController != null)
+                Destroy(_animController);
         }
 
         private void SubscribePassiveEvents()
@@ -274,7 +287,19 @@ namespace PixelWarriors
             yield return _playerInput.WaitForAction(_activeCharacter, _players, _enemies);
 
             SetState(BattleState.ExecutingAction);
-            ActionExecutor.ExecuteAbility(_activeCharacter, _playerInput.ChosenAbility, _playerInput.ChosenTargets);
+            AbilityData chosenAbility = _playerInput.ChosenAbility;
+            ActionExecutor.ExecuteAbility(_activeCharacter, chosenAbility, _playerInput.ChosenTargets);
+
+            // Decrement consumable if one was used
+            if (_runData != null)
+            {
+                string consumableId = _battleScreen.AbilityPanel.GetConsumableId(chosenAbility);
+                if (consumableId != null)
+                {
+                    _runData.RemoveConsumable(consumableId);
+                    _battleScreen.AbilityPanel.RefreshAbilities();
+                }
+            }
         }
 
         private IEnumerator EnemyTurn()

@@ -19,6 +19,20 @@ namespace PixelWarriors
         private AbilityTab _activeTab = AbilityTab.Attacks;
         private AbilityData _stagedAbility;
 
+        // Consumable support
+        private RunData _runData;
+        private readonly Dictionary<AbilityData, string> _consumableIdMap = new();
+
+        public void SetRunData(RunData runData)
+        {
+            _runData = runData;
+        }
+
+        public string GetConsumableId(AbilityData ability)
+        {
+            return _consumableIdMap.TryGetValue(ability, out string id) ? id : null;
+        }
+
         public void Build(Transform parent)
         {
             Root = PanelBuilder.CreatePanel("AbilityPanel", parent);
@@ -96,23 +110,58 @@ namespace PixelWarriors
 
             if (_activeCharacter == null) return;
 
-            List<AbilityData> abilities = _activeCharacter.Data.Abilities.FindAll(a => a.Tab == _activeTab && !a.IsPassive);
+            _consumableIdMap.Clear();
+
+            List<AbilityData> abilities;
+
+            if (_activeTab == AbilityTab.Items && _runData != null)
+            {
+                // Items tab: build abilities from consumable inventory
+                abilities = new List<AbilityData>();
+                foreach (ConsumableStack stack in _runData.Consumables)
+                {
+                    ConsumableData consumable = ConsumableCatalog.Get(stack.ConsumableId);
+                    if (consumable == null || !consumable.UsableInBattle || stack.Quantity <= 0) continue;
+
+                    AbilityData battleAbility = ConsumableCatalog.GetBattleAbility(consumable, _runData.CurrentAct);
+                    if (battleAbility == null) continue;
+
+                    abilities.Add(battleAbility);
+                    _consumableIdMap[battleAbility] = stack.ConsumableId;
+                }
+            }
+            else
+            {
+                abilities = _activeCharacter.Data.Abilities.FindAll(a => a.Tab == _activeTab && !a.IsPassive);
+            }
+
             float btnHeight = UIStyleConfig.AbilityButtonHeight;
 
             for (int i = 0; i < abilities.Count; i++)
             {
                 AbilityData ability = abilities[i];
 
-                string costText = UIFormatUtil.FormatAbilityCost(ability);
-                string rangeTag = ability.Range switch
+                string label;
+                if (_consumableIdMap.ContainsKey(ability))
                 {
-                    AbilityRange.Close => "[C]",
-                    AbilityRange.Reach => "[R]",
-                    AbilityRange.Weapon => "[W]",
-                    _ => ""
-                };
-                string label = ability.Name + (costText.Length > 0 ? " " + costText : "")
-                    + (rangeTag.Length > 0 ? " " + rangeTag : "");
+                    // Consumable: show name + quantity
+                    string consumableId = _consumableIdMap[ability];
+                    int qty = _runData.GetConsumableCount(consumableId);
+                    label = ability.Name + " x" + qty;
+                }
+                else
+                {
+                    string costText = UIFormatUtil.FormatAbilityCost(ability);
+                    string rangeTag = ability.Range switch
+                    {
+                        AbilityRange.Close => "[C]",
+                        AbilityRange.Reach => "[R]",
+                        AbilityRange.Weapon => "[W]",
+                        _ => ""
+                    };
+                    label = ability.Name + (costText.Length > 0 ? " " + costText : "")
+                        + (rangeTag.Length > 0 ? " " + rangeTag : "");
+                }
 
                 Color textColor = _activeCharacter.CanUseAbility(ability)
                     ? UIStyleConfig.TextPrimary

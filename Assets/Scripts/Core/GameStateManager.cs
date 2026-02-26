@@ -58,11 +58,19 @@ namespace PixelWarriors
                         break;
 
                     case RoomType.Shop:
-                    case RoomType.Rest:
-                    case RoomType.Event:
+                        yield return ShopPhase();
+                        break;
+
                     case RoomType.Recruit:
-                        // TODO Phase F/G: proper screens. For now, stub with a brief pause.
-                        yield return StubRoomPhase(room);
+                        yield return RecruitPhase();
+                        break;
+
+                    case RoomType.Rest:
+                        yield return RestPhase();
+                        break;
+
+                    case RoomType.Event:
+                        yield return EventPhase();
                         break;
                 }
 
@@ -90,41 +98,151 @@ namespace PixelWarriors
                 yield break;
             }
 
-            var choiceScreen = new RoomChoiceScreen(_runData, choices);
-            _screenManager.TransitionTo(choiceScreen);
+            while (true)
+            {
+                var choiceScreen = new RoomChoiceScreen(_runData, choices);
+                _screenManager.TransitionTo(choiceScreen);
 
-            while (choiceScreen.SelectedRoom == null)
-                yield return null;
+                while (choiceScreen.SelectedRoom == null && !choiceScreen.InventoryRequested)
+                    yield return null;
 
-            _runData.CurrentRoom = choiceScreen.SelectedRoom;
-            choiceScreen.Destroy();
+                if (choiceScreen.InventoryRequested)
+                {
+                    choiceScreen.Destroy();
+
+                    var inventoryScreen = new InventoryScreen(_runData);
+                    _screenManager.TransitionTo(inventoryScreen);
+
+                    while (!inventoryScreen.ClosePressed)
+                        yield return null;
+
+                    inventoryScreen.Destroy();
+                    continue;
+                }
+
+                _runData.CurrentRoom = choiceScreen.SelectedRoom;
+                choiceScreen.Destroy();
+                break;
+            }
         }
 
         private IEnumerator StubRoomPhase(RoomType room)
         {
             string roomName = FloorGenerator.GetRoomName(room);
-
-            if (room == RoomType.Rest)
-            {
-                // Rest heals the party
-                foreach (CharacterData c in _runData.Party)
-                {
-                    CharacterStats total = c.GetTotalStats();
-                    int maxHP = StatCalculator.CalculateMaxHP(total);
-                    int missingHP = maxHP - c.CurrentHP;
-                    int healAmount = Mathf.RoundToInt(missingHP * RunConfig.RestHealPercent);
-                    c.CurrentHP = Mathf.Min(c.CurrentHP + healAmount, maxHP);
-                    c.CurrentEnergy = StatCalculator.CalculateMaxEnergy(total);
-                    c.CurrentMana = StatCalculator.CalculateMaxMana(total);
-                }
-                Debug.Log($"[{roomName}] Party rested. HP restored.");
-            }
-            else
-            {
-                Debug.Log($"[{roomName}] Not yet implemented — skipping.");
-            }
-
+            Debug.Log($"[{roomName}] Not yet implemented — skipping.");
             yield return new WaitForSeconds(0.5f);
+        }
+
+        private IEnumerator RestPhase()
+        {
+            EventData restEvent = EventCatalog.GetRestEvent();
+            var eventScreen = new EventScreen(restEvent, _runData);
+            _screenManager.TransitionTo(eventScreen);
+
+            while (!eventScreen.Done)
+                yield return null;
+
+            eventScreen.Destroy();
+        }
+
+        private IEnumerator EventPhase()
+        {
+            EventData eventData = EventCatalog.RollEvent(_runData);
+            var eventScreen = new EventScreen(eventData, _runData);
+            _screenManager.TransitionTo(eventScreen);
+
+            while (!eventScreen.Done)
+                yield return null;
+
+            eventScreen.Destroy();
+        }
+
+        private IEnumerator ShopPhase()
+        {
+            ShopStock stock = ShopGenerator.GenerateShopStock(_runData);
+
+            while (true)
+            {
+                var shopScreen = new ShopScreen(_runData, stock);
+                _screenManager.TransitionTo(shopScreen);
+
+                while (!shopScreen.ExitRequested && !shopScreen.InventoryRequested)
+                    yield return null;
+
+                if (shopScreen.InventoryRequested)
+                {
+                    shopScreen.Destroy();
+
+                    var inventoryScreen = new InventoryScreen(_runData);
+                    _screenManager.TransitionTo(inventoryScreen);
+
+                    while (!inventoryScreen.ClosePressed)
+                        yield return null;
+
+                    inventoryScreen.Destroy();
+                    continue;
+                }
+
+                shopScreen.Destroy();
+                break;
+            }
+        }
+
+        private IEnumerator RecruitPhase()
+        {
+            // Generate 2 candidates with classes not already in party
+            List<CharacterClass> usedClasses = new();
+            foreach (CharacterData c in _runData.Party)
+                usedClasses.Add(c.Class);
+
+            List<CharacterClass> availableClasses = new();
+            CharacterClass[] allClasses = {
+                CharacterClass.Warrior, CharacterClass.Rogue, CharacterClass.Ranger,
+                CharacterClass.Priest, CharacterClass.Elementalist, CharacterClass.Warlock
+            };
+            foreach (CharacterClass cls in allClasses)
+            {
+                if (!usedClasses.Contains(cls))
+                    availableClasses.Add(cls);
+            }
+
+            ShuffleList(availableClasses);
+            int candidateCount = Mathf.Min(2, availableClasses.Count);
+
+            // Pick unused names
+            string[] allNames = { "Aldric", "Shade", "Elara", "Maren", "Zephyr", "Nyx" };
+            List<string> usedNames = new();
+            foreach (CharacterData c in _runData.Party)
+                usedNames.Add(c.Name);
+
+            List<string> freeNames = new();
+            foreach (string n in allNames)
+            {
+                if (!usedNames.Contains(n))
+                    freeNames.Add(n);
+            }
+
+            List<CharacterData> candidates = new();
+            for (int i = 0; i < candidateCount; i++)
+            {
+                string name = i < freeNames.Count ? freeNames[i] : $"Recruit_{i}";
+                CharacterData candidate = ClassDefinitions.CreateCharacter(name, availableClasses[i]);
+                EquipDefaultWeapon(candidate, availableClasses[i]);
+                candidates.Add(candidate);
+            }
+
+            var recruitScreen = new RecruitScreen(candidates, _runData);
+            _screenManager.TransitionTo(recruitScreen);
+
+            while (!recruitScreen.Done)
+                yield return null;
+
+            if (recruitScreen.RecruitedCharacter != null)
+            {
+                _runData.Party.Add(recruitScreen.RecruitedCharacter);
+            }
+
+            recruitScreen.Destroy();
         }
 
         private IEnumerator BattlePhase()
@@ -139,7 +257,7 @@ namespace PixelWarriors
                 encounterData.InitialEnemies, TeamSide.Enemy);
 
             BattleManager battleManager = gameObject.AddComponent<BattleManager>();
-            battleManager.StartBattle(players, enemies, encounterData, battleScreen);
+            battleManager.StartBattle(players, enemies, encounterData, battleScreen, _runData);
 
             while (!battleManager.IsFinished)
                 yield return null;
@@ -174,11 +292,35 @@ namespace PixelWarriors
                 RoomType room = _runData.CurrentRoom ?? RoomType.Battle;
                 PostBattleResult postResult = PostBattleProcessor.Process(_runData, players, room);
 
-                var postScreen = new PostBattleScreen(postResult, _runData.Party);
+                var postScreen = new PostBattleScreen(postResult, _runData.Party, _runData);
                 _screenManager.TransitionTo(postScreen);
 
-                while (!postScreen.ContinuePressed)
-                    yield return null;
+                while (true)
+                {
+                    while (!postScreen.ContinuePressed && !postScreen.InventoryRequested)
+                        yield return null;
+
+                    if (postScreen.InventoryRequested)
+                    {
+                        postScreen.Hide();
+
+                        // Build inventory directly on canvas — don't use TransitionTo
+                        // which would destroy the hidden post-battle screen
+                        var inventoryScreen = new InventoryScreen(_runData);
+                        inventoryScreen.Build(_screenManager.CanvasParent);
+                        inventoryScreen.Show();
+
+                        while (!inventoryScreen.ClosePressed)
+                            yield return null;
+
+                        inventoryScreen.Destroy();
+                        postScreen.Show();
+                        postScreen.RefreshLoot();
+                        continue;
+                    }
+
+                    break;
+                }
 
                 postScreen.Destroy();
             }
@@ -299,6 +441,15 @@ namespace PixelWarriors
             {
                 int j = Random.Range(0, i + 1);
                 (array[i], array[j]) = (array[j], array[i]);
+            }
+        }
+
+        private static void ShuffleList<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
             }
         }
     }

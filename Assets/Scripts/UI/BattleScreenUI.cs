@@ -1,3 +1,4 @@
+using DG.Tweening;
 using UnityEngine;
 
 namespace PixelWarriors
@@ -5,6 +6,7 @@ namespace PixelWarriors
     public class BattleScreenUI : IScreen
     {
         private GameObject _root;
+        private RectTransform _rootRect;
         private BattleGridUI _battleGrid;
         private AbilityPanelUI _abilityPanel;
         private TurnInfoPanelUI _turnInfoPanel;
@@ -13,19 +15,22 @@ namespace PixelWarriors
         private CharacterPopupUI _characterPopup;
         private AbilityPopupUI _abilityPopup;
         private TurnOrderPopupUI _turnOrderPopup;
+        private RectTransform _floatingTextOverlay;
 
         public BattleGridUI BattleGrid => _battleGrid;
         public AbilityPanelUI AbilityPanel => _abilityPanel;
         public CombatLogUI CombatLog => _combatLog;
+        public RectTransform RootRect => _rootRect;
+        public RectTransform FloatingTextOverlay => _floatingTextOverlay;
 
         public void Build(Transform canvasParent)
         {
             _root = new GameObject("BattleScreen");
-            RectTransform rootRect = _root.AddComponent<RectTransform>();
-            rootRect.SetParent(canvasParent, false);
-            PanelBuilder.SetFill(rootRect);
+            _rootRect = _root.AddComponent<RectTransform>();
+            _rootRect.SetParent(canvasParent, false);
+            PanelBuilder.SetFill(_rootRect);
 
-            BuildLayout(rootRect);
+            BuildLayout(_rootRect);
         }
 
         public void Show()
@@ -40,6 +45,8 @@ namespace PixelWarriors
 
         public void Destroy()
         {
+            DOTween.Kill(_rootRect);
+
             _combatLog?.Unsubscribe();
             _selectionPanel?.Unsubscribe();
             _turnInfoPanel?.Unsubscribe();
@@ -112,6 +119,10 @@ namespace PixelWarriors
             GameEvents.OnCharacterDetailRequested += _characterPopup.ShowCharacterPopup;
             GameEvents.OnAbilityDetailRequested += _abilityPopup.ShowAbilityPopup;
             GameEvents.OnTurnOrderDetailRequested += _turnOrderPopup.ShowTurnOrderPopup;
+
+            // Floating text overlay (above all other UI, for damage/heal numbers)
+            _floatingTextOverlay = PanelBuilder.CreateContainer("FloatingTextOverlay", rootTransform);
+            PanelBuilder.SetFill(_floatingTextOverlay);
         }
     }
 }

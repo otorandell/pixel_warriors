@@ -90,7 +90,7 @@ namespace PixelWarriors
         // --- Battle Timing ---
         public const float BattleStartDelay = 0.5f;
         public const float TurnStartDelay = 0.3f;
-        public const float PostActionDelay = 0.3f;
+        public const float PostActionDelay = 0.5f;
         public const float EnemyThinkDelay = 0.5f;
 
         // --- Reinforcements ---

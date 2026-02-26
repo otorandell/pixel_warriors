@@ -15,6 +15,11 @@ namespace PixelWarriors
         public float ArmorPenetration;
         public int MagicPenetration;
 
+        // Loot system fields
+        public bool IsUnique;
+        public string FlavorText;
+        public int ActLevel;
+
         public EquipmentData()
         {
             StatModifiers = new CharacterStats();

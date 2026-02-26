@@ -52,6 +52,12 @@ namespace PixelWarriors
         public static event Action<string, int> OnReinforcementsSpawned;
         public static event Action<int> OnReinforcementWaveCountChanged;
 
+        // --- Animation Signals ---
+        public static event Action<BattleCharacter, List<BattleCharacter>> OnAttackStarted;
+
+        public static void RaiseAttackStarted(BattleCharacter attacker, List<BattleCharacter> targets)
+            => OnAttackStarted?.Invoke(attacker, targets);
+
         // --- Staging / Confirmation ---
         public static event Action OnActionConfirmed;
         public static event Action OnActionCancelled;

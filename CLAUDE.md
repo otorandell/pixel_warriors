@@ -317,7 +317,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-02-25, updated)
+## Current State (2026-02-26, updated)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -385,6 +385,15 @@ Battles can have reinforcement waves that spawn mid-battle:
   - SFXType.Reinforcements + AudioManager subscription
   - EnemyDefinitions split into Act1/Act2/Act3Enemies (~46 enemy types total)
   - 2 bosses per act for randomization (BossPools array)
+- **Phase F — Shop + Consumables:**
+  - ConsumableData, ConsumableStack, ConsumableCatalog (~22 consumables: 3 potions, 2 curatives, 3 bombs, 2 utility, 6 scrolls, 6 books)
+  - ShopConfig (economy constants), ShopStock (shop state), ShopGenerator (procedural stock: 4 equipment + 5 consumables + 20% book chance)
+  - ShopScreen (IScreen: Buy Gear / Buy Items / Sell tabs, reroll button, inventory access)
+  - AbilityPanelUI Items tab reads from RunData.Consumables via ConsumableCatalog.GetBattleAbility()
+  - ActionExecutor: 6 consumable handlers (ConsumableHeal, ConsumableEnergyRestore, ConsumableManaRestore, ConsumableAntidote, ConsumableBandage, ConsumableSmokeBomb)
+  - BattleManager: decrements consumable after use, refreshes ability panel
+  - InventoryScreen: Equipment/Items mode toggle, consumable stacks display, book teaching (per-character Teach buttons, duplicate prevention)
+  - GameStateManager.ShopPhase() with shop-inventory loop
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -420,8 +429,15 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Reinforcement system:** Enemies spawn mid-battle based on triggers (enemy count, round, boss HP%). Waves join next round. UI shows [+N] indicator. SFX on spawn.
 - **~46 enemy types** across 3 acts with diverse stat profiles and mechanics
 - **2 bosses per act** for encounter randomization
+- **Equipment + Loot system:** Procedural item generation (8 stat profiles: Tank/Agile/Mighty/Arcane/Cunning/Resilient/Swift/Balanced), ~15 hand-crafted unique items with flavor text, 1-2 drops per battle, post-battle equip/stash UI, full inventory screen from room choice
 - Equipment with weapon types, block chances
 - Ability popup shows range, weapon requirements, once-per-battle, frontline-only
+- **Shop system:** Buy equipment (procedural, act-scaled), buy consumables (potions/bombs/scrolls), buy books (20% chance), sell equipment (50% value), reroll stock (15g/act), inventory access from shop
+- **Consumables in battle:** Items tab shows consumables with quantities ("Health Potion x3"), costs 1 Long action, quantity decremented on use, removed when empty
+- **22 consumable types:** Health/Energy/Mana Potions (act-scaled), Antidote (cleanse negative effects), Bandages (heal + remove Bleed), Fire/Ice/Poison Bombs (AoE damage), Smoke Bomb (all allies Hide), Throwing Knives, 6 scrolls (cast class spells), 6 books (teach abilities)
+- **Scrolls:** Execute actual class abilities (cloned from AbilityCatalog), any character can use, no resource cost, Range=Any
+- **Books:** Consumed from inventory Items tab, per-character Teach buttons, permanently adds ability, duplicate prevention
+- **Inventory Items tab:** Equipment/Items mode toggle, shows consumable stacks with quantities, book rows with per-character Teach buttons
 - All previous UI features (staging, popups, combat log, etc.)
 - Procedural chiptune SFX and looping battle music
 
@@ -466,8 +482,24 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Dead enemy cards replaced by reinforcements at same grid position
 - EncounterData wraps CharacterData (not BattleCharacter) — grid placement deferred to spawn time
 - EnemyDefinitions split by act (Act1/Act2/Act3Enemies) to keep files under 300 lines
+- Consumables are separate from equipment: stackable, consumed on use, live in RunData.Consumables
+- In battle, consumables create temporary AbilityData instances via ConsumableCatalog.GetBattleAbility() — executed through existing ability pipeline
+- Scrolls clone the real class ability from AbilityCatalog, removing resource costs (scroll IS the cost), setting Range=Any
+- Books consumed from inventory (not battle), permanently add AbilityData to CharacterData.Abilities
+- All consumables cost 1 Long action (future Rogue passive will make it Short)
+- Shop economy: equipment priced by slot base + stat points * 3 + weapon damage * 2, act-scaled. Sell at 50%. Reroll = 15g * act
+- Consumable pricing: flat BuyPrice per type defined in catalog
+- Antidote cleanses all negative statuses (Bleed, Poison, Burn, Chilled, Stun, Silence, Terror, Confusion, Mark, SteamBeamDebuff, Pin)
+- Smithy planned as separate future room type (crafting + upgrades + materials), not implemented in Phase F
 - CharacterData.IsBoss flag for HP-threshold reinforcement triggers
 - Boss pools: 2 per act for randomization
+- No rarity tiers — items differ by purpose/specialization (ItemProfile enum), not color-coded tiers
+- Hybrid loot: procedural base items (random stats within act ranges) + hand-crafted unique items (IsUnique flag, FlavorText)
+- Unique items: ~15 with unusual stat combos, can drop from any battle (15% chance), each drops once per run (RunData.DroppedUniques)
+- Inventory cap: 20 items (LootConfig.MaxInventorySize). Excess auto-discarded on Continue
+- Trinkets: Trinket1/Trinket2 slots interchangeable. Equip prefers empty slot
+- Post-battle: loot cards with per-party-member equip buttons + stash. Unhandled items auto-stash
+- Inventory screen accessible from room choice via INVENTORY button. In-battle equipping deferred
 
 ## Roadmap
 
@@ -481,15 +513,18 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **C. Room Choice + Floor Progression** — Room generation, floor/act advancement ← **DONE**
 - **D. Enemy Roster + Scaling + Reinforcements** — 46 enemies, reinforcement mechanic, 2 bosses/act ← **DONE**
 - **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
-- **E. Equipment + Loot** — Procedural equipment, loot tables
-- **F. Inventory + Shop** — Equipment management, buy/sell
+- **E. Equipment + Loot** — Procedural equipment, loot tables, post-battle equip, inventory screen ← **DONE**
+- **F. Shop + Consumables** — Shop (buy/sell/reroll), consumable items (potions/bombs/scrolls/books), battle item usage, book teaching ← **DONE**
 - **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
 
 ### Phase 3: Visual Feedback (DOTween) — deferred
 ### Phase 4: Final Polish & Save — deferred
 
+### Future Rooms
+- **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Not implemented yet.
+
 ### Next Up
-Phase 2E: Equipment + Loot
+Phase 2G: Events + Rest + Recruitment
 
 ---
 

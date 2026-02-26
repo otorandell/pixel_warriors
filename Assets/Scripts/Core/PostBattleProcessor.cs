@@ -9,6 +9,7 @@ namespace PixelWarriors
         public int GoldEarned;
         public List<LevelingSystem.LevelUpResult> LevelUpResults;
         public List<CharacterData> FallenCharacters;
+        public List<EquipmentData> LootDrops;
     }
 
     public static class PostBattleProcessor
@@ -19,7 +20,8 @@ namespace PixelWarriors
             PostBattleResult result = new()
             {
                 LevelUpResults = new List<LevelingSystem.LevelUpResult>(),
-                FallenCharacters = new List<CharacterData>()
+                FallenCharacters = new List<CharacterData>(),
+                LootDrops = new List<EquipmentData>()
             };
 
             // --- Sync battle state back to CharacterData ---
@@ -65,6 +67,9 @@ namespace PixelWarriors
             int goldEarned = Mathf.RoundToInt(baseGold * (1f + (floor - 1) * RunConfig.GoldFloorScaling) * goldMultiplier);
             result.GoldEarned = goldEarned;
             runData.Gold += goldEarned;
+
+            // --- Generate loot ---
+            result.LootDrops = LootGenerator.GenerateLoot(runData.CurrentAct, roomType, runData);
 
             // --- Award XP and process level ups ---
             foreach (CharacterData character in runData.Party)

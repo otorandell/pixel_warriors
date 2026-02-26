@@ -95,6 +95,7 @@ namespace PixelWarriors
                     existing.Character.Row == enemy.Row &&
                     existing.Character.Column == enemy.Column)
                 {
+                    existing.Cleanup();
                     Object.Destroy(existing.Root.gameObject);
                     _enemyCards.RemoveAt(i);
                 }
@@ -229,6 +230,7 @@ namespace PixelWarriors
         {
             foreach (CharacterCardUI card in cards)
             {
+                card.Cleanup();
                 Object.Destroy(card.Root.gameObject);
             }
             cards.Clear();

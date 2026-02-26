@@ -246,7 +246,23 @@ namespace PixelWarriors
         // Passive flags
         Martyr,
         // Debug
-        Annihilation
+        Annihilation,
+        // Consumables
+        ConsumableHeal,
+        ConsumableEnergyRestore,
+        ConsumableManaRestore,
+        ConsumableAntidote,
+        ConsumableBandage,
+        ConsumableSmokeBomb
+    }
+
+    public enum ConsumableCategory
+    {
+        Potion,
+        Bomb,
+        Scroll,
+        Book,
+        Utility
     }
 
     public enum TargetType

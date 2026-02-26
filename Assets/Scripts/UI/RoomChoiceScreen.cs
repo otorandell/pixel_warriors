@@ -9,11 +9,13 @@ namespace PixelWarriors
     {
         private GameObject _root;
         private RoomType? _selectedRoom;
+        private bool _inventoryRequested;
 
         private RunData _runData;
         private List<RoomType> _choices;
 
         public RoomType? SelectedRoom => _selectedRoom;
+        public bool InventoryRequested => _inventoryRequested;
 
         public RoomChoiceScreen(RunData runData, List<RoomType> choices)
         {
@@ -24,6 +26,7 @@ namespace PixelWarriors
         public void Build(Transform canvasParent)
         {
             _selectedRoom = null;
+            _inventoryRequested = false;
 
             _root = new GameObject("RoomChoiceScreen");
             RectTransform rootRect = _root.AddComponent<RectTransform>();
@@ -81,6 +84,13 @@ namespace PixelWarriors
                 BuildRoomCard(rootRect, _choices[1],
                     left + cardWidth + gap, 0.15f, left + cardWidth * 2 + gap, 0.63f);
             }
+
+            // --- Inventory button ---
+            Button invBtn = PanelBuilder.CreateButton("InventoryBtn", rootRect,
+                "INVENTORY", UIStyleConfig.AccentYellow, UIStyleConfig.FontSizeTiny);
+            RectTransform invRect = invBtn.GetComponent<RectTransform>();
+            PanelBuilder.SetAnchored(invRect, 0.65f, 0.03f, 0.95f, 0.12f);
+            invBtn.onClick.AddListener(() => _inventoryRequested = true);
         }
 
         private void BuildRoomCard(RectTransform parent, RoomType roomType,

@@ -66,19 +66,19 @@ namespace PixelWarriors
                 UIStyleConfig.TextDimmed);
             PanelBuilder.SetAnchored(_classLevelText.GetComponent<RectTransform>(), 0, 0.60f, 1, 0.80f);
 
-            // HP (red)
+            // HP
             _hpText = PanelBuilder.CreateText("HP", content, "",
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
                 UIStyleConfig.HPBarColor);
             PanelBuilder.SetAnchored(_hpText.GetComponent<RectTransform>(), 0, 0.40f, 1, 0.60f);
 
-            // Energy (yellow)
+            // Energy
             _energyText = PanelBuilder.CreateText("Energy", content, "",
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
                 UIStyleConfig.EnergyBarColor);
             PanelBuilder.SetAnchored(_energyText.GetComponent<RectTransform>(), 0, 0.20f, 1, 0.40f);
 
-            // Mana (cyan)
+            // Mana
             _manaText = PanelBuilder.CreateText("Mana", content, "",
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
                 UIStyleConfig.ManaBarColor);
@@ -178,6 +178,14 @@ namespace PixelWarriors
             if (!_isDead) return;
             _button.interactable = resurrectable;
             SetBorderColor(resurrectable ? UIStyleConfig.TargetHighlight : UIStyleConfig.DeathBorderColor);
+        }
+
+        /// <summary>
+        /// Kill all DOTween tweens targeting this card's components. Call before destroying.
+        /// </summary>
+        public void Cleanup()
+        {
+            DG.Tweening.DOTween.Kill(Root);
         }
 
         private void SetDead()
