@@ -317,7 +317,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-02-26, updated)
+## Current State (2026-02-26, Phase 4 complete)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -353,10 +353,10 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Bootstrap:** GameBootstrap with `_useTestBattle` toggle: test battle (4v4) or full game loop
 - **Screen system (Phase A):**
   - IScreen interface (Build/Show/Hide/Destroy)
-  - ScreenManager (owns Canvas + EventSystem, manages screen transitions)
+  - ScreenManager (owns Canvas + EventSystem, manages screen transitions, fade overlay with FadeOut/FadeIn via DOTween)
   - BattleScreenUI refactored from MonoBehaviour to plain IScreen class
-  - MainMenuScreen (title, "New Run" button)
-  - GameStateManager (coroutine-based game flow: menu → battle → post-battle loop)
+  - MainMenuScreen (title, "New Run" button, "Continue" button when save exists)
+  - GameStateManager (coroutine-based game flow: menu → party setup → room loop, FadeTransitionTo for smooth screen changes)
   - RunData (persistent run state: act, floor, gold, party, fallen, inventory)
   - RunConfig (static run parameters)
   - BattleResult enum + BattleManager exposes Result property
@@ -394,6 +394,23 @@ Battles can have reinforcement waves that spawn mid-battle:
   - BattleManager: decrements consumable after use, refreshes ability panel
   - InventoryScreen: Equipment/Items mode toggle, consumable stacks display, book teaching (per-character Teach buttons, duplicate prevention)
   - GameStateManager.ShopPhase() with shop-inventory loop
+- **Phase 3 — Visual Feedback (DOTween):**
+  - BattleAnimationController (subscribes to GameEvents, fires DOTween animations)
+  - Hit: directional lunge toward target, squeeze/stretch on receiver, color flash
+  - Death: shrink + fade animation
+  - Floating damage numbers (object-pooled, 16 TextMeshProUGUI instances)
+  - Screen shake on crits
+  - Turn start pulse on active character card
+  - Status effects: poison/burn one-shot flash on apply and tick, stun wobble (looping), low HP flicker (looping)
+  - Heal pulse, shield shimmer, buff glow (one-shot)
+  - CharacterCardUI exposes BackgroundImage, CanvasGroup, SetBorderColor for animations
+- **Phase 4 — Final Polish & Save:**
+  - GameOverScreen (victory/defeat with stats, survivors, fallen memorial, return-to-menu)
+  - PartySetupScreen (3x2 class grid: stats, ability, passive per card, toggle selection, counter, BEGIN button)
+  - SaveData (serializable DTO: HashSet→List, RoomType?→int, null equipment restoration)
+  - SaveManager (Save/Load/HasSave/DeleteSave via JsonUtility to persistentDataPath)
+  - Screen fade transitions (ScreenManager fade overlay, FadeOut/FadeIn DOTween tweens)
+  - Debug Annihilation ability removed
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -438,6 +455,11 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Scrolls:** Execute actual class abilities (cloned from AbilityCatalog), any character can use, no resource cost, Range=Any
 - **Books:** Consumed from inventory Items tab, per-character Teach buttons, permanently adds ability, duplicate prevention
 - **Inventory Items tab:** Equipment/Items mode toggle, shows consumable stacks with quantities, book rows with per-character Teach buttons
+- **Visual feedback:** Directional lunge, squeeze/stretch on hit, color flash, death shrink+fade, floating damage numbers, screen shake on crit, turn pulse, stun wobble, low HP flicker, heal/shield/buff effects
+- **Game over screen:** Victory (green) or defeat (red), run stats, survivors, fallen memorial
+- **Party setup:** Pick 2 of 6 classes at run start (replaces random party creation)
+- **Save/load:** Auto-saves after party setup and each room, CONTINUE button on menu, delete on game over
+- **Screen fade transitions:** All major screen swaps fade through black (0.2s out, 0.25s in)
 - All previous UI features (staging, popups, combat log, etc.)
 - Procedural chiptune SFX and looping battle music
 
@@ -517,14 +539,17 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **F. Shop + Consumables** — Shop (buy/sell/reroll), consumable items (potions/bombs/scrolls/books), battle item usage, book teaching ← **DONE**
 - **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
 
-### Phase 3: Visual Feedback (DOTween) — deferred
-### Phase 4: Final Polish & Save — deferred
+### Phase 3: Visual Feedback (DOTween) — DONE
+- Lunge, shake, squeeze/stretch, color flash, death shrink+fade, floating numbers, screen shake, turn pulse, status visuals
+
+### Phase 4: Final Polish & Save — DONE
+- Debug cleanup, GameOverScreen, PartySetupScreen, save system, screen fade transitions
 
 ### Future Rooms
 - **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Not implemented yet.
 
 ### Next Up
-Phase 2G: Events + Rest + Recruitment
+Balance pass, mobile testing, and remaining polish
 
 ---
 
