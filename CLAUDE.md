@@ -549,7 +549,8 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Not implemented yet.
 
 ### Next Up
-Balance pass, mobile testing, and remaining polish
+- **Test SFX Exporter** — Editor script added at `Assets/Editor/SFXExporter.cs`. Menu item: **Tools > Export All SFX to WAV**. Exports all 17 procedural SFX as 16-bit PCM WAV files (44100 Hz, mono) to `ExportedSFX/` in project root. Not yet tested — run it next session and verify the output files sound correct. `Blocked` SFX type has no clip registered (will skip with warning).
+- Balance pass, mobile testing, and remaining polish
 
 ---
 
