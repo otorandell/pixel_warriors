@@ -317,7 +317,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-02-26, Phase 4 complete)
+## Current State (2026-03-07, Phase 2G complete)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -411,6 +411,14 @@ Battles can have reinforcement waves that spawn mid-battle:
   - SaveManager (Save/Load/HasSave/DeleteSave via JsonUtility to persistentDataPath)
   - Screen fade transitions (ScreenManager fade overlay, FadeOut/FadeIn DOTween tweens)
   - Debug Annihilation ability removed
+- **Phase 2G — Events + Rest + Recruitment:**
+  - EventData, EventChoice, EventOutcomes (outcome helpers: heal, damage, gold, XP, stats, consumables, equipment)
+  - EventCatalog (18 events: positive, negative, binary, 3-option, class-conditional, weird/unique)
+  - EventScreen (IScreen: narrative, choice buttons, character pick phase, outcome display)
+  - Rest sites use EventScreen with dedicated rest event (heal 50%, study +20 XP, search for supplies)
+  - RecruitScreen (2 candidates from unused classes, stat/ability display, skip option)
+  - GameStateManager: RestPhase, EventPhase, RecruitPhase all wired with fade transitions
+  - RunData.SeenEvents tracks unique event deduplication
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -460,6 +468,10 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Party setup:** Pick 2 of 6 classes at run start (replaces random party creation)
 - **Save/load:** Auto-saves after party setup and each room, CONTINUE button on menu, delete on game over
 - **Screen fade transitions:** All major screen swaps fade through black (0.2s out, 0.25s in)
+- **18 random events:** Wandering Healer, Lucky Coin, Shrine of Vigor, Ambush, Cursed Fog, Tax Collector, Ancient Altar, Gambler's Chest, Mysterious Merchant, Trapped Survivor, Forked Path, Old Campfire, Wounded Knight, Ritual Circle, Shadow Cache, Philosopher's Tome, The Echo, Doppelganger
+- **Event system:** Choice-based with conditions (class requirements), character pick phase, outcome display, unique event tracking
+- **Rest sites:** 3 options (heal 50% + restore resources, study +20 XP, search 60% consumable)
+- **Recruitment:** 2 candidates from unused classes, stat/ability preview, skip option, party size cap
 - All previous UI features (staging, popups, combat log, etc.)
 - Procedural chiptune SFX and looping battle music
 
@@ -537,7 +549,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
 - **E. Equipment + Loot** — Procedural equipment, loot tables, post-battle equip, inventory screen ← **DONE**
 - **F. Shop + Consumables** — Shop (buy/sell/reroll), consumable items (potions/bombs/scrolls/books), battle item usage, book teaching ← **DONE**
-- **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
+- **G. Events + Rest + Recruitment** — 18 random events, rest sites (EventScreen), recruitment screen ← **DONE**
 
 ### Phase 3: Visual Feedback (DOTween) — DONE
 - Lunge, shake, squeeze/stretch, color flash, death shrink+fade, floating numbers, screen shake, turn pulse, status visuals

@@ -19,19 +19,22 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    int finalDamage = Mathf.Max(1, result.Damage);
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - finalDamage);
-                    GameEvents.RaiseDamageDealt(target, finalDamage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, Mathf.Max(1, result.Damage), ability.DamageType);
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     // Reduce armor temporarily (permanent for simplicity — balance later)
-                    int armorReduction = Mathf.Max(1, target.EffectiveStats.Armor / 3);
-                    target.EffectiveStats.Armor = Mathf.Max(0, target.EffectiveStats.Armor - armorReduction);
-                    Log($"{target.Data.Name}'s armor reduced by {armorReduction}!");
+                    if (target.IsAlive)
+                    {
+                        int armorReduction = Mathf.Max(1, target.EffectiveStats.Armor / 3);
+                        target.EffectiveStats.Armor = Mathf.Max(0, target.EffectiveStats.Armor - armorReduction);
+                        Log($"{target.Data.Name}'s armor reduced by {armorReduction}!");
+                    }
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -63,10 +66,10 @@ namespace PixelWarriors
 
         public static void ExecuteCleave(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
         {
-            // Cleave hits all enemies in the front row (Close range already filters to front)
             GameEvents.RaiseAbilityUsed(user, ability, user);
             Log($"{user.Data.Name} cleaves!");
 
+            int totalDamage = 0;
             foreach (BattleCharacter target in targets)
             {
                 if (!target.IsAlive) continue;
@@ -76,13 +79,16 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{target.Data.Name} takes {result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    totalDamage += finalDamage;
+                    Log($"{target.Data.Name} takes {finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -119,12 +125,10 @@ namespace PixelWarriors
             if (targets.Count == 0) return;
             BattleCharacter ally = targets[0];
 
-            // Grant massive taunt to self
             var taunt = new StatusEffectInstance(StatusEffect.Taunt, 1, 0, user);
             user.AddEffect(taunt);
             GameEvents.RaiseStatusEffectApplied(user, StatusEffect.Taunt, 0);
 
-            // Grant hide to ally
             var hide = new StatusEffectInstance(StatusEffect.Bodyguard, 1, 0, user);
             ally.AddEffect(hide);
             GameEvents.RaiseStatusEffectApplied(ally, StatusEffect.Bodyguard, 0);
@@ -141,32 +145,28 @@ namespace PixelWarriors
 
                 GameEvents.RaiseAbilityUsed(user, ability, target);
 
-                // Track consecutive bladedance hits via a Bladedance counter effect on the target
-                // Value = number of consecutive bladedance hits this battle
-                StatusEffectInstance tracker = target.GetEffect(StatusEffect.Mark);
-
                 HitResult result = ActionExecutor.ResolveHit(user, ability, target);
                 GameEvents.RaiseHitResolved(target, result, ability.DamageType);
 
                 if (result.IsEffective)
                 {
-                    // Bonus damage: +2 per previous bladedance hit on this target
-                    // Simple approach: use the ability's base power + stack counter
                     int bonusDamage = GetBladedanceBonus(user, target);
                     int totalDamage = result.Damage + bonusDamage;
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - totalDamage);
-                    GameEvents.RaiseDamageDealt(target, totalDamage, ability.DamageType);
+                    int finalDamage = ActionExecutor.DealDamage(user, target, totalDamage, ability.DamageType);
 
                     IncrementBladedanceCounter(user, target);
 
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
+
                     if (bonusDamage > 0)
-                        Log($"{user.Data.Name} bladedances! {totalDamage} damage (+{bonusDamage} combo)!");
+                        Log($"{user.Data.Name} bladedances! {finalDamage} damage (+{bonusDamage} combo)!");
                     else
-                        Log($"{user.Data.Name} bladedances! {totalDamage} damage!");
+                        Log($"{user.Data.Name} bladedances! {finalDamage} damage!");
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -174,7 +174,6 @@ namespace PixelWarriors
         }
 
         // Bladedance tracking: use a dictionary keyed by (user, target) pair
-        // Stored as static dict since it persists for the whole battle
         private static readonly Dictionary<(BattleCharacter, BattleCharacter), int> _bladedanceCounts = new();
 
         public static void ResetBladedanceCounts() => _bladedanceCounts.Clear();
@@ -251,13 +250,6 @@ namespace PixelWarriors
                 target.CurrentEnergy = Mathf.Min(target.CurrentEnergy + gain, target.MaxEnergy);
                 Log($"{target.Data.Name} gains {gain} energy from rage!");
             }
-        }
-
-        private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
-        {
-            if (result.Missed) Log($"{user.Data.Name} missed!");
-            else if (result.Dodged) Log($"{target.Data.Name} dodged!");
-            else if (result.Blocked) Log($"{target.Data.Name} blocked!");
         }
 
         private static void Log(string message) => GameEvents.RaiseCombatLogMessage(message);

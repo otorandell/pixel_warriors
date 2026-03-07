@@ -19,9 +19,10 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     // Apply Silence (prevents skill/spell usage)
                     if (target.IsAlive)
@@ -34,7 +35,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -92,13 +93,15 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log(result.IsCrit ? $"CRITICAL! {result.Damage} damage!" : $"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    ActionExecutor.LogHitResult(user, target, result);
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -115,7 +118,6 @@ namespace PixelWarriors
 
                 float hpPercent = (float)target.CurrentHP / target.MaxHP;
                 float threshold = GameplayConfig.AssassinationThreshold;
-                // TODO: Add boss check when boss flag exists
 
                 if (hpPercent <= threshold)
                 {
@@ -153,13 +155,15 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{target.Data.Name} takes {result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{target.Data.Name} takes {finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -189,9 +193,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"  {target.Data.Name} takes {result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"  {target.Data.Name} takes {finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     if (target.IsAlive)
                     {
@@ -203,18 +209,11 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
             }
-        }
-
-        private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
-        {
-            if (result.Missed) Log($"{user.Data.Name} missed!");
-            else if (result.Dodged) Log($"{target.Data.Name} dodged!");
-            else if (result.Blocked) Log($"{target.Data.Name} blocked!");
         }
 
         private static void Log(string message) => GameEvents.RaiseCombatLogMessage(message);
