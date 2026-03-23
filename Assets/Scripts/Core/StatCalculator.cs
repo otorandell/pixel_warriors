@@ -62,10 +62,6 @@ namespace PixelWarriors
             return GameplayConfig.BaseEffectChance + willpower * GameplayConfig.EffectChancePerWillpower;
         }
 
-        public static int CalculateXPToLevel(int currentLevel)
-        {
-            return Mathf.RoundToInt(GameplayConfig.BaseXPToLevel * Mathf.Pow(GameplayConfig.XPScalingFactor, currentLevel - 1));
-        }
 
         public static int CalculateEnergyRegen(int maxEnergy)
         {

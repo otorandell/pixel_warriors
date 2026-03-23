@@ -9,7 +9,6 @@ namespace PixelWarriors
         public string Name;
         public CharacterClass Class;
         public int Level;
-        public int CurrentXP;
         public CharacterStats BaseStats;
         public CharacterStats GrowthModifiers;
         public List<AbilityData> Abilities;
@@ -27,7 +26,6 @@ namespace PixelWarriors
         public CharacterData()
         {
             Level = 1;
-            CurrentXP = 0;
             Abilities = new List<AbilityData>();
             Passives = new List<AbilityData>();
             Equipment = new EquipmentData[6];

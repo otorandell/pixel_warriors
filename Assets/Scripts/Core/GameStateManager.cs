@@ -82,6 +82,7 @@ namespace PixelWarriors
             else
             {
                 _runData = new RunData();
+                LevelingSystem.ResetOfferTracking();
                 yield return PartySetupPhase();
             }
 
@@ -191,6 +192,23 @@ namespace PixelWarriors
                 yield return null;
 
             eventScreen.Destroy();
+
+            // Check if rest choice granted a level-up (STUDY THE AREA)
+            if (_runData.PendingEventLevelUp)
+            {
+                _runData.PendingEventLevelUp = false;
+                List<int> candidates = LevelingSystem.GetLevelUpCandidates(_runData.Party);
+                if (candidates.Count > 0)
+                {
+                    var levelScreen = new LevelUpPickScreen(_runData.Party, candidates);
+                    yield return FadeTransitionTo(levelScreen);
+
+                    while (!levelScreen.Done)
+                        yield return null;
+
+                    levelScreen.Destroy();
+                }
+            }
         }
 
         private IEnumerator EventPhase()
@@ -203,6 +221,23 @@ namespace PixelWarriors
                 yield return null;
 
             eventScreen.Destroy();
+
+            // Check if event granted a level-up
+            if (_runData.PendingEventLevelUp)
+            {
+                _runData.PendingEventLevelUp = false;
+                List<int> candidates = LevelingSystem.GetLevelUpCandidates(_runData.Party);
+                if (candidates.Count > 0)
+                {
+                    var levelScreen = new LevelUpPickScreen(_runData.Party, candidates);
+                    yield return FadeTransitionTo(levelScreen);
+
+                    while (!levelScreen.Done)
+                        yield return null;
+
+                    levelScreen.Destroy();
+                }
+            }
         }
 
         private IEnumerator ShopPhase()
@@ -349,7 +384,7 @@ namespace PixelWarriors
                 RoomType room = _runData.CurrentRoom ?? RoomType.Battle;
                 PostBattleResult postResult = PostBattleProcessor.Process(_runData, players, room);
 
-                var postScreen = new PostBattleScreen(postResult, _runData.Party, _runData);
+                var postScreen = new PostBattleScreen(postResult, _runData);
                 yield return FadeTransitionTo(postScreen);
 
                 while (true)
@@ -380,6 +415,22 @@ namespace PixelWarriors
                 }
 
                 postScreen.Destroy();
+
+                // --- Level-up picks ---
+                int levelUps = postResult.IsBossBattle ? RunConfig.BossLevelUps : 1;
+                for (int i = 0; i < levelUps; i++)
+                {
+                    List<int> candidates = LevelingSystem.GetLevelUpCandidates(_runData.Party);
+                    if (candidates.Count == 0) break;
+
+                    var levelScreen = new LevelUpPickScreen(_runData.Party, candidates);
+                    yield return FadeTransitionTo(levelScreen);
+
+                    while (!levelScreen.Done)
+                        yield return null;
+
+                    levelScreen.Destroy();
+                }
             }
         }
 

@@ -39,9 +39,6 @@ namespace PixelWarriors
         public const float BaseEffectChance = 0.10f;
         public const float EffectChancePerWillpower = 0.02f;
 
-        // --- XP / Leveling ---
-        public const int BaseXPToLevel = 100;
-        public const float XPScalingFactor = 1.25f;
 
         // --- Status Effects: Aggro ---
         public const float TauntAggroMultiplier = 2.0f;

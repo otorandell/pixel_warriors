@@ -5,15 +5,19 @@ namespace PixelWarriors
 {
     public static class LevelingSystem
     {
-        // Fibonacci-based ability unlock levels: 1, 2, 3, 5, 8, 13, 21...
-        // Index 0 = level 1 (starting ability), index 1 = level 2, etc.
-        private static readonly int[] AbilityUnlockLevels = { 1, 2, 3, 5, 8, 13, 21, 34, 55, 89 };
+        // Fibonacci-based ability unlock levels: 1, 2, 3, 5, 8, 13, 21
+        private static readonly int[] AbilityUnlockLevels = { 1, 2, 3, 5, 8, 13, 21 };
 
-        // Passive unlock every 5 levels: 5, 10, 15, 20...
         private const int PassiveUnlockInterval = 5;
+        public const int MaxLevel = 21;
+
+        // Track recent offers to avoid repeats (indices into party)
+        private static readonly List<int> _recentOffers = new();
+        private const int RecentOfferMemory = 2;
 
         public struct LevelUpResult
         {
+            public CharacterData Character;
             public int OldLevel;
             public int NewLevel;
             public CharacterStats StatGains;
@@ -21,68 +25,134 @@ namespace PixelWarriors
             public List<AbilityData> NewPassives;
         }
 
-        public static LevelUpResult AddXP(CharacterData character, int amount)
+        /// <summary>
+        /// Select 2 candidates from the party for the player to choose from.
+        /// Pseudo-random: avoids offering the same character repeatedly, excludes max level.
+        /// Returns indices into the party list.
+        /// </summary>
+        public static List<int> GetLevelUpCandidates(List<CharacterData> party)
+        {
+            List<int> eligible = new();
+            for (int i = 0; i < party.Count; i++)
+            {
+                if (party[i].Level < MaxLevel)
+                    eligible.Add(i);
+            }
+
+            if (eligible.Count == 0) return new List<int>();
+            if (eligible.Count == 1) return new List<int> { eligible[0] };
+
+            // Prefer characters not recently offered
+            List<int> preferred = new();
+            List<int> fallback = new();
+
+            foreach (int idx in eligible)
+            {
+                if (_recentOffers.Contains(idx))
+                    fallback.Add(idx);
+                else
+                    preferred.Add(idx);
+            }
+
+            List<int> result = new();
+
+            // Pick from preferred first, then fallback
+            List<int> pool = preferred.Count >= 2 ? preferred : eligible;
+            while (result.Count < 2 && pool.Count > 0)
+            {
+                int pick = Random.Range(0, pool.Count);
+                result.Add(pool[pick]);
+                pool.RemoveAt(pick);
+
+                // If we depleted preferred and need more, switch to fallback
+                if (pool.Count == 0 && result.Count < 2 && preferred.Count < 2)
+                {
+                    pool = new List<int>(fallback);
+                    foreach (int r in result) pool.Remove(r);
+                }
+            }
+
+            // Update recent offer tracking
+            foreach (int idx in result)
+            {
+                _recentOffers.Remove(idx);
+                _recentOffers.Add(idx);
+            }
+            while (_recentOffers.Count > RecentOfferMemory)
+                _recentOffers.RemoveAt(0);
+
+            return result;
+        }
+
+        /// <summary>
+        /// Level up a character by 1 level. Rolls growth, unlocks abilities/passives.
+        /// </summary>
+        public static LevelUpResult LevelUp(CharacterData character)
         {
             LevelUpResult result = new()
             {
+                Character = character,
                 OldLevel = character.Level,
                 StatGains = new CharacterStats(),
                 NewAbilities = new List<AbilityData>(),
                 NewPassives = new List<AbilityData>()
             };
 
-            character.CurrentXP += amount;
+            if (character.Level >= MaxLevel) return result;
 
-            while (character.CurrentXP >= StatCalculator.CalculateXPToLevel(character.Level))
+            character.Level++;
+
+            CharacterStats gains = RollGrowth(character);
+            character.BaseStats.Add(gains);
+            result.StatGains = gains;
+
+            // Check ability unlocks
+            List<AbilityData> classAbilities = GetFullAbilityList(character.Class);
+            int unlockedCount = GetAbilityCountAtLevel(character.Level);
+            int currentCount = CountClassAbilities(character, classAbilities);
+
+            while (currentCount < unlockedCount && currentCount < classAbilities.Count)
             {
-                character.CurrentXP -= StatCalculator.CalculateXPToLevel(character.Level);
-                character.Level++;
-
-                CharacterStats gains = RollGrowth(character);
-                character.BaseStats.Add(gains);
-                result.StatGains.Add(gains);
-
-                // Check ability unlocks
-                List<AbilityData> classAbilities = GetFullAbilityList(character.Class);
-                int unlockedCount = GetAbilityCountAtLevel(character.Level);
-                int currentCount = CountClassAbilities(character, classAbilities);
-
-                while (currentCount < unlockedCount && currentCount < classAbilities.Count)
-                {
-                    AbilityData newAbility = classAbilities[currentCount];
-                    character.Abilities.Add(newAbility);
-                    result.NewAbilities.Add(newAbility);
-                    currentCount++;
-                }
-
-                // Check passive unlocks
-                List<AbilityData> classPassives = GetFullPassiveList(character.Class);
-                int passiveUnlocked = character.Level / PassiveUnlockInterval;
-                int currentPassiveCount = CountClassPassives(character, classPassives);
-
-                while (currentPassiveCount < passiveUnlocked && currentPassiveCount < classPassives.Count)
-                {
-                    AbilityData newPassive = classPassives[currentPassiveCount];
-                    character.Passives.Add(newPassive);
-                    result.NewPassives.Add(newPassive);
-                    currentPassiveCount++;
-                }
-
-                // Update persistent resources to new max
-                CharacterStats total = character.GetTotalStats();
-                int newMaxHP = StatCalculator.CalculateMaxHP(total);
-                int newMaxEnergy = StatCalculator.CalculateMaxEnergy(total);
-                int newMaxMana = StatCalculator.CalculateMaxMana(total);
-
-                // Gain the difference from stat growth
-                character.CurrentHP += newMaxHP - StatCalculator.CalculateMaxHP(
-                    SubtractStats(total, gains));
-                character.CurrentEnergy = newMaxEnergy;
-                character.CurrentMana = newMaxMana;
+                AbilityData newAbility = classAbilities[currentCount];
+                character.Abilities.Add(newAbility);
+                result.NewAbilities.Add(newAbility);
+                currentCount++;
             }
+
+            // Check passive unlocks
+            List<AbilityData> classPassives = GetFullPassiveList(character.Class);
+            int passiveUnlocked = character.Level / PassiveUnlockInterval;
+            int currentPassiveCount = CountClassPassives(character, classPassives);
+
+            while (currentPassiveCount < passiveUnlocked && currentPassiveCount < classPassives.Count)
+            {
+                AbilityData newPassive = classPassives[currentPassiveCount];
+                character.Passives.Add(newPassive);
+                result.NewPassives.Add(newPassive);
+                currentPassiveCount++;
+            }
+
+            // Update persistent resources to new max
+            CharacterStats total = character.GetTotalStats();
+            int newMaxHP = StatCalculator.CalculateMaxHP(total);
+            int newMaxEnergy = StatCalculator.CalculateMaxEnergy(total);
+            int newMaxMana = StatCalculator.CalculateMaxMana(total);
+
+            // Gain the difference from stat growth
+            character.CurrentHP += newMaxHP - StatCalculator.CalculateMaxHP(SubtractStats(total, gains));
+            character.CurrentEnergy = newMaxEnergy;
+            character.CurrentMana = newMaxMana;
 
             result.NewLevel = character.Level;
             return result;
+        }
+
+        /// <summary>
+        /// Reset offer tracking (call at run start).
+        /// </summary>
+        public static void ResetOfferTracking()
+        {
+            _recentOffers.Clear();
         }
 
         private static CharacterStats RollGrowth(CharacterData character)
@@ -138,7 +208,6 @@ namespace PixelWarriors
 
         private static int CountClassPassives(CharacterData character, List<AbilityData> classPassives)
         {
-            // Don't count the basic passive (index 0 from ClassDefinitions)
             int count = 0;
             foreach (AbilityData classPassive in classPassives)
             {
@@ -150,27 +219,12 @@ namespace PixelWarriors
 
         private static List<AbilityData> GetFullAbilityList(CharacterClass characterClass)
         {
-            return characterClass switch
-            {
-                CharacterClass.Warrior => AbilityCatalog.GetWarriorAbilities(),
-                CharacterClass.Rogue => AbilityCatalog.GetRogueAbilities(),
-                CharacterClass.Ranger => AbilityCatalog.GetRangerAbilities(),
-                CharacterClass.Priest => AbilityCatalog.GetPriestAbilities(),
-                CharacterClass.Elementalist => AbilityCatalog.GetElementalistAbilities(),
-                CharacterClass.Warlock => AbilityCatalog.GetWarlockAbilities(),
-                _ => new List<AbilityData>()
-            };
+            return ClassDefinitions.GetClassAbilityList(characterClass);
         }
 
         private static List<AbilityData> GetFullPassiveList(CharacterClass characterClass)
         {
-            return characterClass switch
-            {
-                CharacterClass.Warrior => AbilityCatalog.GetWarriorPassives(),
-                CharacterClass.Rogue => AbilityCatalog.GetRoguePassives(),
-                CharacterClass.Warlock => AbilityCatalog.GetWarlockPassives(),
-                _ => new List<AbilityData>()
-            };
+            return ClassDefinitions.GetClassPassiveList(characterClass);
         }
 
         private static CharacterStats SubtractStats(CharacterStats total, CharacterStats gains)

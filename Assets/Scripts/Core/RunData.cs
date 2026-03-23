@@ -21,6 +21,9 @@ namespace PixelWarriors
         public int TotalBattles;
         public int TotalKills;
 
+        // Set by events that grant a level-up; consumed by GameStateManager
+        [System.NonSerialized] public bool PendingEventLevelUp;
+
         public RunData()
         {
             CurrentAct = 1;
@@ -47,7 +50,7 @@ namespace PixelWarriors
         }
 
         public bool IsRunComplete => CurrentAct > RunConfig.ActCount;
-        public bool IsBossFloor => CurrentFloor == RunConfig.FloorsPerAct;
+        public bool IsBossFloor => CurrentFloor == RunConfig.BossFloor;
 
         public void AddConsumable(string id, int qty = 1)
         {

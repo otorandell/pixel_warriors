@@ -20,6 +20,7 @@ namespace PixelWarriors
         public int HitCount;
         public TargetType TargetType;
         public bool IsPassive;
+        public PassiveEffect PassiveEffect;
         public AbilityTag Tag;
         public bool ExcludeSelf;
         public AbilityRange Range;

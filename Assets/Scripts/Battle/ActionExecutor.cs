@@ -367,7 +367,7 @@ namespace PixelWarriors
                 int healAmount = ability.BasePower;
 
                 // Faith passive: +20% healing
-                if (PassiveProcessor.HasPassive(user, "Faith"))
+                if (user.HasPassiveEffect(PassiveEffect.Faith))
                     healAmount = Mathf.RoundToInt(healAmount * (1f + GameplayConfig.FaithHealingBonus));
 
                 // Poison impairs healing
@@ -389,7 +389,7 @@ namespace PixelWarriors
                 }
 
                 // Devotion passive: healing also grants small shield
-                if (PassiveProcessor.HasPassive(user, "Devotion") && target.IsAlive)
+                if (user.HasPassiveEffect(PassiveEffect.Devotion) && target.IsAlive)
                 {
                     var shield = new StatusEffectInstance(StatusEffect.Shield, -1, GameplayConfig.DevotionShieldValue, user);
                     target.AddEffect(shield);
@@ -420,7 +420,7 @@ namespace PixelWarriors
                 damage = Mathf.RoundToInt(damage * (1f + GameplayConfig.BlessingDamageBonus));
 
             // Predator passive: +15% vs marked
-            if (user != null && target.HasEffect(StatusEffect.Mark) && PassiveProcessor.HasPassive(user, "Predator"))
+            if (user != null && target.HasEffect(StatusEffect.Mark) && user.HasPassiveEffect(PassiveEffect.Predator))
                 damage = Mathf.RoundToInt(damage * (1f + GameplayConfig.PredatorDamageBonus));
 
             damage = StatusEffectProcessor.AbsorbDamage(target, damage);
@@ -499,7 +499,7 @@ namespace PixelWarriors
             foreach (BattleCharacter ally in allies)
             {
                 if (!ally.IsAlive || ally == dying) continue;
-                if (!PassiveProcessor.HasPassive(ally, "Martyr")) continue;
+                if (!ally.HasPassiveEffect(PassiveEffect.Martyr)) continue;
                 if (ally.HasUsedOnce(AbilityTag.Martyr)) continue;
                 return ally;
             }
@@ -524,11 +524,11 @@ namespace PixelWarriors
                 + ability.HitChanceModifier;
 
             // Keen Eye passive: +5% hit
-            if (PassiveProcessor.HasPassive(user, "Keen Eye"))
+            if (user.HasPassiveEffect(PassiveEffect.KeenEye))
                 hitChance += GameplayConfig.KeenEyeHitBonus;
 
             // Steady Aim passive: +5% hit on Reach attacks
-            if (ability.Range == AbilityRange.Reach && PassiveProcessor.HasPassive(user, "Steady Aim"))
+            if (ability.Range == AbilityRange.Reach && user.HasPassiveEffect(PassiveEffect.SteadyAim))
                 hitChance += GameplayConfig.SteadyAimHitBonus;
 
             if (Random.value > hitChance)
@@ -570,11 +570,11 @@ namespace PixelWarriors
             float critChance = StatCalculator.CalculateCritChance(user.EffectiveStats.Dexterity) + bonusCrit;
 
             // Keen Eye passive: +5% crit
-            if (PassiveProcessor.HasPassive(user, "Keen Eye"))
+            if (user.HasPassiveEffect(PassiveEffect.KeenEye))
                 critChance += GameplayConfig.KeenEyeCritBonus;
 
             // Steady Aim passive: +5% crit on Reach attacks
-            if (ability.Range == AbilityRange.Reach && PassiveProcessor.HasPassive(user, "Steady Aim"))
+            if (ability.Range == AbilityRange.Reach && user.HasPassiveEffect(PassiveEffect.SteadyAim))
                 critChance += GameplayConfig.SteadyAimCritBonus;
             bool isCrit = Random.value < critChance;
             if (isCrit)

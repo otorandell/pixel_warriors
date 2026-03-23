@@ -263,10 +263,10 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                new AbilityData { Name = "Open Wounds", Description = "Chance to apply bleed on hit.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Executioner", Description = "Critical chance increased vs low health enemies.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Frontline", Description = "Aggro is increased.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Enrage", Description = "Gets +1 long action if below 30% HP.", IsPassive = true, Tag = AbilityTag.None }
+                new AbilityData { Name = "Open Wounds", Description = "Chance to apply bleed on hit.", IsPassive = true, PassiveEffect = PassiveEffect.OpenWounds },
+                new AbilityData { Name = "Executioner", Description = "Critical chance increased vs low health enemies.", IsPassive = true, PassiveEffect = PassiveEffect.Executioner },
+                new AbilityData { Name = "Frontline", Description = "Aggro is increased.", IsPassive = true, PassiveEffect = PassiveEffect.Frontline },
+                new AbilityData { Name = "Enrage", Description = "Gets +1 long action if below 30% HP.", IsPassive = true, PassiveEffect = PassiveEffect.Enrage }
             };
         }
 
@@ -449,13 +449,13 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                new AbilityData { Name = "Swift", Description = "Close range skills can hit any target.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Footwork", Description = "Swapping is a short action.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Quick Pockets", Description = "Using an item is a short action.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Strategist", Description = "Start the battle concealed.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Escape Plan", Description = "Become concealed if HP drops below 50%. Once per battle.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Dagger Mastery", Description = "Can equip daggers in the offhand slot.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Open Wounds", Description = "Chance to apply bleed on hit.", IsPassive = true, Tag = AbilityTag.None }
+                new AbilityData { Name = "Swift", Description = "Close range skills can hit any target.", IsPassive = true, PassiveEffect = PassiveEffect.Swift },
+                new AbilityData { Name = "Footwork", Description = "Swapping is a short action.", IsPassive = true, PassiveEffect = PassiveEffect.Footwork },
+                new AbilityData { Name = "Quick Pockets", Description = "Using an item is a short action.", IsPassive = true, PassiveEffect = PassiveEffect.QuickPockets },
+                new AbilityData { Name = "Strategist", Description = "Start the battle concealed.", IsPassive = true, PassiveEffect = PassiveEffect.Strategist },
+                new AbilityData { Name = "Escape Plan", Description = "Become concealed if HP drops below 50%. Once per battle.", IsPassive = true, PassiveEffect = PassiveEffect.EscapePlan },
+                new AbilityData { Name = "Dagger Mastery", Description = "Can equip daggers in the offhand slot.", IsPassive = true, PassiveEffect = PassiveEffect.DaggerMastery },
+                new AbilityData { Name = "Open Wounds", Description = "Chance to apply bleed on hit.", IsPassive = true, PassiveEffect = PassiveEffect.OpenWounds }
             };
         }
 
@@ -829,9 +829,9 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                new AbilityData { Name = "Death Dance", Description = "Lower HP means more effective healing.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Reaper", Description = "Lower target HP means more damage.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Soul Harvest", Description = "When a character dies, recover HP, energy, and mana.", IsPassive = true, Tag = AbilityTag.None }
+                new AbilityData { Name = "Death Dance", Description = "Lower HP means more effective healing.", IsPassive = true, PassiveEffect = PassiveEffect.DeathDance },
+                new AbilityData { Name = "Reaper", Description = "Lower target HP means more damage.", IsPassive = true, PassiveEffect = PassiveEffect.Reaper },
+                new AbilityData { Name = "Soul Harvest", Description = "When a character dies, recover HP, energy, and mana.", IsPassive = true, PassiveEffect = PassiveEffect.SoulHarvest }
             };
         }
 
@@ -933,9 +933,9 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                new AbilityData { Name = "Survivalist", Description = "Regenerate 2 energy at turn start.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Predator", Description = "+15% damage against marked targets.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Steady Aim", Description = "+5% accuracy and crit with ranged attacks.", IsPassive = true, Tag = AbilityTag.None }
+                new AbilityData { Name = "Survivalist", Description = "Regenerate 2 energy at turn start.", IsPassive = true, PassiveEffect = PassiveEffect.Survivalist },
+                new AbilityData { Name = "Predator", Description = "+15% damage against marked targets.", IsPassive = true, PassiveEffect = PassiveEffect.Predator },
+                new AbilityData { Name = "Steady Aim", Description = "+5% accuracy and crit with ranged attacks.", IsPassive = true, PassiveEffect = PassiveEffect.SteadyAim }
             };
         }
 
@@ -1056,9 +1056,9 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                new AbilityData { Name = "Inner Light", Description = "Regenerate 2 mana at turn start.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Martyr", Description = "When an ally would die, heal them to 1 HP instead. Once per battle.", IsPassive = true, Tag = AbilityTag.None },
-                new AbilityData { Name = "Devotion", Description = "Healing spells also grant a small shield.", IsPassive = true, Tag = AbilityTag.None }
+                new AbilityData { Name = "Inner Light", Description = "Regenerate 2 mana at turn start.", IsPassive = true, PassiveEffect = PassiveEffect.InnerLight },
+                new AbilityData { Name = "Martyr", Description = "When an ally would die, heal them to 1 HP instead. Once per battle.", IsPassive = true, PassiveEffect = PassiveEffect.Martyr },
+                new AbilityData { Name = "Devotion", Description = "Healing spells also grant a small shield.", IsPassive = true, PassiveEffect = PassiveEffect.Devotion }
             };
         }
     }

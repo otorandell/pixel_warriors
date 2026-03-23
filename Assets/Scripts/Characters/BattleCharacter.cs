@@ -142,6 +142,13 @@ namespace PixelWarriors
         public bool HasUsedOnce(AbilityTag tag) => UsedOnceAbilities.Contains(tag);
         public void MarkUsedOnce(AbilityTag tag) => UsedOnceAbilities.Add(tag);
 
+        public bool HasPassiveEffect(PassiveEffect effect)
+        {
+            for (int i = 0; i < Data.Passives.Count; i++)
+                if (Data.Passives[i].PassiveEffect == effect) return true;
+            return false;
+        }
+
         public void RecalculateStats()
         {
             EffectiveStats = Data.GetTotalStats();

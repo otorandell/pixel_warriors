@@ -116,37 +116,43 @@ namespace PixelWarriors
                 {
                     Name = "Tough",
                     Description = "Gains bonus HP from Endurance.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.Tough
                 },
                 CharacterClass.Rogue => new AbilityData
                 {
                     Name = "Evasive",
                     Description = "Increased dodge chance.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.Evasive
                 },
                 CharacterClass.Ranger => new AbilityData
                 {
                     Name = "Keen Eye",
                     Description = "Increased accuracy and crit chance.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.KeenEye
                 },
                 CharacterClass.Priest => new AbilityData
                 {
                     Name = "Faith",
                     Description = "Healing spells are more effective.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.Faith
                 },
                 CharacterClass.Elementalist => new AbilityData
                 {
                     Name = "Arcane Affinity",
                     Description = "Spells cost less mana.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.ArcaneAffinity
                 },
                 CharacterClass.Warlock => new AbilityData
                 {
                     Name = "Dark Pact",
                     Description = "Gains mana when taking damage.",
-                    IsPassive = true
+                    IsPassive = true,
+                    PassiveEffect = PassiveEffect.DarkPact
                 },
                 _ => new AbilityData { Name = "None", Description = "No passive.", IsPassive = true }
             };

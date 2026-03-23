@@ -256,6 +256,48 @@ namespace PixelWarriors
         ConsumableSmokeBomb
     }
 
+    public enum PassiveEffect
+    {
+        None,
+        // Basic passives (one per class, granted at level 1)
+        Tough,              // Warrior: bonus HP from Endurance
+        Evasive,            // Rogue: increased dodge chance
+        KeenEye,            // Ranger: increased accuracy and crit
+        Faith,              // Priest: +20% healing effectiveness
+        ArcaneAffinity,     // Elementalist: spells cost less mana
+        DarkPact,           // Warlock: gain mana when taking damage
+
+        // Warrior passives
+        OpenWounds,         // Chance to apply bleed on hit
+        Executioner,        // Crit chance increased vs low HP enemies
+        Frontline,          // Aggro is increased
+        Enrage,             // +1 long action below 30% HP
+
+        // Rogue passives
+        Swift,              // Close range skills can hit any target
+        Footwork,           // Swapping is a short action
+        QuickPockets,       // Using an item is a short action
+        Strategist,         // Start battle concealed
+        EscapePlan,         // Become concealed below 50% HP (once per battle)
+        DaggerMastery,      // Can equip daggers in offhand
+        // OpenWounds shared with Warrior
+
+        // Ranger passives
+        Survivalist,        // Regen energy at turn start
+        Predator,           // +15% damage vs marked targets
+        SteadyAim,          // +5% accuracy and crit with ranged attacks
+
+        // Priest passives
+        InnerLight,         // Regen mana at turn start
+        Martyr,             // Prevent ally death once per battle
+        Devotion,           // Healing spells grant bonus shield
+
+        // Warlock passives
+        DeathDance,         // Lower HP means more effective healing
+        Reaper,             // Lower target HP means more damage
+        SoulHarvest         // Recover HP/EN/MP when any character dies
+    }
+
     public enum ConsumableCategory
     {
         Potion,

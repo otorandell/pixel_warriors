@@ -58,10 +58,13 @@ namespace PixelWarriors
             run.Gold = Mathf.Max(0, run.Gold - amount);
         }
 
-        public static void GiveXPAll(RunData run, int amount)
+        /// <summary>
+        /// Grants a level-up to a random eligible party member.
+        /// Sets PendingEventLevelUp flag so the event flow can show the pick screen.
+        /// </summary>
+        public static void GrantLevelUp(RunData run)
         {
-            foreach (CharacterData c in run.Party)
-                LevelingSystem.AddXP(c, amount);
+            run.PendingEventLevelUp = true;
         }
 
         public static void GiveStatBoost(RunData run, int partyIndex, CharacterStats boost)

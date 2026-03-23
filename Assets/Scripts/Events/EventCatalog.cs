@@ -76,9 +76,9 @@ namespace PixelWarriors
                     new EventChoice
                     {
                         Label = "STUDY THE AREA",
-                        Description = "+20 XP to all",
-                        OutcomeDescription = _ => "You study your surroundings. All gain 20 XP.",
-                        Apply = (run, _) => EventOutcomes.GiveXPAll(run, 20)
+                        Description = "Grant a level-up",
+                        OutcomeDescription = _ => "Focused study pays off. Choose someone to level up.",
+                        Apply = (run, _) => EventOutcomes.GrantLevelUp(run)
                     },
                     new EventChoice
                     {
@@ -402,9 +402,9 @@ namespace PixelWarriors
                     new EventChoice
                     {
                         Label = "MIDDLE — SILENCE",
-                        Description = "+5 XP to all",
-                        OutcomeDescription = _ => "The quiet road teaches patience. All gain 5 XP.",
-                        Apply = (run, _) => EventOutcomes.GiveXPAll(run, 5)
+                        Description = "+10 Gold",
+                        OutcomeDescription = _ => "The quiet road teaches patience. You find 10 gold.",
+                        Apply = (run, _) => EventOutcomes.GiveGold(run, 10)
                     }
                 }
             });
@@ -427,9 +427,9 @@ namespace PixelWarriors
                     new EventChoice
                     {
                         Label = "STUDY THE MAPS",
-                        Description = "+15 XP to all",
-                        OutcomeDescription = _ => "The maps reveal patterns. All gain 15 XP.",
-                        Apply = (run, _) => EventOutcomes.GiveXPAll(run, 15)
+                        Description = "Grant a level-up",
+                        OutcomeDescription = _ => "The maps reveal insights. Choose someone to level up.",
+                        Apply = (run, _) => EventOutcomes.GrantLevelUp(run)
                     },
                     new EventChoice
                     {
@@ -461,9 +461,9 @@ namespace PixelWarriors
                     new EventChoice
                     {
                         Label = "HELP HIM",
-                        Description = "+5 XP to all",
-                        OutcomeDescription = _ => "The knight nods weakly. All gain 5 XP.",
-                        Apply = (run, _) => EventOutcomes.GiveXPAll(run, 5)
+                        Description = "+15 Gold",
+                        OutcomeDescription = _ => "The knight nods weakly and offers his coin purse. +15 gold.",
+                        Apply = (run, _) => EventOutcomes.GiveGold(run, 15)
                     },
                     new EventChoice
                     {

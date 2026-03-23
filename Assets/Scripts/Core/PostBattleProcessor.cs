@@ -5,11 +5,10 @@ namespace PixelWarriors
 {
     public struct PostBattleResult
     {
-        public int XPPerCharacter;
         public int GoldEarned;
-        public List<LevelingSystem.LevelUpResult> LevelUpResults;
         public List<CharacterData> FallenCharacters;
         public List<EquipmentData> LootDrops;
+        public bool IsBossBattle;
     }
 
     public static class PostBattleProcessor
@@ -19,9 +18,9 @@ namespace PixelWarriors
         {
             PostBattleResult result = new()
             {
-                LevelUpResults = new List<LevelingSystem.LevelUpResult>(),
                 FallenCharacters = new List<CharacterData>(),
-                LootDrops = new List<EquipmentData>()
+                LootDrops = new List<EquipmentData>(),
+                IsBossBattle = roomType == RoomType.BossBattle
             };
 
             // --- Sync battle state back to CharacterData ---
@@ -42,13 +41,7 @@ namespace PixelWarriors
                 }
             }
 
-            // --- Room type multipliers ---
-            float xpMultiplier = roomType switch
-            {
-                RoomType.EliteBattle => RunConfig.EliteXPMultiplier,
-                RoomType.BossBattle => RunConfig.BossXPMultiplier,
-                _ => 1f
-            };
+            // --- Room type gold multiplier ---
             float goldMultiplier = roomType switch
             {
                 RoomType.EliteBattle => RunConfig.EliteGoldMultiplier,
@@ -56,13 +49,8 @@ namespace PixelWarriors
                 _ => 1f
             };
 
-            // --- Calculate XP ---
-            int floor = runData.TotalFloor;
-            int baseXP = RunConfig.BaseXPPerBattle + Random.Range(0, RunConfig.XPPerBattleVariance + 1);
-            int xpEarned = Mathf.RoundToInt(baseXP * (1f + (floor - 1) * RunConfig.XPFloorScaling) * xpMultiplier);
-            result.XPPerCharacter = xpEarned;
-
             // --- Calculate Gold ---
+            int floor = runData.TotalFloor;
             int baseGold = RunConfig.BaseGoldPerBattle + Random.Range(0, RunConfig.GoldPerBattleVariance + 1);
             int goldEarned = Mathf.RoundToInt(baseGold * (1f + (floor - 1) * RunConfig.GoldFloorScaling) * goldMultiplier);
             result.GoldEarned = goldEarned;
@@ -70,13 +58,6 @@ namespace PixelWarriors
 
             // --- Generate loot ---
             result.LootDrops = LootGenerator.GenerateLoot(runData.CurrentAct, roomType, runData);
-
-            // --- Award XP and process level ups ---
-            foreach (CharacterData character in runData.Party)
-            {
-                LevelingSystem.LevelUpResult levelResult = LevelingSystem.AddXP(character, xpEarned);
-                result.LevelUpResults.Add(levelResult);
-            }
 
             // --- Partial heal surviving party ---
             foreach (CharacterData character in runData.Party)

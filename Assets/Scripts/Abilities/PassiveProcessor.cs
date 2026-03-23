@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 namespace PixelWarriors
@@ -8,8 +7,7 @@ namespace PixelWarriors
     {
         public static void OnBattleStart(BattleCharacter character)
         {
-            // Strategist: start battle concealed
-            if (HasPassive(character, "Strategist"))
+            if (character.HasPassiveEffect(PassiveEffect.Strategist))
             {
                 character.AddEffect(new StatusEffectInstance(StatusEffect.Conceal, -1, 0, character));
                 GameEvents.RaiseStatusEffectApplied(character, StatusEffect.Conceal, 0);
@@ -19,16 +17,14 @@ namespace PixelWarriors
 
         public static void OnTurnStart(BattleCharacter character)
         {
-            // Enrage: +1 long action if below 30% HP
-            if (HasPassive(character, "Enrage") &&
+            if (character.HasPassiveEffect(PassiveEffect.Enrage) &&
                 character.CurrentHP < character.MaxHP * 0.30f)
             {
                 character.LongActionsRemaining += 1;
                 GameEvents.RaiseCombatLogMessage($"{character.Data.Name} is enraged! +1 action!");
             }
 
-            // Survivalist: regen energy at turn start
-            if (HasPassive(character, "Survivalist"))
+            if (character.HasPassiveEffect(PassiveEffect.Survivalist))
             {
                 int gain = GameplayConfig.SurvivalistEnergyRegen;
                 int prev = character.CurrentEnergy;
@@ -38,8 +34,7 @@ namespace PixelWarriors
                     GameEvents.RaiseCombatLogMessage($"{character.Data.Name} recovers {actual} energy (Survivalist).");
             }
 
-            // Inner Light: regen mana at turn start
-            if (HasPassive(character, "Inner Light"))
+            if (character.HasPassiveEffect(PassiveEffect.InnerLight))
             {
                 int gain = GameplayConfig.InnerLightManaRegen;
                 int prev = character.CurrentMana;
@@ -54,8 +49,7 @@ namespace PixelWarriors
         {
             if (!target.IsAlive) return;
 
-            // Escape Plan: become concealed below 50% HP (once per battle)
-            if (HasPassive(target, "Escape Plan") &&
+            if (target.HasPassiveEffect(PassiveEffect.EscapePlan) &&
                 !target.HasUsedOnce(AbilityTag.EscapePlan) &&
                 target.CurrentHP < target.MaxHP * 0.50f)
             {
@@ -65,26 +59,21 @@ namespace PixelWarriors
                 GameEvents.RaiseCombatLogMessage($"{target.Data.Name}'s escape plan triggers! Concealed!");
             }
 
-            // Dark Pact: gain mana when taking damage
-            if (HasPassive(target, "Dark Pact"))
+            if (target.HasPassiveEffect(PassiveEffect.DarkPact))
             {
                 int manaGain = Mathf.Max(1, Mathf.RoundToInt(damage * 0.2f));
                 target.CurrentMana = Mathf.Min(target.CurrentMana + manaGain, target.MaxMana);
                 GameEvents.RaiseCombatLogMessage($"{target.Data.Name} gains {manaGain} mana from pain!");
             }
-
-            // Stance triggers
-            // (handled in WarriorAbilityHandler.ProcessStanceTriggers, called from damage pipeline)
         }
 
         public static void OnCharacterDefeated(BattleCharacter defeated, List<BattleCharacter> allCharacters)
         {
-            // Soul Harvest: recover HP, energy, and mana when any character dies
             foreach (BattleCharacter character in allCharacters)
             {
                 if (!character.IsAlive) continue;
                 if (character == defeated) continue;
-                if (!HasPassive(character, "Soul Harvest")) continue;
+                if (!character.HasPassiveEffect(PassiveEffect.SoulHarvest)) continue;
 
                 int hpGain = Mathf.Max(1, Mathf.RoundToInt(character.MaxHP * 0.10f));
                 int energyGain = Mathf.Max(1, Mathf.RoundToInt(character.MaxEnergy * 0.15f));
@@ -99,7 +88,6 @@ namespace PixelWarriors
                     $"{character.Data.Name} harvests the fallen soul! +{hpGain} HP, +{energyGain} EN, +{manaGain} MP");
             }
 
-            // Corpse Explosion: if the defeated character was marked, deal AoE
             StatusEffectInstance corpseExplosion = defeated.GetEffect(StatusEffect.CorpseExplosion);
             if (corpseExplosion != null)
             {
@@ -107,7 +95,6 @@ namespace PixelWarriors
                 BattleCharacter source = corpseExplosion.Source;
                 GameEvents.RaiseCombatLogMessage($"{defeated.Data.Name} explodes!");
 
-                // Find all living enemies of the source
                 foreach (BattleCharacter target in allCharacters)
                 {
                     if (!target.IsAlive) continue;
@@ -120,11 +107,6 @@ namespace PixelWarriors
                     ActionExecutor.CheckDefeated(target);
                 }
             }
-        }
-
-        public static bool HasPassive(BattleCharacter character, string passiveName)
-        {
-            return character.Data.Passives.Any(p => p.Name == passiveName);
         }
     }
 }

@@ -34,7 +34,7 @@ namespace PixelWarriors
                 int healPerTurn = GameplayConfig.RegenerationHealPerTurn;
 
                 // Faith passive boosts the HoT value
-                if (PassiveProcessor.HasPassive(user, "Faith"))
+                if (user.HasPassiveEffect(PassiveEffect.Faith))
                     healPerTurn = Mathf.RoundToInt(healPerTurn * (1f + GameplayConfig.FaithHealingBonus));
 
                 var effect = new StatusEffectInstance(StatusEffect.Regeneration,
@@ -46,7 +46,7 @@ namespace PixelWarriors
                     $"{user.Data.Name} casts Prayer of Mending on {target.Data.Name}! Healing {healPerTurn}/turn.");
 
                 // Devotion: also grant shield
-                if (PassiveProcessor.HasPassive(user, "Devotion"))
+                if (user.HasPassiveEffect(PassiveEffect.Devotion))
                 {
                     var shield = new StatusEffectInstance(StatusEffect.Shield, -1,
                         GameplayConfig.DevotionShieldValue, user);
@@ -70,7 +70,7 @@ namespace PixelWarriors
                 int shieldValue = ability.BasePower;
 
                 // Faith passive boosts shield value
-                if (PassiveProcessor.HasPassive(user, "Faith"))
+                if (user.HasPassiveEffect(PassiveEffect.Faith))
                     shieldValue = Mathf.RoundToInt(shieldValue * (1f + GameplayConfig.FaithHealingBonus));
 
                 var effect = new StatusEffectInstance(StatusEffect.Shield, -1, shieldValue, user);
