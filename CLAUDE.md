@@ -66,7 +66,7 @@ Landscape orientation. Three vertical zones:
 
 - **Top strip (~7%):** TurnInfoPanel. Round number, active character name (colored by class), turn order sequence.
 - **Left (~45%):** Battlefield. Two 2x2 grids — enemies top, players bottom. Frontlines face each other at the `===` divider. Each cell = character card (name/class, HP/energy/mana bars). Tap-hold for details popup, tap to select target.
-- **Right (~55%):** Ability panel. Full height of main area. Tabs: Attacks, Skills, Spells, Items, Generic. Scrollable ability list.
+- **Right (~55%):** Ability panel. Full height of main area. Tabs: Generic, Attacks, Skills, Spells. Scrollable ability list.
 - **Bottom-left (~55%):** Combat log. Scrollable sequential "Pokemon-style" text feedback. Always visible.
 - **Bottom-right (~45%):** Selection panel. Cancel/Confirm buttons + contextual prompts ("Select an ability", "Crushing Blow > Ratman").
 - **Popups:** Character details, ability details, turn order details. Centered overlay partially covering screen. All triggered by long-press (hold).
@@ -107,18 +107,19 @@ Long points can be spent as short points. Short points cannot be spent as long p
 
 ## Ability Tabs
 
-1. **Attacks** — Weapon-based attacks (Terror blocks this tab)
-2. **Skills** — Non-magical abilities, generally consume Energy
-3. **Spells** — Magical abilities, generally consume Mana (Silence blocks this tab)
-4. **Items** — Usable items from inventory/equipment
-5. **Generic** — Universal tactics all characters share:
+1. **Generic** — Universal tactics + consumable items. Always first tab:
    - Attack: basic weapon attack (Long)
    - Swap Position (Long)
-   - Anticipate: act first next turn, -1 short action (Short)
-   - React: act last next turn (Short)
+   - Reposition (Long) — learnable via Combatant Manual
+   - Anticipate: act first next turn, -1 short action (Short) — learnable via Combatant Manual
+   - React: act last next turn (Short) — learnable via Combatant Manual
    - Hide: lower aggro until next turn (Short)
-   - Taunt: increase aggro 2 turns, frontline only (Short)
+   - Taunt: increase aggro 2 turns, frontline only (Short) — learnable via Combatant Manual
    - Pass: end activation (Short, 0 cost)
+   - Consumable items (potions, bombs, scrolls) appear here with quantities
+2. **Attacks** — Weapon-based attacks (Terror blocks this tab)
+3. **Skills** — Non-magical abilities, generally consume Energy
+4. **Spells** — Magical abilities, generally consume Mana (Silence blocks this tab)
 
 ---
 
@@ -240,11 +241,15 @@ Sword, Dagger, TwoHanded, Shield, Staff, Bow, Mace. Some abilities require speci
 
 ## Progression
 
-- Characters gain XP after each battle
-- Level up increases stats
-- Learn new skill every Fibonacci level (1, 1, 2, 3, 5, 8, 13, 21...)
-- Learn passive skill every multiple of 5 (5, 10, 15, 20...)
+- **Pick-to-level:** After each combat, player picks 1 of 2 party members to level up (no XP system)
+- Boss fights grant 2 level-ups (pick twice)
+- Some events can grant level-ups
+- Max level 21
+- Level up increases stats via Fire Emblem growth rolls (per-class growth rates)
+- Learn new ability every Fibonacci level (1, 1, 2, 3, 5, 8, 13, 21)
+- Learn passive ability every multiple of 5 (5, 10, 15, 20)
 - Each character starts with 1 basic ability + 1 basic passive
+- Pseudo-random candidate selection: tracks recent offers to avoid repeatedly showing the same characters
 
 ---
 
@@ -317,15 +322,16 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-03-22, Phase 5 — Icon System)
+## Current State (2026-03-23, Phase 6 — Systems Overhaul)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
 - **Character system:** CharacterData (6 equipment slots, HasWeaponType/GetBaseBlockChance helpers), BattleCharacter (UsedOnceAbilities tracking, stackable/exclusive AddEffect, Close/Reach CanUseAbility checks, additive AP consumption, Terror/Silence blocking), ClassDefinitions (uses AbilityCatalog), EquipmentData (WeaponType, BaseBlockChance)
 - **Ability system:**
   - AbilityData with Range, OncePerBattle, RequiresConcealed, RequiredWeapon, RequiresFrontline
-  - AbilityCatalog (master catalog: all abilities per class, generic abilities)
-  - PassiveProcessor (OnBattleStart, OnTurnStart, OnDamageTaken, OnCharacterDefeated hooks)
+  - AbilityCatalog (master catalog: all abilities per class, generic abilities, combatant manual abilities)
+  - PassiveProcessor (OnBattleStart, OnTurnStart, OnDamageTaken, OnCharacterDefeated hooks, PassiveEffect enum replaces string matching)
+  - PassiveEffect enum: type-safe passive identification (Tough, Evasive, KenEye, Faith, ArcaneAffinity, DarkPact, Survivalist, Predator, SteadyAim, InnerLight, Martyr, Devotion, Strategist, EscapePlan, QuickHands, SoulHarvest, Frenzy)
   - Per-class ability handlers: WarriorAbilityHandler, RogueAbilityHandler, RangerAbilityHandler, PriestAbilityHandler, ElementalistAbilityHandler, WarlockAbilityHandler
 - **Enemy system:** EnemyDefinitions (router) → Act1Enemies/Act2Enemies/Act3Enemies (~46 types), EncounterGenerator (act-based pools, scaling, reinforcement waves), EncounterData + ReinforcementWave, EnemyAI (Mass Confusion redirect)
 - **Status effect system:**
@@ -345,7 +351,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **UI framework (all code-first, TextMeshPro):**
   - PanelBuilder, BattleScreenUI, BattleGridUI (AddEnemy for mid-battle spawning)
   - CharacterCardUI (expanded status indicators: [T][C][B][Po][Fi][Ch][!][X][Df][Br][Bk][Bl][Re][+][DI][Pi][HF][IW][FT][SL][DS][Tr], SetResurrectable for dead-ally targeting, revive visual reset)
-  - AbilityPanelUI (5 tabs, [C]/[R] range tags on buttons)
+  - AbilityPanelUI (4 tabs: Generic > Attacks > Skills > Spells, [C]/[R] range tags on buttons, consumable items in Generic tab)
   - AbilityPopupUI (range, weapon requirements, once-per-battle, frontline-only, concealed requirement display)
   - UIFormatUtil (FormatAbilityRange, improved FormatAbilityCost with AP indicators)
   - PopupBase → CharacterPopupUI / AbilityPopupUI / TurnOrderPopupUI
@@ -362,23 +368,26 @@ Battles can have reinforcement waves that spawn mid-battle:
   - ScreenManager (owns Canvas + EventSystem, manages screen transitions, fade overlay with FadeOut/FadeIn via DOTween)
   - BattleScreenUI refactored from MonoBehaviour to plain IScreen class
   - MainMenuScreen (title, "New Run" button, "Continue" button when save exists)
-  - GameStateManager (coroutine-based game flow: menu → party setup → room loop, FadeTransitionTo for smooth screen changes)
-  - RunData (persistent run state: act, floor, gold, party, fallen, inventory)
+  - GameStateManager (coroutine-based game flow: menu → party setup → floor plan → room loop, FadeTransitionTo for smooth screen changes)
+  - RunData (persistent run state: act, floor, gold, party, fallen, inventory, floor plan, recent level-up offers)
   - RunConfig (static run parameters)
   - BattleResult enum + BattleManager exposes Result property
 - **Leveling + Post-Battle (Phase B):**
-  - LevelingSystem (Fire Emblem growth rolls, Fibonacci ability unlocks, passive unlocks every 5 levels)
+  - LevelingSystem (Fire Emblem growth rolls, Fibonacci ability unlocks, passive unlocks every 5 levels, max level 21)
+  - LevelUpPickScreen (pick 1 of 2 party members to level up, shows stat gains + new abilities, boss fights grant 2 picks)
   - GrowthRates (per-class growth rates 0-100 per stat)
   - CharacterData with persistent HP/energy/mana, GrowthModifiers, ResourcesInitialized
   - BattleCharacter uses persistent resources from CharacterData, SyncToData() writes back
   - ClassDefinitions: CreateCharacter (1 ability + generics), CreateCharacterAllAbilities (test mode)
-  - PostBattleProcessor (XP, gold, permadeath, partial heal, room type multipliers)
-  - PostBattleScreen (victory screen: XP bars, level ups, stat gains, new abilities, fallen, gold)
+  - PostBattleProcessor (gold, permadeath, partial heal, room type multipliers)
+  - PostBattleScreen (victory screen: level ups, stat gains, new abilities, fallen, gold)
+  - Pseudo-random candidate selection with recent offer tracking (avoids showing same characters repeatedly)
 - **Room Choice + Floor Progression (Phase C):**
-  - FloorGenerator (weighted room pool, boss on floor 7, shop guaranteed on floor 4, no duplicate shops)
+  - FloorGenerator (floor plan generation per act: Battle/Bonus/Event categories, boss on floor 20)
+  - FloorCategory enum (Battle, Bonus, Event, Boss) — floor plans generated upfront per act
   - RoomChoiceScreen (act/floor header, gold, party summary, 2 room cards with symbols/descriptions)
   - EncounterGenerator (normal/elite/boss encounters, stat + weapon scaling per floor, party-size matching)
-  - RunConfig expanded with encounter sizing, floor stat scaling, elite/boss multipliers
+  - RunConfig expanded with encounter sizing, floor stat scaling, elite/boss multipliers, 4 acts x 20 floors
   - GameStateManager: room choice → branch by type → battle or stub. Rest heals party. PreviousRoom tracking.
 - **Phase D — Reinforcement Mechanic + Expanded Enemy Roster:**
   - EncounterData + ReinforcementWave classes (trigger types: OnEnemyCount, OnRoundNumber, OnBossHPPercent)
@@ -412,23 +421,31 @@ Battles can have reinforcement waves that spawn mid-battle:
   - CharacterCardUI exposes BackgroundImage, CanvasGroup, SetBorderColor for animations
 - **Phase 4 — Final Polish & Save:**
   - GameOverScreen (victory/defeat with stats, survivors, fallen memorial, return-to-menu)
-  - PartySetupScreen (3x2 class grid: stats, ability, passive per card, toggle selection, counter, BEGIN button)
+  - PartySetupScreen (3x2 class grid: stats, ability, passive per card, pick 4 classes, BEGIN button)
   - SaveData (serializable DTO: HashSet→List, RoomType?→int, null equipment restoration)
   - SaveManager (Save/Load/HasSave/DeleteSave via JsonUtility to persistentDataPath)
   - Screen fade transitions (ScreenManager fade overlay, FadeOut/FadeIn DOTween tweens)
   - Debug Annihilation ability removed
-- **Phase 2G — Events + Rest + Recruitment:**
-  - EventData, EventChoice, EventOutcomes (outcome helpers: heal, damage, gold, XP, stats, consumables, equipment)
+- **Phase 2G — Events + Rest:**
+  - EventData, EventChoice, EventOutcomes (outcome helpers: heal, damage, gold, stats, consumables, equipment, level-up picks)
   - EventCatalog (18 events: positive, negative, binary, 3-option, class-conditional, weird/unique)
   - EventScreen (IScreen: narrative, choice buttons, character pick phase, outcome display)
-  - Rest sites use EventScreen with dedicated rest event (heal 50%, study +20 XP, search for supplies)
-  - RecruitScreen (2 candidates from unused classes, stat/ability display, skip option)
-  - GameStateManager: RestPhase, EventPhase, RecruitPhase all wired with fade transitions
+  - Rest sites use EventScreen with dedicated rest event (heal 50%, study triggers level-up pick, search for supplies)
+  - GameStateManager: RestPhase, EventPhase all wired with fade transitions
   - RunData.SeenEvents tracks unique event deduplication
+- **Phase 6 — Systems Overhaul:**
+  - PassiveEffect enum system (replaces all string-based passive matching with type-safe enum)
+  - Pick-to-level system (no XP, choose 1 of 2 characters after combat, max level 21)
+  - LevelUpPickScreen (character cards with preview of stat gains + new abilities)
+  - Floor plan generation (FloorCategory: Battle/Bonus/Event/Boss, generated upfront per act)
+  - Combatant Manual system (learnable generic abilities: Reposition, Anticipate, React, Taunt)
+  - 4 ability tabs restructured: Generic (first, includes Attack + consumable items) > Attacks > Skills > Spells
+  - 4 acts x 20 floors run structure (boss on floor 20 of each act)
+  - Party of 4 from start (PartySetupScreen picks 4 classes, no recruitment)
 
 ### What Works
 - Full battle loop with all new mechanics
-- **7 generic abilities:** Attack, Swap (Long), Anticipate, React, Hide, Taunt (frontline only, 2 turns), Pass
+- **Generic abilities:** Attack, Swap (Long), Hide (Short), Pass (Short, 0 cost) — always available. Reposition (Long), Anticipate (Short), React (Short), Taunt (Short, frontline only) — learnable via Combatant Manuals
 - **66 class abilities across 6 classes** (Warrior 13, Rogue 12, Ranger 8, Priest 8, Elementalist 15, Warlock 10)
 - **20 passives** (Warrior 4, Rogue 7, Ranger 3, Priest 3, Warlock 3) + 6 basic passives (Tough, Evasive, Keen Eye, Faith, Arcane Affinity, Dark Pact)
 - **Close/Reach targeting:** Close abilities only hit frontline, Reach can hit backline
@@ -464,7 +481,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Equipment with weapon types, block chances
 - Ability popup shows range, weapon requirements, once-per-battle, frontline-only
 - **Shop system:** Buy equipment (procedural, act-scaled), buy consumables (potions/bombs/scrolls), buy books (20% chance), sell equipment (50% value), reroll stock (15g/act), inventory access from shop
-- **Consumables in battle:** Items tab shows consumables with quantities ("Health Potion x3"), costs 1 Long action, quantity decremented on use, removed when empty
+- **Consumables in battle:** Generic tab shows consumables with quantities ("Health Potion x3"), costs 1 Long action, quantity decremented on use, removed when empty
 - **22 consumable types:** Health/Energy/Mana Potions (act-scaled), Antidote (cleanse negative effects), Bandages (heal + remove Bleed), Fire/Ice/Poison Bombs (AoE damage), Smoke Bomb (all allies Hide), Throwing Knives, 6 scrolls (cast class spells), 6 books (teach abilities)
 - **Scrolls:** Execute actual class abilities (cloned from AbilityCatalog), any character can use, no resource cost, Range=Any
 - **Books:** Consumed from inventory Items tab, per-character Teach buttons, permanently adds ability, duplicate prevention
@@ -472,13 +489,16 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Visual feedback:** Directional lunge, squeeze/stretch on hit, color flash, death shrink+fade, floating damage numbers, screen shake on crit, turn pulse, stun wobble, low HP flicker, heal/shield/buff effects
 - **Inline sprite icons (TMP Sprite Assets):** 32 pixel art 16x16 icons generated programmatically (white on transparent, tinted at runtime). Used for status effect indicators on character cards and resource labels (HP heart, EN lightning, MP drop). Fallback to text codes `[S][B][Po]` if sprite asset not loaded. Editor tools: `Tools > Generate Status Icons Sprite Sheet` + `Tools > Create Status Icons TMP Sprite Asset`
 - **Game over screen:** Victory (green) or defeat (red), run stats, survivors, fallen memorial
-- **Party setup:** Pick 2 of 6 classes at run start (replaces random party creation)
+- **Party setup:** Pick 4 of 6 classes at run start (full party from the beginning)
 - **Save/load:** Auto-saves after party setup and each room, CONTINUE button on menu, delete on game over
 - **Screen fade transitions:** All major screen swaps fade through black (0.2s out, 0.25s in)
 - **18 random events:** Wandering Healer, Lucky Coin, Shrine of Vigor, Ambush, Cursed Fog, Tax Collector, Ancient Altar, Gambler's Chest, Mysterious Merchant, Trapped Survivor, Forked Path, Old Campfire, Wounded Knight, Ritual Circle, Shadow Cache, Philosopher's Tome, The Echo, Doppelganger
 - **Event system:** Choice-based with conditions (class requirements), character pick phase, outcome display, unique event tracking
-- **Rest sites:** 3 options (heal 50% + restore resources, study +20 XP, search 60% consumable)
-- **Recruitment:** 2 candidates from unused classes, stat/ability preview, skip option, party size cap
+- **Rest sites:** 3 options (heal 50% + restore resources, study triggers level-up pick, search 60% consumable)
+- **4 acts x 20 floors** run structure with floor plans generated per act (Battle/Bonus/Event categories, boss on floor 20)
+- **Pick-to-level system:** After each combat, pick 1 of 2 party members to level up. Boss fights grant 2 picks. Events can grant level-ups.
+- **Combatant Manuals:** Learnable generic abilities (Reposition, Anticipate, React, Taunt) found in shops/events
+- **4 ability tabs:** Generic (first, with Attack + consumable items) > Attacks > Skills > Spells
 - All previous UI features (staging, popups, combat log, etc.)
 - Procedural chiptune SFX and looping battle music
 
@@ -487,6 +507,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - No visual feedback for status effect application/removal (no floating text, no animations)
 - Shield value not shown in character detail popup (only on card HP line)
 - Icon sizes/spacing may need tuning on actual mobile device (currently only tested in editor)
+- Smithy room type is stubbed (not yet implemented)
 
 ## Decisions Made
 - All UI built in code (code-first)
@@ -499,7 +520,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Per-class ability handlers + GenericAbilityHandler + ConsumableAbilityHandler to keep ActionExecutor focused on routing + damage pipeline
 - DealDamage() is the single entry point for applying damage modifiers (Imbue, Mark, Blessing, Predator, Shield absorption) + HP reduction + damage event — all handlers must use it instead of raw HP subtraction
 - Bounce/splash/counter damage stays raw (no double-modifier application)
-- AbilityTag enum for routing (no string matching). Passives use string matching via PassiveProcessor
+- AbilityTag enum for routing (no string matching). PassiveEffect enum for type-safe passive identification (replaces string matching)
 - AbilityCatalog as master ability definition source
 - Lightweight StatusEffectInstance (type, duration, value, source)
 - Stackable effects (Bleed) always add new instances; stances are exclusive group
@@ -519,7 +540,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Screen system: IScreen interface, ScreenManager owns canvas, GameStateManager drives flow
 - BattleScreenUI is a plain class (not MonoBehaviour), built under ScreenManager's canvas
 - GameBootstrap has `_useTestBattle` toggle for dev convenience
-- Roguelike run: room-by-room choice, partial heal, permadeath, start with 2 recruit to 4, 3 acts x 7 floors
+- Roguelike run: room-by-room choice, partial heal, permadeath, start with full party of 4, 4 acts x 20 floors
 - Reinforcements join next round (not mid-turn) — simpler + gives player a round to react
 - Dead enemy cards replaced by reinforcements at same grid position
 - EncounterData wraps CharacterData (not BattleCharacter) — grid placement deferred to spawn time
@@ -546,6 +567,16 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Icons are white on transparent, tinted via `<color=#hex><sprite name="x" tint=1></color>` rich text
 - Unity 6 TMP_SpriteAsset: glyph table field is `m_GlyphTable` (not `m_SpriteGlyphTable`), must set `m_Version` to "1.1.0" to avoid UpgradeSpriteAsset crash, use reflection for read-only properties
 - Icon sprite sheet replaceable: swap `Assets/Resources/Fonts/StatusIcons.png` with better art, regenerate sprite asset
+- No XP system — pick-to-level after each combat (player chooses 1 of 2 party members)
+- Max level 21 (last passive at level 20, last ability at level 21)
+- Pseudo-random leveling candidate selection with recent offer tracking (avoids showing same characters)
+- 4 acts x 20 floors (boss on floor 20 of each act)
+- Start with full party of 4 (no recruit room type)
+- Three floor categories: Battle (mandatory fight), Bonus (choose bonus or fight for better reward), Event (random event)
+- Floor plans generated per act upfront (not random per floor)
+- Combatant Manuals replace free generic abilities — Anticipate, React, Taunt, Reposition must be learned
+- Items tab merged into Generic tab (4 tabs total instead of 5)
+- Attack moved to Generic tab (always available as first ability)
 
 ## Roadmap
 
@@ -561,7 +592,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
 - **E. Equipment + Loot** — Procedural equipment, loot tables, post-battle equip, inventory screen ← **DONE**
 - **F. Shop + Consumables** — Shop (buy/sell/reroll), consumable items (potions/bombs/scrolls/books), battle item usage, book teaching ← **DONE**
-- **G. Events + Rest + Recruitment** — 18 random events, rest sites (EventScreen), recruitment screen ← **DONE**
+- **G. Events + Rest** — 18 random events, rest sites (EventScreen) ← **DONE**
 
 ### Phase 3: Visual Feedback (DOTween) — DONE
 - Lunge, shake, squeeze/stretch, color flash, death shrink+fade, floating numbers, screen shake, turn pulse, status visuals
@@ -577,14 +608,23 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Automatic fallback to text codes if sprite asset not loaded
 - Editor tools: PixelIconGenerator (generate PNG + create TMP Sprite Asset via reflection for Unity 6 compatibility)
 
-### Future Rooms
-- **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Not implemented yet.
+### Phase 6: Systems Overhaul — DONE
+- PassiveEffect enum replaces string-based passive matching
+- Pick-to-level system (no XP, choose 1 of 2 characters after combat)
+- LevelUpPickScreen with stat gain + ability previews
+- 4 acts x 20 floors run structure (boss on floor 20)
+- Floor plan generation per act (Battle/Bonus/Event/Boss categories)
+- Party of 4 from start (no recruitment phase)
+- 4 ability tabs: Generic (first, with Attack + items) > Attacks > Skills > Spells
+- Combatant Manual system (learnable generic abilities: Reposition, Anticipate, React, Taunt)
 
-### Refactoring (2026-03-07) — IN TESTING
+### Refactoring (2026-03-07) — MERGED
 - Damage pipeline refactor: DealDamage + ProcessPostHitEffects now called by all handlers (was missing in 17 places)
 - Extracted GenericAbilityHandler, ConsumableAbilityHandler from ActionExecutor (985 → 682 lines)
 - Moved ExecuteMark → Ranger, ExecuteWordOfProtection → Priest, ExecuteRitual → Warlock
-- On branch `refactor/damage-pipeline-cleanup`, pending Unity testing before merge
+
+### Future Rooms
+- **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Stubbed but not implemented.
 
 ### Next Up
 - **Test SFX Exporter** — Editor script added at `Assets/Editor/SFXExporter.cs`. Menu item: **Tools > Export All SFX to WAV**. Exports all 17 procedural SFX as 16-bit PCM WAV files (44100 Hz, mono) to `ExportedSFX/` in project root. Not yet tested — run it next session and verify the output files sound correct. `Blocked` SFX type has no clip registered (will skip with warning).
