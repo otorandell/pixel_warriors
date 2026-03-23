@@ -1,0 +1,1090 @@
+fileFormatVersion: 2
+guid: 747b70f52aa6aca47b58d7df95686814
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: 8305296478794949452
+    second: StatusIcons_0
+  - first:
+      213: 412806360417562724
+    second: StatusIcons_1
+  - first:
+      213: 2526043692424303287
+    second: StatusIcons_2
+  - first:
+      213: -8211022945955410972
+    second: StatusIcons_3
+  - first:
+      213: 4847072211282044801
+    second: StatusIcons_4
+  - first:
+      213: 8118723070098738515
+    second: StatusIcons_5
+  - first:
+      213: 274942090106988843
+    second: StatusIcons_6
+  - first:
+      213: 4390828945791132085
+    second: StatusIcons_7
+  - first:
+      213: -6297762757991420105
+    second: StatusIcons_8
+  - first:
+      213: 8782080785102536417
+    second: StatusIcons_9
+  - first:
+      213: -2897329577371709623
+    second: StatusIcons_10
+  - first:
+      213: -9163246451066828144
+    second: StatusIcons_11
+  - first:
+      213: -4787602733267796909
+    second: StatusIcons_12
+  - first:
+      213: 5501204929174281261
+    second: StatusIcons_13
+  - first:
+      213: -3955135080408240504
+    second: StatusIcons_14
+  - first:
+      213: 3635584430658345770
+    second: StatusIcons_15
+  - first:
+      213: 893992711512153741
+    second: StatusIcons_16
+  - first:
+      213: 2410264602078539193
+    second: StatusIcons_17
+  - first:
+      213: 7695822588126300556
+    second: StatusIcons_18
+  - first:
+      213: 6755805895504150624
+    second: StatusIcons_19
+  - first:
+      213: 5426420692538480079
+    second: StatusIcons_20
+  - first:
+      213: -3604799569318052655
+    second: StatusIcons_21
+  - first:
+      213: -9020335312539759598
+    second: StatusIcons_22
+  - first:
+      213: 327509062703768772
+    second: StatusIcons_23
+  - first:
+      213: 818768354211735208
+    second: StatusIcons_24
+  - first:
+      213: -6407798196341041349
+    second: StatusIcons_25
+  - first:
+      213: 640088379046928629
+    second: StatusIcons_26
+  - first:
+      213: 1438109408919044697
+    second: StatusIcons_27
+  - first:
+      213: -2602540157561260538
+    second: StatusIcons_28
+  - first:
+      213: 5943597412354442301
+    second: StatusIcons_29
+  - first:
+      213: 1685747668457325400
+    second: StatusIcons_30
+  - first:
+      213: -8977535129605403311
+    second: StatusIcons_31
+  - first:
+      213: -3574820651616021983
+    second: heart
+  - first:
+      213: -7302615292981491278
+    second: shield
+  - first:
+      213: 2330866738244189442
+    second: sword
+  - first:
+      213: -8029714880410286503
+    second: skull
+  - first:
+      213: 7014743455365804196
+    second: lightning
+  - first:
+      213: -4225634055810630605
+    second: mana
+  - first:
+      213: -4063161147864124101
+    second: flame
+  - first:
+      213: 7611937502267990400
+    second: snowflake
+  - first:
+      213: 1361114354427523491
+    second: bleed
+  - first:
+      213: 4459034281331083381
+    second: poison
+  - first:
+      213: -4468942713734187604
+    second: crosshair
+  - first:
+      213: 9037331016498906902
+    second: eye
+  - first:
+      213: 2090249059330572870
+    second: stun
+  - first:
+      213: -2878155675193756169
+    second: silence
+  - first:
+      213: 1748486918491263016
+    second: terror
+  - first:
+      213: -1220476264531782571
+    second: chain
+  - first:
+      213: 4807768682389998536
+    second: arrow_up
+  - first:
+      213: -3469822896611756745
+    second: arrow_down
+  - first:
+      213: 5390185366000285271
+    second: cloak
+  - first:
+      213: 7034136515549281559
+    second: fist
+  - first:
+      213: 3802091392676919337
+    second: star
+  - first:
+      213: 8670697260824757915
+    second: halo
+  - first:
+      213: -1778769958050013882
+    second: pin
+  - first:
+      213: 7750278065651193936
+    second: trap
+  - first:
+      213: -6383334956306884184
+    second: scope
+  - first:
+      213: -49359494349544369
+    second: helmet
+  - first:
+      213: -2981645288387802491
+    second: ice_block
+  - first:
+      213: 4077840334914114178
+    second: orb
+  - first:
+      213: 3540062918440432299
+    second: regen
+  - first:
+      213: -4888067616334650360
+    second: imbue
+  - first:
+      213: -5149487002937609149
+    second: caltrops
+  - first:
+      213: 7065239964148136946
+    second: dodge
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 0
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 256
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 0
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: heart
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 12252bcbe8fa36ec0800000000000000
+      internalID: -3574820651616021983
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: shield
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2b9c08af416e7aa90800000000000000
+      internalID: -7302615292981491278
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: sword
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 20d71dfe2f6e85020800000000000000
+      internalID: 2330866738244189442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: skull
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 9560a790cd8b09090800000000000000
+      internalID: -8029714880410286503
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: lightning
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4a03397c100695160800000000000000
+      internalID: 7014743455365804196
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: mana
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33c3d90f6388b55c0800000000000000
+      internalID: -4225634055810630605
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: flame
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b35f36ca670cc97c0800000000000000
+      internalID: -4063161147864124101
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: snowflake
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 48
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 081682b14d803a960800000000000000
+      internalID: 7611937502267990400
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: bleed
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3a1765a3b46a3e210800000000000000
+      internalID: 1361114354427523491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: poison
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 578470ccd0ca1ed30800000000000000
+      internalID: 4459034281331083381
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: crosshair
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca5bd4287402bf1c0800000000000000
+      internalID: -4468942713734187604
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: eye
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 617890c7dac0b6d70800000000000000
+      internalID: 9037331016498906902
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: stun
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6424e71e17e020d10800000000000000
+      internalID: 2090249059330572870
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: silence
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7f53dcb99acbe08d0800000000000000
+      internalID: -2878155675193756169
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: terror
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 820d617a69fd34810800000000000000
+      internalID: 1748486918491263016
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: chain
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 32
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 55499c3cd4fff0fe0800000000000000
+      internalID: -1220476264531782571
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: arrow_up
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8cb8a1cd420a8b240800000000000000
+      internalID: 4807768682389998536
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: arrow_down
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 73570fd9576b8dfc0800000000000000
+      internalID: -3469822896611756745
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: cloak
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 756b4fd2809cdca40800000000000000
+      internalID: 5390185366000285271
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: fist
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 71d3be674e54e9160800000000000000
+      internalID: 7034136515549281559
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: star
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 928f3103afdb3c430800000000000000
+      internalID: 3802091392676919337
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: halo
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b96896a2831845870800000000000000
+      internalID: 8670697260824757915
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: pin
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 64dda41c52a8057e0800000000000000
+      internalID: -1778769958050013882
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: trap
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 16
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05814a586d48e8b60800000000000000
+      internalID: 7750278065651193936
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: scope
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8a99ef67da6d967a0800000000000000
+      internalID: -6383334956306884184
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: helmet
+      rect:
+        serializedVersion: 2
+        x: 16
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f44a0092dc3a05ff0800000000000000
+      internalID: -49359494349544369
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: ice_block
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 58a8d6b58611f96d0800000000000000
+      internalID: -2981645288387802491
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: orb
+      rect:
+        serializedVersion: 2
+        x: 48
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 282d055ed26679830800000000000000
+      internalID: 4077840334914114178
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: regen
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ba2bc20e774d02130800000000000000
+      internalID: 3540062918440432299
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: imbue
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 804684aa6681a2cb0800000000000000
+      internalID: -4888067616334650360
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: caltrops
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 344b96e9ad85988b0800000000000000
+      internalID: -5149487002937609149
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: dodge
+      rect:
+        serializedVersion: 2
+        x: 112
+        y: 0
+        width: 16
+        height: 16
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2fb71fb6056cc0260800000000000000
+      internalID: 7065239964148136946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      StatusIcons_0: 8305296478794949452
+      StatusIcons_1: 412806360417562724
+      StatusIcons_10: -2897329577371709623
+      StatusIcons_11: -9163246451066828144
+      StatusIcons_12: -4787602733267796909
+      StatusIcons_13: 5501204929174281261
+      StatusIcons_14: -3955135080408240504
+      StatusIcons_15: 3635584430658345770
+      StatusIcons_16: 893992711512153741
+      StatusIcons_17: 2410264602078539193
+      StatusIcons_18: 7695822588126300556
+      StatusIcons_19: 6755805895504150624
+      StatusIcons_2: 2526043692424303287
+      StatusIcons_20: 5426420692538480079
+      StatusIcons_21: -3604799569318052655
+      StatusIcons_22: -9020335312539759598
+      StatusIcons_23: 327509062703768772
+      StatusIcons_24: 818768354211735208
+      StatusIcons_25: -6407798196341041349
+      StatusIcons_26: 640088379046928629
+      StatusIcons_27: 1438109408919044697
+      StatusIcons_28: -2602540157561260538
+      StatusIcons_29: 5943597412354442301
+      StatusIcons_3: -8211022945955410972
+      StatusIcons_30: 1685747668457325400
+      StatusIcons_31: -8977535129605403311
+      StatusIcons_4: 4847072211282044801
+      StatusIcons_5: 8118723070098738515
+      StatusIcons_6: 274942090106988843
+      StatusIcons_7: 4390828945791132085
+      StatusIcons_8: -6297762757991420105
+      StatusIcons_9: 8782080785102536417
+      arrow_down: -3469822896611756745
+      arrow_up: 4807768682389998536
+      bleed: 1361114354427523491
+      caltrops: -5149487002937609149
+      chain: -1220476264531782571
+      cloak: 5390185366000285271
+      crosshair: -4468942713734187604
+      dodge: 7065239964148136946
+      eye: 9037331016498906902
+      fist: 7034136515549281559
+      flame: -4063161147864124101
+      halo: 8670697260824757915
+      heart: -3574820651616021983
+      helmet: -49359494349544369
+      ice_block: -2981645288387802491
+      imbue: -4888067616334650360
+      lightning: 7014743455365804196
+      mana: -4225634055810630605
+      orb: 4077840334914114178
+      pin: -1778769958050013882
+      poison: 4459034281331083381
+      regen: 3540062918440432299
+      scope: -6383334956306884184
+      shield: -7302615292981491278
+      silence: -2878155675193756169
+      skull: -8029714880410286503
+      snowflake: 7611937502267990400
+      star: 3802091392676919337
+      stun: 2090249059330572870
+      sword: 2330866738244189442
+      terror: 1748486918491263016
+      trap: 7750278065651193936
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

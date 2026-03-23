@@ -54,26 +54,27 @@ namespace PixelWarriors
             {
                 // --- Generic ---
                 case AbilityTag.Swap:
-                    ExecuteSwap(user, targets);
+                    GenericAbilityHandler.ExecuteSwap(user, targets);
                     return;
                 case AbilityTag.Reposition:
-                    ExecuteReposition(user);
+                    GenericAbilityHandler.ExecuteReposition(user);
                     return;
                 case AbilityTag.Anticipate:
-                    ExecuteAnticipate(user);
+                    GenericAbilityHandler.ExecuteAnticipate(user);
                     return;
                 case AbilityTag.React:
-                    ExecuteReact(user);
+                    GenericAbilityHandler.ExecuteReact(user);
                     return;
                 case AbilityTag.Taunt:
-                    ExecuteTaunt(user);
+                    GenericAbilityHandler.ExecuteTaunt(user);
                     return;
                 case AbilityTag.Hide:
-                    ExecuteHide(user);
+                    GenericAbilityHandler.ExecuteHide(user);
                     return;
                 case AbilityTag.Pass:
-                    ExecutePass(user);
+                    GenericAbilityHandler.ExecutePass(user);
                     return;
+
                 // --- Warrior ---
                 case AbilityTag.CrushArmor:
                     WarriorAbilityHandler.ExecuteCrushArmor(user, ability, targets);
@@ -105,6 +106,12 @@ namespace PixelWarriors
                 case AbilityTag.Bladedance:
                     WarriorAbilityHandler.ExecuteBladedance(user, ability, targets);
                     return;
+                case AbilityTag.RallyCry:
+                    WarriorAbilityHandler.ExecuteRallyCry(user, ability, targets);
+                    return;
+                case AbilityTag.IronWill:
+                    WarriorAbilityHandler.ExecuteIronWill(user);
+                    return;
 
                 // --- Rogue ---
                 case AbilityTag.SuckerPunch:
@@ -133,6 +140,58 @@ namespace PixelWarriors
                     return;
                 case AbilityTag.Caltrops:
                     RogueAbilityHandler.ExecuteCaltrops(user);
+                    return;
+                case AbilityTag.FanOfKnives:
+                    RogueAbilityHandler.ExecuteFanOfKnives(user, ability, targets);
+                    return;
+                case AbilityTag.ShadowStep:
+                    ExecuteDamage(user, ability, targets);
+                    return;
+
+                // --- Ranger ---
+                case AbilityTag.Mark:
+                    RangerAbilityHandler.ExecuteMark(user, ability, targets);
+                    return;
+                case AbilityTag.Snipe:
+                    RangerAbilityHandler.ExecuteSnipe(user, ability, targets);
+                    return;
+                case AbilityTag.HuntersFocus:
+                    RangerAbilityHandler.ExecuteHuntersFocus(user);
+                    return;
+                case AbilityTag.Trap:
+                    RangerAbilityHandler.ExecuteTrap(user);
+                    return;
+                case AbilityTag.Pin:
+                    RangerAbilityHandler.ExecutePin(user, ability, targets);
+                    return;
+                case AbilityTag.TrackingShot:
+                    RangerAbilityHandler.ExecuteTrackingShot(user, ability, targets, GetEnemiesOf(user));
+                    return;
+
+                // --- Priest ---
+                case AbilityTag.WordOfProtection:
+                    PriestAbilityHandler.ExecuteWordOfProtection(user, ability, targets);
+                    return;
+                case AbilityTag.Smite:
+                    ExecuteDamage(user, ability, targets);
+                    return;
+                case AbilityTag.PrayerOfMending:
+                    PriestAbilityHandler.ExecutePrayerOfMending(user, ability, targets);
+                    return;
+                case AbilityTag.HolyWard:
+                    PriestAbilityHandler.ExecuteHolyWard(user, ability, targets);
+                    return;
+                case AbilityTag.Purify:
+                    PriestAbilityHandler.ExecutePurify(user, ability, targets);
+                    return;
+                case AbilityTag.Resurrect:
+                    PriestAbilityHandler.ExecuteResurrect(user, ability, targets);
+                    return;
+                case AbilityTag.Blessing:
+                    PriestAbilityHandler.ExecuteBlessing(user, ability, targets);
+                    return;
+                case AbilityTag.DivineIntervention:
+                    PriestAbilityHandler.ExecuteDivineIntervention(user, ability, targets);
                     return;
 
                 // --- Elementalist ---
@@ -175,10 +234,16 @@ namespace PixelWarriors
                 case AbilityTag.ImbueStaff:
                     ElementalistAbilityHandler.ExecuteImbueStaff(user);
                     return;
+                case AbilityTag.ChainLightning:
+                    ElementalistAbilityHandler.ExecuteChainLightning(user, ability, targets, GetEnemiesOf(user));
+                    return;
+                case AbilityTag.FrozenTomb:
+                    ElementalistAbilityHandler.ExecuteFrozenTomb(user, ability, targets);
+                    return;
 
                 // --- Warlock ---
                 case AbilityTag.Ritual:
-                    ExecuteRitual(user, ability);
+                    WarlockAbilityHandler.ExecuteRitual(user, ability);
                     return;
                 case AbilityTag.Terror:
                     WarlockAbilityHandler.ExecuteTerror(user, ability, targets);
@@ -201,32 +266,6 @@ namespace PixelWarriors
                 case AbilityTag.LeechLife:
                     WarlockAbilityHandler.ExecuteLeechLife(user, ability, targets);
                     return;
-
-                // --- Warrior (new) ---
-                case AbilityTag.RallyCry:
-                    WarriorAbilityHandler.ExecuteRallyCry(user, ability, targets);
-                    return;
-                case AbilityTag.IronWill:
-                    WarriorAbilityHandler.ExecuteIronWill(user);
-                    return;
-
-                // --- Rogue (new) ---
-                case AbilityTag.FanOfKnives:
-                    RogueAbilityHandler.ExecuteFanOfKnives(user, ability, targets);
-                    return;
-                case AbilityTag.ShadowStep:
-                    ExecuteDamage(user, ability, targets);
-                    return;
-
-                // --- Elementalist (new) ---
-                case AbilityTag.ChainLightning:
-                    ElementalistAbilityHandler.ExecuteChainLightning(user, ability, targets, GetEnemiesOf(user));
-                    return;
-                case AbilityTag.FrozenTomb:
-                    ElementalistAbilityHandler.ExecuteFrozenTomb(user, ability, targets);
-                    return;
-
-                // --- Warlock (new) ---
                 case AbilityTag.SoulLink:
                     WarlockAbilityHandler.ExecuteSoulLink(user, ability, targets);
                     return;
@@ -234,70 +273,24 @@ namespace PixelWarriors
                     WarlockAbilityHandler.ExecuteDrainSoul(user, ability, targets);
                     return;
 
-                // --- Priest ---
-                case AbilityTag.WordOfProtection:
-                    ExecuteWordOfProtection(user, ability, targets);
-                    return;
-                case AbilityTag.Smite:
-                    ExecuteDamage(user, ability, targets);
-                    return;
-                case AbilityTag.PrayerOfMending:
-                    PriestAbilityHandler.ExecutePrayerOfMending(user, ability, targets);
-                    return;
-                case AbilityTag.HolyWard:
-                    PriestAbilityHandler.ExecuteHolyWard(user, ability, targets);
-                    return;
-                case AbilityTag.Purify:
-                    PriestAbilityHandler.ExecutePurify(user, ability, targets);
-                    return;
-                case AbilityTag.Resurrect:
-                    PriestAbilityHandler.ExecuteResurrect(user, ability, targets);
-                    return;
-                case AbilityTag.Blessing:
-                    PriestAbilityHandler.ExecuteBlessing(user, ability, targets);
-                    return;
-                case AbilityTag.DivineIntervention:
-                    PriestAbilityHandler.ExecuteDivineIntervention(user, ability, targets);
-                    return;
-
-                // --- Ranger ---
-                case AbilityTag.Mark:
-                    ExecuteMark(user, ability, targets);
-                    return;
-                case AbilityTag.Snipe:
-                    RangerAbilityHandler.ExecuteSnipe(user, ability, targets);
-                    return;
-                case AbilityTag.HuntersFocus:
-                    RangerAbilityHandler.ExecuteHuntersFocus(user);
-                    return;
-                case AbilityTag.Trap:
-                    RangerAbilityHandler.ExecuteTrap(user);
-                    return;
-                case AbilityTag.Pin:
-                    RangerAbilityHandler.ExecutePin(user, ability, targets);
-                    return;
-                case AbilityTag.TrackingShot:
-                    RangerAbilityHandler.ExecuteTrackingShot(user, ability, targets, GetEnemiesOf(user));
-                    return;
-
                 // --- Consumables ---
                 case AbilityTag.ConsumableHeal:
-                    ExecuteConsumableHeal(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteHeal(user, ability, targets);
                     return;
                 case AbilityTag.ConsumableEnergyRestore:
-                    ExecuteConsumableEnergyRestore(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteEnergyRestore(user, ability, targets);
                     return;
                 case AbilityTag.ConsumableManaRestore:
-                    ExecuteConsumableManaRestore(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteManaRestore(user, ability, targets);
                     return;
                 case AbilityTag.ConsumableAntidote:
-                    ExecuteConsumableAntidote(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteAntidote(user, ability, targets);
                     return;
                 case AbilityTag.ConsumableBandage:
-                    ExecuteConsumableBandage(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteBandage(user, ability, targets);
                     return;
                 case AbilityTag.ConsumableSmokeBomb:
-                    ExecuteConsumableSmokeBomb(user, ability, targets);
+                    ConsumableAbilityHandler.ExecuteSmokeBomb(user, ability, targets);
                     return;
             }
 
@@ -320,164 +313,21 @@ namespace PixelWarriors
             }
         }
 
-        // --- Special Ability Implementations ---
+        // --- Core Damage Pipeline ---
 
-        private static void ExecuteSwap(BattleCharacter user, List<BattleCharacter> targets)
+        /// <summary>
+        /// Applies damage modifiers (Imbue, Mark, Blessing, Predator, Shield absorption),
+        /// reduces target HP, and fires the damage event. Returns actual damage dealt.
+        /// Use this for all primary hit damage so modifiers are applied consistently.
+        /// </summary>
+        public static int DealDamage(BattleCharacter user, BattleCharacter target, int rawDamage, DamageType damageType)
         {
-            if (targets.Count == 0) return;
-            BattleCharacter target = targets[0];
-
-            if (user.HasEffect(StatusEffect.Pin))
-            {
-                Log($"{user.Data.Name} is pinned and cannot swap!");
-                return;
-            }
-            if (target.HasEffect(StatusEffect.Pin))
-            {
-                Log($"{target.Data.Name} is pinned and cannot swap!");
-                return;
-            }
-
-            GridRow tempRow = user.Row;
-            GridColumn tempCol = user.Column;
-            user.Row = target.Row;
-            user.Column = target.Column;
-            target.Row = tempRow;
-            target.Column = tempCol;
-
-            GameEvents.RaiseAbilityUsed(user, null, target);
-            GameEvents.RaisePositionSwapped(user, target);
-            Log($"{user.Data.Name} swaps position with {target.Data.Name}!");
+            int finalDamage = ApplyDamageModifiers(rawDamage, user, target);
+            target.CurrentHP = Mathf.Max(0, target.CurrentHP - finalDamage);
+            if (finalDamage > 0)
+                GameEvents.RaiseDamageDealt(target, finalDamage, damageType);
+            return finalDamage;
         }
-
-        private static void ExecuteReposition(BattleCharacter user)
-        {
-            if (user.HasEffect(StatusEffect.Pin))
-            {
-                Log($"{user.Data.Name} is pinned and cannot reposition!");
-                return;
-            }
-
-            GridRow newRow = user.Row == GridRow.Front ? GridRow.Back : GridRow.Front;
-            user.Row = newRow;
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            GameEvents.RaisePositionSwapped(user, user);
-            Log($"{user.Data.Name} moves to the {newRow.ToString().ToLower()} row!");
-        }
-
-        private static void ExecuteAnticipate(BattleCharacter user)
-        {
-            user.Priority = Priority.Positive;
-            var effect = new StatusEffectInstance(StatusEffect.Anticipate, -1, 0, user);
-            user.AddEffect(effect);
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            GameEvents.RaiseStatusEffectApplied(user, StatusEffect.Anticipate, 0);
-            Log($"{user.Data.Name} anticipates! Will act first next turn.");
-        }
-
-        private static void ExecuteReact(BattleCharacter user)
-        {
-            user.Priority = Priority.Negative;
-            var effect = new StatusEffectInstance(StatusEffect.React, -1, 0, user);
-            user.AddEffect(effect);
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            GameEvents.RaiseStatusEffectApplied(user, StatusEffect.React, 0);
-            Log($"{user.Data.Name} reacts! Will move last next turn.");
-        }
-
-        private static void ExecuteTaunt(BattleCharacter user)
-        {
-            var effect = new StatusEffectInstance(StatusEffect.Taunt, GameplayConfig.TauntDuration, 0, user);
-            user.AddEffect(effect);
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            GameEvents.RaiseStatusEffectApplied(user, StatusEffect.Taunt, 0);
-            Log($"{user.Data.Name} taunts! Drawing enemy attention for {GameplayConfig.TauntDuration} turns.");
-        }
-
-        private static void ExecuteHide(BattleCharacter user)
-        {
-            var effect = new StatusEffectInstance(StatusEffect.Hide, -1, 0, user);
-            user.AddEffect(effect);
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            GameEvents.RaiseStatusEffectApplied(user, StatusEffect.Hide, 0);
-            Log($"{user.Data.Name} hides! Less likely to be targeted.");
-        }
-
-        private static void ExecutePass(BattleCharacter user)
-        {
-            user.LongActionsRemaining = 0;
-            user.ShortActionsRemaining = 0;
-
-            GameEvents.RaiseAbilityUsed(user, null, user);
-            Log($"{user.Data.Name} passes.");
-        }
-
-        private static void ExecuteRitual(BattleCharacter user, AbilityData ability)
-        {
-            int manaGain = Mathf.RoundToInt(ability.HPCost * GameplayConfig.RitualManaPerHP);
-            user.CurrentMana = Mathf.Min(user.CurrentMana + manaGain, user.MaxMana);
-
-            GameEvents.RaiseAbilityUsed(user, ability, user);
-            Log($"{user.Data.Name} performs a dark ritual! Gains {manaGain} mana.");
-        }
-
-        private static void ExecuteMark(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                for (int hit = 0; hit < ability.HitCount; hit++)
-                {
-                    HitResult result = ResolveHit(user, ability, target);
-                    GameEvents.RaiseHitResolved(target, result, ability.DamageType);
-                    LogHitResult(user, target, result, hit + 1, ability.HitCount);
-
-                    if (result.IsEffective)
-                    {
-                        int finalDamage = ApplyDamageModifiers(result.Damage, user, target);
-                        target.CurrentHP = Mathf.Max(0, target.CurrentHP - finalDamage);
-                        GameEvents.RaiseDamageDealt(target, finalDamage, ability.DamageType);
-                    }
-                }
-
-                if (target.IsAlive)
-                {
-                    var effect = new StatusEffectInstance(StatusEffect.Mark, GameplayConfig.MarkDuration, 0, user);
-                    target.AddEffect(effect);
-                    GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Mark, 0);
-                    Log($"{target.Data.Name} is marked! Attacks have boosted accuracy.");
-                }
-
-                CheckDefeated(target);
-            }
-        }
-
-        private static void ExecuteWordOfProtection(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                int shieldValue = ability.BasePower;
-                var effect = new StatusEffectInstance(StatusEffect.Shield, -1, shieldValue, user);
-                target.AddEffect(effect);
-
-                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Shield, shieldValue);
-                Log($"{user.Data.Name} casts {ability.Name} on {target.Data.Name}! Shield: {shieldValue}");
-            }
-        }
-
-        // --- Core Damage/Healing ---
 
         public static void ExecuteDamage(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
         {
@@ -496,12 +346,7 @@ namespace PixelWarriors
                     LogHitResult(user, target, result, hit + 1, ability.HitCount);
 
                     if (result.IsEffective)
-                    {
-                        int finalDamage = ApplyDamageModifiers(result.Damage, user, target);
-                        target.CurrentHP = Mathf.Max(0, target.CurrentHP - finalDamage);
-                        GameEvents.RaiseDamageDealt(target, finalDamage, ability.DamageType);
-                        totalDamageDealt += finalDamage;
-                    }
+                        totalDamageDealt += DealDamage(user, target, result.Damage, ability.DamageType);
                 }
 
                 if (totalDamageDealt > 0)
@@ -553,7 +398,7 @@ namespace PixelWarriors
             }
         }
 
-        // --- Damage Pipeline Helpers ---
+        // --- Damage Modifiers ---
 
         private static int ApplyDamageModifiers(int baseDamage, BattleCharacter user, BattleCharacter target)
         {
@@ -659,29 +504,6 @@ namespace PixelWarriors
                 return ally;
             }
             return null;
-        }
-
-        public static void CheckDefeated(BattleCharacter target, List<BattleCharacter> allies)
-        {
-            if (!target.IsAlive)
-            {
-                // Martyr: check allies
-                foreach (BattleCharacter ally in allies)
-                {
-                    if (!ally.IsAlive || ally == target) continue;
-                    if (!PassiveProcessor.HasPassive(ally, "Martyr")) continue;
-                    if (ally.HasUsedOnce(AbilityTag.Martyr)) continue;
-
-                    target.CurrentHP = 1;
-                    ally.MarkUsedOnce(AbilityTag.Martyr);
-                    Log($"{ally.Data.Name}'s Martyr saves {target.Data.Name} from death!");
-                    GameEvents.RaiseHealingReceived(target, 1);
-                    return;
-                }
-
-                Log($"{target.Data.Name} was defeated!");
-                GameEvents.RaiseCharacterDefeated(target);
-            }
         }
 
         // --- Hit Resolution ---
@@ -818,7 +640,17 @@ namespace PixelWarriors
             return false;
         }
 
-        private static void LogHitResult(BattleCharacter user, BattleCharacter target,
+        // --- Logging ---
+
+        /// <summary>
+        /// Logs the result of a single hit (miss/dodge/block/crit/damage).
+        /// </summary>
+        public static void LogHitResult(BattleCharacter user, BattleCharacter target, HitResult result)
+        {
+            LogHitResult(user, target, result, 1, 1);
+        }
+
+        public static void LogHitResult(BattleCharacter user, BattleCharacter target,
             HitResult result, int hitNumber, int totalHits)
         {
             string prefix = totalHits > 1 ? $"Hit {hitNumber}: " : "";
@@ -835,141 +667,6 @@ namespace PixelWarriors
                 Log($"{prefix}{result.Damage} damage!");
         }
 
-        // --- Consumable Implementations ---
-
-        private static void ExecuteConsumableHeal(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                int healAmount = ability.BasePower;
-                if (target.HasEffect(StatusEffect.Poison))
-                    healAmount = Mathf.RoundToInt(healAmount * (1f - GameplayConfig.PoisonHealingReduction));
-
-                int previousHP = target.CurrentHP;
-                target.CurrentHP = Mathf.Min(target.CurrentHP + healAmount, target.MaxHP);
-                int actualHeal = target.CurrentHP - previousHP;
-
-                if (actualHeal > 0)
-                {
-                    Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Heals {actualHeal} HP!");
-                    GameEvents.RaiseHealingReceived(target, actualHeal);
-                }
-                else
-                {
-                    Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Already at full HP.");
-                }
-            }
-        }
-
-        private static void ExecuteConsumableEnergyRestore(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                int previousEN = target.CurrentEnergy;
-                target.CurrentEnergy = Mathf.Min(target.CurrentEnergy + ability.BasePower, target.MaxEnergy);
-                int actualRestore = target.CurrentEnergy - previousEN;
-
-                Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Restores {actualRestore} Energy!");
-            }
-        }
-
-        private static void ExecuteConsumableManaRestore(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                int previousMP = target.CurrentMana;
-                target.CurrentMana = Mathf.Min(target.CurrentMana + ability.BasePower, target.MaxMana);
-                int actualRestore = target.CurrentMana - previousMP;
-
-                Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Restores {actualRestore} Mana!");
-            }
-        }
-
-        private static readonly StatusEffect[] NegativeStatuses =
-        {
-            StatusEffect.Bleed, StatusEffect.Poison, StatusEffect.Burn,
-            StatusEffect.Chilled, StatusEffect.Stun, StatusEffect.Silence,
-            StatusEffect.Terror, StatusEffect.Confusion, StatusEffect.Mark,
-            StatusEffect.SteamBeamDebuff, StatusEffect.Pin
-        };
-
-        private static void ExecuteConsumableAntidote(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                int removed = 0;
-                foreach (StatusEffect effect in NegativeStatuses)
-                {
-                    if (target.HasEffect(effect))
-                    {
-                        target.RemoveEffect(effect);
-                        GameEvents.RaiseStatusEffectRemoved(target, effect);
-                        removed++;
-                    }
-                }
-
-                Log(removed > 0
-                    ? $"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Cleansed {removed} effect(s)!"
-                    : $"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! No effects to cleanse.");
-            }
-        }
-
-        private static void ExecuteConsumableBandage(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                GameEvents.RaiseAbilityUsed(user, ability, target);
-
-                // Remove Bleed
-                if (target.HasEffect(StatusEffect.Bleed))
-                {
-                    target.RemoveEffect(StatusEffect.Bleed);
-                    GameEvents.RaiseStatusEffectRemoved(target, StatusEffect.Bleed);
-                    Log($"{target.Data.Name}'s bleeding is stopped!");
-                }
-
-                // Small heal
-                int healAmount = ability.BasePower;
-                int previousHP = target.CurrentHP;
-                target.CurrentHP = Mathf.Min(target.CurrentHP + healAmount, target.MaxHP);
-                int actualHeal = target.CurrentHP - previousHP;
-
-                if (actualHeal > 0)
-                {
-                    Log($"{user.Data.Name} uses {ability.Name} on {target.Data.Name}! Heals {actualHeal} HP!");
-                    GameEvents.RaiseHealingReceived(target, actualHeal);
-                }
-            }
-        }
-
-        private static void ExecuteConsumableSmokeBomb(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
-        {
-            GameEvents.RaiseAbilityUsed(user, ability, user);
-            Log($"{user.Data.Name} throws a Smoke Bomb!");
-
-            foreach (BattleCharacter target in targets)
-            {
-                if (!target.IsAlive) continue;
-                var effect = new StatusEffectInstance(StatusEffect.Hide, -1, 0, user);
-                target.AddEffect(effect);
-                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Hide, 0);
-            }
-            Log("All allies are hidden!");
-        }
-
         private static bool IsHealingAbility(AbilityData ability)
         {
             return ability.BasePower > 0 &&
@@ -977,7 +674,7 @@ namespace PixelWarriors
                     ability.TargetType == TargetType.AllAllies);
         }
 
-        private static void Log(string message)
+        public static void Log(string message)
         {
             GameEvents.RaiseCombatLogMessage(message);
         }

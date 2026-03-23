@@ -6,6 +6,15 @@ namespace PixelWarriors
 {
     public static class WarlockAbilityHandler
     {
+        public static void ExecuteRitual(BattleCharacter user, AbilityData ability)
+        {
+            int manaGain = Mathf.RoundToInt(ability.HPCost * GameplayConfig.RitualManaPerHP);
+            user.CurrentMana = Mathf.Min(user.CurrentMana + manaGain, user.MaxMana);
+
+            GameEvents.RaiseAbilityUsed(user, ability, user);
+            Log($"{user.Data.Name} performs a dark ritual! Gains {manaGain} mana.");
+        }
+
         public static void ExecuteTerror(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
         {
             foreach (BattleCharacter target in targets)
@@ -20,9 +29,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     if (target.IsAlive)
                     {
@@ -43,7 +54,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -73,14 +84,12 @@ namespace PixelWarriors
                         StatusEffectInstance existing = target.GetEffect(type);
                         if (type == StatusEffect.Bleed)
                         {
-                            // Add another bleed stack
                             var extra = new StatusEffectInstance(StatusEffect.Bleed,
                                 GameplayConfig.BleedDuration, 0, user);
                             target.AddEffect(extra);
                         }
                         else
                         {
-                            // Extend duration by 1
                             existing.RemainingTurns++;
                         }
                         stacked++;
@@ -145,24 +154,28 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
 
-                    // Heal caster for portion of damage dealt
-                    int healAmount = Mathf.Max(1, Mathf.RoundToInt(result.Damage * 0.5f));
-                    int prevHP = user.CurrentHP;
-                    user.CurrentHP = Mathf.Min(user.CurrentHP + healAmount, user.MaxHP);
-                    int actualHeal = user.CurrentHP - prevHP;
-                    if (actualHeal > 0)
+                    if (finalDamage > 0)
                     {
-                        GameEvents.RaiseHealingReceived(user, actualHeal);
-                        Log($"{user.Data.Name} drains {actualHeal} HP!");
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
+
+                        // Heal caster for portion of damage dealt
+                        int healAmount = Mathf.Max(1, Mathf.RoundToInt(finalDamage * 0.5f));
+                        int prevHP = user.CurrentHP;
+                        user.CurrentHP = Mathf.Min(user.CurrentHP + healAmount, user.MaxHP);
+                        int actualHeal = user.CurrentHP - prevHP;
+                        if (actualHeal > 0)
+                        {
+                            GameEvents.RaiseHealingReceived(user, actualHeal);
+                            Log($"{user.Data.Name} drains {actualHeal} HP!");
+                        }
                     }
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -267,13 +280,6 @@ namespace PixelWarriors
                 Log($"{user.Data.Name} drains {target.Data.Name}'s soul! " +
                     $"{GameplayConfig.DrainSoulBaseDamage} damage/turn, escalating.");
             }
-        }
-
-        private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
-        {
-            if (result.Missed) Log($"{user.Data.Name} missed!");
-            else if (result.Dodged) Log($"{target.Data.Name} dodged!");
-            else if (result.Blocked) Log($"{target.Data.Name} blocked!");
         }
 
         private static void Log(string message) => GameEvents.RaiseCombatLogMessage(message);

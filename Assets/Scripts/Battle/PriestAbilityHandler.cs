@@ -5,6 +5,24 @@ namespace PixelWarriors
 {
     public static class PriestAbilityHandler
     {
+        public static void ExecuteWordOfProtection(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
+        {
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+
+                GameEvents.RaiseAbilityUsed(user, ability, target);
+
+                int shieldValue = ability.BasePower;
+                var effect = new StatusEffectInstance(StatusEffect.Shield, -1, shieldValue, user);
+                target.AddEffect(effect);
+
+                GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Shield, shieldValue);
+                GameEvents.RaiseCombatLogMessage(
+                    $"{user.Data.Name} casts {ability.Name} on {target.Data.Name}! Shield: {shieldValue}");
+            }
+        }
+
         public static void ExecutePrayerOfMending(BattleCharacter user, AbilityData ability, List<BattleCharacter> targets)
         {
             foreach (BattleCharacter target in targets)

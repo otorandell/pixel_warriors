@@ -317,7 +317,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-02-26, Phase 4 complete)
+## Current State (2026-03-22, Phase 5 — Icon System)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -337,7 +337,9 @@ Battles can have reinforcement waves that spawn mid-battle:
   - PlayerInputHandler (staged confirmation flow)
   - BattleVisualController (highlight management)
   - TurnOrderCalculator, TargetSelector (Close/Reach filtering, concealment fallback, SingleDeadAlly for Resurrect)
-  - ActionExecutor (tag-based routing to 6 class handlers, block mechanic, ProcessPostHitEffects for stance triggers/Envenom/SoulLink splash, damage modifiers: Imbue/HuntersFocus/Blessing/Predator, battle context for cross-system access, Martyr passive in CheckDefeated)
+  - ActionExecutor (~680 lines: tag-based routing to 8 handlers, DealDamage unified pipeline, ProcessPostHitEffects for stance triggers/Envenom/SoulLink splash, damage modifiers: Imbue/HuntersFocus/Blessing/Predator/Shield absorption, battle context for cross-system access, Martyr passive in CheckDefeated)
+  - GenericAbilityHandler (Swap, Reposition, Anticipate, React, Taunt, Hide, Pass)
+  - ConsumableAbilityHandler (Heal, EnergyRestore, ManaRestore, Antidote, Bandage, SmokeBomb)
   - EnemyAI (Mass Confusion: redirect targeting to own team)
   - HitResult (Miss/Dodge/Block/Hit)
 - **UI framework (all code-first, TextMeshPro):**
@@ -350,6 +352,10 @@ Battles can have reinforcement waves that spawn mid-battle:
   - TurnInfoPanelUI, SelectionPanelUI, CombatLogUI
   - LongPressHandler, FontManager
 - **Audio system (procedural):** AudioConfig, SFXLibrary, AudioManager
+- **Icon system:**
+  - PixelIconGenerator (Editor): generates 32-icon sprite sheet + TMP Sprite Asset via reflection (Unity 6 compat)
+  - IconConfig: StatusEffect → sprite name + tint color mapping, `GetStatusSprite()`, resource icon shortcuts (`HPIcon`, `EnergyIcon`, `ManaIcon`)
+  - CharacterCardUI updated: sprite icons for status indicators + resource labels, auto-fallback to text codes
 - **Bootstrap:** GameBootstrap with `_useTestBattle` toggle: test battle (4v4) or full game loop
 - **Screen system (Phase A):**
   - IScreen interface (Build/Show/Hide/Destroy)
@@ -390,7 +396,7 @@ Battles can have reinforcement waves that spawn mid-battle:
   - ShopConfig (economy constants), ShopStock (shop state), ShopGenerator (procedural stock: 4 equipment + 5 consumables + 20% book chance)
   - ShopScreen (IScreen: Buy Gear / Buy Items / Sell tabs, reroll button, inventory access)
   - AbilityPanelUI Items tab reads from RunData.Consumables via ConsumableCatalog.GetBattleAbility()
-  - ActionExecutor: 6 consumable handlers (ConsumableHeal, ConsumableEnergyRestore, ConsumableManaRestore, ConsumableAntidote, ConsumableBandage, ConsumableSmokeBomb)
+  - ConsumableAbilityHandler: 6 consumable handlers (Heal, EnergyRestore, ManaRestore, Antidote, Bandage, SmokeBomb)
   - BattleManager: decrements consumable after use, refreshes ability panel
   - InventoryScreen: Equipment/Items mode toggle, consumable stacks display, book teaching (per-character Teach buttons, duplicate prevention)
   - GameStateManager.ShopPhase() with shop-inventory loop
@@ -411,6 +417,14 @@ Battles can have reinforcement waves that spawn mid-battle:
   - SaveManager (Save/Load/HasSave/DeleteSave via JsonUtility to persistentDataPath)
   - Screen fade transitions (ScreenManager fade overlay, FadeOut/FadeIn DOTween tweens)
   - Debug Annihilation ability removed
+- **Phase 2G — Events + Rest + Recruitment:**
+  - EventData, EventChoice, EventOutcomes (outcome helpers: heal, damage, gold, XP, stats, consumables, equipment)
+  - EventCatalog (18 events: positive, negative, binary, 3-option, class-conditional, weird/unique)
+  - EventScreen (IScreen: narrative, choice buttons, character pick phase, outcome display)
+  - Rest sites use EventScreen with dedicated rest event (heal 50%, study +20 XP, search for supplies)
+  - RecruitScreen (2 candidates from unused classes, stat/ability display, skip option)
+  - GameStateManager: RestPhase, EventPhase, RecruitPhase all wired with fade transitions
+  - RunData.SeenEvents tracks unique event deduplication
 
 ### What Works
 - Full battle loop with all new mechanics
@@ -456,10 +470,15 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Books:** Consumed from inventory Items tab, per-character Teach buttons, permanently adds ability, duplicate prevention
 - **Inventory Items tab:** Equipment/Items mode toggle, shows consumable stacks with quantities, book rows with per-character Teach buttons
 - **Visual feedback:** Directional lunge, squeeze/stretch on hit, color flash, death shrink+fade, floating damage numbers, screen shake on crit, turn pulse, stun wobble, low HP flicker, heal/shield/buff effects
+- **Inline sprite icons (TMP Sprite Assets):** 32 pixel art 16x16 icons generated programmatically (white on transparent, tinted at runtime). Used for status effect indicators on character cards and resource labels (HP heart, EN lightning, MP drop). Fallback to text codes `[S][B][Po]` if sprite asset not loaded. Editor tools: `Tools > Generate Status Icons Sprite Sheet` + `Tools > Create Status Icons TMP Sprite Asset`
 - **Game over screen:** Victory (green) or defeat (red), run stats, survivors, fallen memorial
 - **Party setup:** Pick 2 of 6 classes at run start (replaces random party creation)
 - **Save/load:** Auto-saves after party setup and each room, CONTINUE button on menu, delete on game over
 - **Screen fade transitions:** All major screen swaps fade through black (0.2s out, 0.25s in)
+- **18 random events:** Wandering Healer, Lucky Coin, Shrine of Vigor, Ambush, Cursed Fog, Tax Collector, Ancient Altar, Gambler's Chest, Mysterious Merchant, Trapped Survivor, Forked Path, Old Campfire, Wounded Knight, Ritual Circle, Shadow Cache, Philosopher's Tome, The Echo, Doppelganger
+- **Event system:** Choice-based with conditions (class requirements), character pick phase, outcome display, unique event tracking
+- **Rest sites:** 3 options (heal 50% + restore resources, study +20 XP, search 60% consumable)
+- **Recruitment:** 2 candidates from unused classes, stat/ability preview, skip option, party size cap
 - All previous UI features (staging, popups, combat log, etc.)
 - Procedural chiptune SFX and looping battle music
 
@@ -467,8 +486,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Enemies with no usable abilities pass by zeroing action points (intentional workaround)
 - No visual feedback for status effect application/removal (no floating text, no animations)
 - Shield value not shown in character detail popup (only on card HP line)
-- Custom ability handlers (CrushArmor, SuckerPunch, etc.) don't call ProcessPostHitEffects — stance triggers/Envenom only apply through ExecuteDamage path
-- RangerAbilityHandler has its own ApplyModifiersAndDeal helper that duplicates the ActionExecutor pipeline
+- Icon sizes/spacing may need tuning on actual mobile device (currently only tested in editor)
 
 ## Decisions Made
 - All UI built in code (code-first)
@@ -478,7 +496,9 @@ Battles can have reinforcement waves that spawn mid-battle:
 - New Input System (`InputSystemUIInputModule`) for touch/click
 - Coroutine-based battle loop with PlayerInputPhase enum for staged confirmation flow
 - Static utility classes: ActionExecutor, TargetSelector, EnemyAI, TurnOrderCalculator, StatCalculator, StatusEffectProcessor, PassiveProcessor
-- Per-class ability handlers to keep ActionExecutor under 300 lines
+- Per-class ability handlers + GenericAbilityHandler + ConsumableAbilityHandler to keep ActionExecutor focused on routing + damage pipeline
+- DealDamage() is the single entry point for applying damage modifiers (Imbue, Mark, Blessing, Predator, Shield absorption) + HP reduction + damage event — all handlers must use it instead of raw HP subtraction
+- Bounce/splash/counter damage stays raw (no double-modifier application)
 - AbilityTag enum for routing (no string matching). Passives use string matching via PassiveProcessor
 - AbilityCatalog as master ability definition source
 - Lightweight StatusEffectInstance (type, duration, value, source)
@@ -522,6 +542,10 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Trinkets: Trinket1/Trinket2 slots interchangeable. Equip prefers empty slot
 - Post-battle: loot cards with per-party-member equip buttons + stash. Unhandled items auto-stash
 - Inventory screen accessible from room choice via INVENTORY button. In-battle equipping deferred
+- TMP Sprite Assets for inline icons (not icon fonts) — SDF rendering blurs pixel art, bitmap sprites stay crisp
+- Icons are white on transparent, tinted via `<color=#hex><sprite name="x" tint=1></color>` rich text
+- Unity 6 TMP_SpriteAsset: glyph table field is `m_GlyphTable` (not `m_SpriteGlyphTable`), must set `m_Version` to "1.1.0" to avoid UpgradeSpriteAsset crash, use reflection for read-only properties
+- Icon sprite sheet replaceable: swap `Assets/Resources/Fonts/StatusIcons.png` with better art, regenerate sprite asset
 
 ## Roadmap
 
@@ -537,7 +561,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
 - **E. Equipment + Loot** — Procedural equipment, loot tables, post-battle equip, inventory screen ← **DONE**
 - **F. Shop + Consumables** — Shop (buy/sell/reroll), consumable items (potions/bombs/scrolls/books), battle item usage, book teaching ← **DONE**
-- **G. Events + Rest + Recruitment** — Random events, rest sites, party setup, recruitment
+- **G. Events + Rest + Recruitment** — 18 random events, rest sites (EventScreen), recruitment screen ← **DONE**
 
 ### Phase 3: Visual Feedback (DOTween) — DONE
 - Lunge, shake, squeeze/stretch, color flash, death shrink+fade, floating numbers, screen shake, turn pulse, status visuals
@@ -545,8 +569,22 @@ Battles can have reinforcement waves that spawn mid-battle:
 ### Phase 4: Final Polish & Save — DONE
 - Debug cleanup, GameOverScreen, PartySetupScreen, save system, screen fade transitions
 
+### Phase 5: Inline Sprite Icons — DONE
+- 32 procedural pixel art icons (16x16, white on transparent, tinted via TMP rich text)
+- TMP Sprite Asset integration: `<sprite name="bleed" tint=1>` inline with text
+- IconConfig: StatusEffect → sprite name + color mapping, resource icon shortcuts
+- CharacterCardUI: status indicators use colored sprite icons, HP/EN/MP lines use icon prefixes
+- Automatic fallback to text codes if sprite asset not loaded
+- Editor tools: PixelIconGenerator (generate PNG + create TMP Sprite Asset via reflection for Unity 6 compatibility)
+
 ### Future Rooms
 - **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Not implemented yet.
+
+### Refactoring (2026-03-07) — IN TESTING
+- Damage pipeline refactor: DealDamage + ProcessPostHitEffects now called by all handlers (was missing in 17 places)
+- Extracted GenericAbilityHandler, ConsumableAbilityHandler from ActionExecutor (985 → 682 lines)
+- Moved ExecuteMark → Ranger, ExecuteWordOfProtection → Priest, ExecuteRitual → Warlock
+- On branch `refactor/damage-pipeline-cleanup`, pending Unity testing before merge
 
 ### Next Up
 - **Test SFX Exporter** — Editor script added at `Assets/Editor/SFXExporter.cs`. Menu item: **Tools > Export All SFX to WAV**. Exports all 17 procedural SFX as 16-bit PCM WAV files (44100 Hz, mono) to `ExportedSFX/` in project root. Not yet tested — run it next session and verify the output files sound correct. `Blocked` SFX type has no clip registered (will skip with warning).

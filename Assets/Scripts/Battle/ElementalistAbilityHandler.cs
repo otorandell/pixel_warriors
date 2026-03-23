@@ -38,9 +38,11 @@ namespace PixelWarriors
                     if (element == Element.Earth)
                         damage = Mathf.RoundToInt(damage * 1.3f);
 
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - damage);
-                    GameEvents.RaiseDamageDealt(target, damage, dmgType);
-                    Log($"{damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, damage, dmgType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, dmgType);
 
                     // Fire: apply Burn 2
                     if (element == Element.Fire && target.IsAlive)
@@ -67,7 +69,7 @@ namespace PixelWarriors
                         if (foes.Count > 0)
                         {
                             BattleCharacter bounceTarget = foes[Random.Range(0, foes.Count)];
-                            int bounceDamage = Mathf.Max(1, Mathf.RoundToInt(damage * 0.5f));
+                            int bounceDamage = Mathf.Max(1, Mathf.RoundToInt(finalDamage * 0.5f));
                             bounceTarget.CurrentHP = Mathf.Max(0, bounceTarget.CurrentHP - bounceDamage);
                             GameEvents.RaiseDamageDealt(bounceTarget, bounceDamage, dmgType);
                             Log($"Bolt bounces to {bounceTarget.Data.Name} for {bounceDamage}!");
@@ -77,7 +79,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -117,9 +119,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     if (target.IsAlive)
                     {
@@ -131,7 +135,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -154,9 +158,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     // Swap target to back row
                     if (target.IsAlive && target.Row == GridRow.Front)
@@ -168,7 +174,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -206,7 +212,6 @@ namespace PixelWarriors
                 switch (element)
                 {
                     case Element.Fire:
-                        // Attacks against this enemy replenish mana
                         var fireSeal = new StatusEffectInstance(StatusEffect.Mark, 3, 0, user);
                         target.AddEffect(fireSeal);
                         GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Mark, 0);
@@ -214,7 +219,6 @@ namespace PixelWarriors
                         break;
 
                     case Element.Water:
-                        // Enemy is silenced for 2 turns
                         var silence = new StatusEffectInstance(StatusEffect.Silence, 2, 0, user);
                         target.AddEffect(silence);
                         GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Silence, 0);
@@ -222,7 +226,6 @@ namespace PixelWarriors
                         break;
 
                     case Element.Earth:
-                        // Target must choose frontline target, damage decreased
                         var earthSeal = new StatusEffectInstance(StatusEffect.SteamBeamDebuff, 2, 0, user);
                         target.AddEffect(earthSeal);
                         GameEvents.RaiseStatusEffectApplied(target, StatusEffect.SteamBeamDebuff, 0);
@@ -230,7 +233,6 @@ namespace PixelWarriors
                         break;
 
                     case Element.Air:
-                        // Attacks against this enemy replenish energy
                         var airSeal = new StatusEffectInstance(StatusEffect.Mark, 3, 0, user);
                         target.AddEffect(airSeal);
                         GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Mark, 0);
@@ -238,7 +240,6 @@ namespace PixelWarriors
                         break;
 
                     default:
-                        // Arcane: increased magic damage for 3 turns
                         var arcaneSeal = new StatusEffectInstance(StatusEffect.SteamBeamDebuff, 3, 0, user);
                         target.AddEffect(arcaneSeal);
                         GameEvents.RaiseStatusEffectApplied(target, StatusEffect.SteamBeamDebuff, 0);
@@ -261,11 +262,14 @@ namespace PixelWarriors
                 int totalPower = ability.BasePower + bonusDamage;
 
                 int magicPen = user.Data.GetMagicPenetration() + ability.AbilityMagicPen;
-                int damage = StatCalculator.CalculateSpellDamage(
+                int rawDamage = StatCalculator.CalculateSpellDamage(
                     totalPower, user.EffectiveStats.Willpower, target.EffectiveStats.MagicResist, magicPen);
-                target.CurrentHP = Mathf.Max(0, target.CurrentHP - damage);
-                GameEvents.RaiseDamageDealt(target, damage, ability.DamageType);
-                Log($"{user.Data.Name} fires Arcane Burst at {target.Data.Name}! {damage} damage!");
+
+                int finalDamage = ActionExecutor.DealDamage(user, target, rawDamage, ability.DamageType);
+                Log($"{user.Data.Name} fires Arcane Burst at {target.Data.Name}! {finalDamage} damage!");
+
+                if (finalDamage > 0)
+                    ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                 ActionExecutor.CheckDefeated(target);
             }
@@ -286,9 +290,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     // Chance to apply bleed
                     if (target.IsAlive && Random.value < 0.4f)
@@ -301,7 +307,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -338,11 +344,14 @@ namespace PixelWarriors
                 int totalPower = ability.BasePower + bonusDamage;
 
                 int magicPen = user.Data.GetMagicPenetration() + ability.AbilityMagicPen;
-                int damage = StatCalculator.CalculateSpellDamage(
+                int rawDamage = StatCalculator.CalculateSpellDamage(
                     totalPower, user.EffectiveStats.Willpower, target.EffectiveStats.MagicResist, magicPen);
-                target.CurrentHP = Mathf.Max(0, target.CurrentHP - damage);
-                GameEvents.RaiseDamageDealt(target, damage, ability.DamageType);
-                Log($"{user.Data.Name} melts {target.Data.Name}'s defenses! {damage} damage!");
+
+                int finalDamage = ActionExecutor.DealDamage(user, target, rawDamage, ability.DamageType);
+                Log($"{user.Data.Name} melts {target.Data.Name}'s defenses! {finalDamage} damage!");
+
+                if (finalDamage > 0)
+                    ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                 ActionExecutor.CheckDefeated(target);
             }
@@ -391,9 +400,11 @@ namespace PixelWarriors
 
                 if (result.IsEffective)
                 {
-                    target.CurrentHP = Mathf.Max(0, target.CurrentHP - result.Damage);
-                    GameEvents.RaiseDamageDealt(target, result.Damage, ability.DamageType);
-                    Log($"{result.Damage} damage!");
+                    int finalDamage = ActionExecutor.DealDamage(user, target, result.Damage, ability.DamageType);
+                    Log($"{finalDamage} damage!");
+
+                    if (finalDamage > 0)
+                        ActionExecutor.ProcessPostHitEffects(user, target, finalDamage, ability.DamageType);
 
                     // Bounce to up to 2 other enemies at 50% damage
                     List<BattleCharacter> bounceTargets = allEnemies
@@ -401,7 +412,7 @@ namespace PixelWarriors
 
                     int bounces = Mathf.Min(GameplayConfig.ChainLightningMaxBounces, bounceTargets.Count);
                     int bounceDamage = Mathf.Max(1,
-                        Mathf.RoundToInt(result.Damage * GameplayConfig.ChainLightningBounceMultiplier));
+                        Mathf.RoundToInt(finalDamage * GameplayConfig.ChainLightningBounceMultiplier));
 
                     for (int i = 0; i < bounces; i++)
                     {
@@ -417,7 +428,7 @@ namespace PixelWarriors
                 }
                 else
                 {
-                    LogMissOrDodge(user, target, result);
+                    ActionExecutor.LogHitResult(user, target, result);
                 }
 
                 ActionExecutor.CheckDefeated(target);
@@ -446,13 +457,6 @@ namespace PixelWarriors
                 GameEvents.RaiseStatusEffectApplied(target, StatusEffect.FrozenTomb, 0);
                 Log($"{user.Data.Name} entombs {target.Data.Name} in ice! Stunned but immune.");
             }
-        }
-
-        private static void LogMissOrDodge(BattleCharacter user, BattleCharacter target, HitResult result)
-        {
-            if (result.Missed) Log($"{user.Data.Name} missed!");
-            else if (result.Dodged) Log($"{target.Data.Name} dodged!");
-            else if (result.Blocked) Log($"{target.Data.Name} blocked!");
         }
 
         private static void Log(string message) => GameEvents.RaiseCombatLogMessage(message);
