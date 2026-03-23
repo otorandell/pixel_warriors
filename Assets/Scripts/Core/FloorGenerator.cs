@@ -5,68 +5,90 @@ namespace PixelWarriors
 {
     public static class FloorGenerator
     {
-        public static List<RoomType> GenerateRoomChoices(RunData runData)
+        /// <summary>
+        /// Generate the floor plan for an entire act. Called once when entering a new act.
+        /// 19 normal floors + 1 boss floor = 20 total.
+        /// Distribution: ~10-12 Battle, ~4-5 Bonus (Shop/Rest/Smithy), ~3-4 Events.
+        /// </summary>
+        public static List<FloorPlanEntry> GenerateActPlan(int act)
         {
-            // Boss floor: no choice
-            if (runData.IsBossFloor)
+            int normalFloors = RunConfig.BossFloor - 1; // 19
+            List<FloorPlanEntry> plan = new(normalFloors + 1);
+
+            // Determine bonus room counts for this act
+            int restCount = Random.Range(1, 3);       // 1-2
+            int shopCount = Random.Range(1, 3);        // 1-2
+            int smithyCount = act >= 2 ? Random.Range(1, 3) : 0; // 0 in act 1, 1-2 after
+            int eventCount = Random.Range(3, 5);       // 3-4
+            int bonusTotal = restCount + shopCount + smithyCount;
+            int battleCount = normalFloors - bonusTotal - eventCount;
+
+            // Build the pool of floor types
+            List<FloorCategory> categories = new(normalFloors);
+            for (int i = 0; i < battleCount; i++) categories.Add(FloorCategory.Battle);
+            for (int i = 0; i < bonusTotal; i++) categories.Add(FloorCategory.Bonus);
+            for (int i = 0; i < eventCount; i++) categories.Add(FloorCategory.Event);
+
+            // Pad or trim to exactly normalFloors
+            while (categories.Count < normalFloors) categories.Add(FloorCategory.Battle);
+            while (categories.Count > normalFloors) categories.RemoveAt(categories.Count - 1);
+
+            // Shuffle
+            Shuffle(categories);
+
+            // Ensure floor 1 is always a Battle (gentle start)
+            int firstBattle = categories.IndexOf(FloorCategory.Battle);
+            if (firstBattle > 0)
             {
-                return new List<RoomType> { RoomType.BossBattle };
+                (categories[0], categories[firstBattle]) = (categories[firstBattle], categories[0]);
             }
 
-            List<RoomType> choices = new();
+            // Build bonus type queue
+            List<RoomType> bonusQueue = new();
+            for (int i = 0; i < restCount; i++) bonusQueue.Add(RoomType.Rest);
+            for (int i = 0; i < shopCount; i++) bonusQueue.Add(RoomType.Shop);
+            for (int i = 0; i < smithyCount; i++) bonusQueue.Add(RoomType.Smithy);
+            Shuffle(bonusQueue);
 
-            // Floor 4 guarantees a shop option
-            if (runData.CurrentFloor == RunConfig.ShopGuaranteedFloor &&
-                runData.PreviousRoom != RoomType.Shop)
+            // Determine elite battles (later floors more likely)
+            int bonusIdx = 0;
+            for (int i = 0; i < normalFloors; i++)
             {
-                choices.Add(RoomType.Shop);
+                FloorPlanEntry entry = new() { Category = categories[i] };
+
+                if (categories[i] == FloorCategory.Battle)
+                {
+                    // Elite chance increases with floor number
+                    float eliteChance = Mathf.Lerp(0.05f, 0.35f, (float)i / normalFloors);
+                    entry.IsElite = Random.value < eliteChance;
+                }
+                else if (categories[i] == FloorCategory.Bonus)
+                {
+                    entry.BonusType = bonusIdx < bonusQueue.Count
+                        ? bonusQueue[bonusIdx++]
+                        : RoomType.Shop;
+                }
+
+                plan.Add(entry);
             }
 
-            // Fill remaining slots
-            while (choices.Count < RunConfig.RoomChoicesPerFloor)
-            {
-                RoomType room = RollRoomType(runData);
+            // Floor 20: Boss
+            plan.Add(new FloorPlanEntry { Category = FloorCategory.Boss });
 
-                // No duplicates in the same choice set
-                if (choices.Contains(room))
-                    continue;
-
-                // No two shops in a row
-                if (room == RoomType.Shop && runData.PreviousRoom == RoomType.Shop)
-                    continue;
-
-                // Recruit only if party below max
-                if (room == RoomType.Recruit && runData.Party.Count >= RunConfig.MaxPartySize)
-                    continue;
-
-                choices.Add(room);
-            }
-
-            return choices;
+            return plan;
         }
 
-        private static RoomType RollRoomType(RunData runData)
+        /// <summary>
+        /// Get the floor plan entry for the current floor (1-indexed).
+        /// </summary>
+        public static FloorPlanEntry GetCurrentFloor(RunData runData)
         {
-            // Weight distribution shifts across the run
-            // Early: lots of battles. Mid: more variety. Late: more elites.
-            float progress = (float)runData.TotalFloor / (RunConfig.FloorsPerAct * RunConfig.ActCount);
+            int index = runData.CurrentFloor - 1;
+            if (index >= 0 && index < runData.FloorPlan.Count)
+                return runData.FloorPlan[index];
 
-            int wBattle = Mathf.RoundToInt(Mathf.Lerp(50, 25, progress));
-            int wElite = Mathf.RoundToInt(Mathf.Lerp(5, 25, progress));
-            int wShop = 15;
-            int wRest = Mathf.RoundToInt(Mathf.Lerp(10, 15, progress));
-            int wEvent = 15;
-            int wRecruit = runData.Party.Count < RunConfig.MaxPartySize ? 10 : 0;
-
-            int total = wBattle + wElite + wShop + wRest + wEvent + wRecruit;
-            int roll = Random.Range(0, total);
-
-            roll -= wBattle;  if (roll < 0) return RoomType.Battle;
-            roll -= wElite;   if (roll < 0) return RoomType.EliteBattle;
-            roll -= wShop;    if (roll < 0) return RoomType.Shop;
-            roll -= wRest;    if (roll < 0) return RoomType.Rest;
-            roll -= wEvent;   if (roll < 0) return RoomType.Event;
-            return RoomType.Recruit;
+            // Fallback
+            return new FloorPlanEntry { Category = FloorCategory.Battle };
         }
 
         public static string GetRoomName(RoomType roomType)
@@ -79,7 +101,7 @@ namespace PixelWarriors
                 RoomType.Shop => "Shop",
                 RoomType.Rest => "Rest Site",
                 RoomType.Event => "Mystery",
-                RoomType.Recruit => "Wanderer",
+                RoomType.Smithy => "Smithy",
                 _ => "Unknown"
             };
         }
@@ -88,13 +110,13 @@ namespace PixelWarriors
         {
             return roomType switch
             {
-                RoomType.Battle => "Fight a group of enemies.\nEarn XP and gold.",
+                RoomType.Battle => "Fight a group of enemies.\nEarn gold and loot.",
                 RoomType.EliteBattle => "Powerful foes await.\nGreater rewards.",
                 RoomType.BossBattle => "A fearsome guardian\nblocks the way.",
                 RoomType.Shop => "A merchant offers\nwares for sale.",
                 RoomType.Rest => "A safe place to\nrecover your strength.",
                 RoomType.Event => "Something unusual\nlies ahead...",
-                RoomType.Recruit => "A wandering fighter\nseeks a party.",
+                RoomType.Smithy => "A forge where gear\ncan be improved.",
                 _ => ""
             };
         }
@@ -109,9 +131,33 @@ namespace PixelWarriors
                 RoomType.Shop => UIStyleConfig.AccentGreen,
                 RoomType.Rest => UIStyleConfig.AccentCyan,
                 RoomType.Event => UIStyleConfig.AccentMagenta,
-                RoomType.Recruit => UIStyleConfig.AccentGreen,
+                RoomType.Smithy => UIStyleConfig.AccentYellow,
                 _ => UIStyleConfig.TextPrimary
             };
+        }
+
+        public static string GetRoomSymbol(RoomType roomType)
+        {
+            return roomType switch
+            {
+                RoomType.Battle => "X",
+                RoomType.EliteBattle => "XX",
+                RoomType.BossBattle => "!!!",
+                RoomType.Shop => "$",
+                RoomType.Rest => "+",
+                RoomType.Event => "?",
+                RoomType.Smithy => "&",
+                _ => "?"
+            };
+        }
+
+        private static void Shuffle<T>(List<T> list)
+        {
+            for (int i = list.Count - 1; i > 0; i--)
+            {
+                int j = Random.Range(0, i + 1);
+                (list[i], list[j]) = (list[j], list[i]);
+            }
         }
     }
 }

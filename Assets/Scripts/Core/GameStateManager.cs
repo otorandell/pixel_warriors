@@ -90,32 +90,31 @@ namespace PixelWarriors
 
             while (!_runData.IsRunComplete)
             {
-                // Room choice
-                yield return RoomChoicePhase();
+                // Generate floor plan if needed (new act or fresh run)
+                if (_runData.FloorPlan == null || _runData.FloorPlan.Count == 0)
+                    _runData.FloorPlan = FloorGenerator.GenerateActPlan(_runData.CurrentAct);
 
-                // Execute room
-                RoomType room = _runData.CurrentRoom ?? RoomType.Battle;
-                switch (room)
+                FloorPlanEntry floor = FloorGenerator.GetCurrentFloor(_runData);
+
+                switch (floor.Category)
                 {
-                    case RoomType.Battle:
-                    case RoomType.EliteBattle:
-                    case RoomType.BossBattle:
+                    case FloorCategory.Boss:
+                        _runData.CurrentRoom = RoomType.BossBattle;
                         yield return BattlePhase();
                         break;
 
-                    case RoomType.Shop:
-                        yield return ShopPhase();
+                    case FloorCategory.Battle:
+                        yield return BattleOrBonusChoicePhase(floor);
+                        yield return ExecuteCurrentRoom();
                         break;
 
-                    case RoomType.Recruit:
-                        yield return RecruitPhase();
+                    case FloorCategory.Bonus:
+                        yield return BattleOrBonusChoicePhase(floor);
+                        yield return ExecuteCurrentRoom();
                         break;
 
-                    case RoomType.Rest:
-                        yield return RestPhase();
-                        break;
-
-                    case RoomType.Event:
+                    case FloorCategory.Event:
+                        _runData.CurrentRoom = RoomType.Event;
                         yield return EventPhase();
                         break;
                 }
@@ -128,27 +127,23 @@ namespace PixelWarriors
 
                 _runData.PreviousRoom = _runData.CurrentRoom;
                 _runData.AdvanceFloor();
+
+                // Clear floor plan when advancing to new act
+                if (_runData.CurrentFloor == 1)
+                    _runData.FloorPlan = FloorGenerator.GenerateActPlan(_runData.CurrentAct);
+
                 SaveManager.Save(_runData);
             }
 
             yield return GameOverPhase(true);
         }
 
-        private IEnumerator RoomChoicePhase()
+        private IEnumerator BattleOrBonusChoicePhase(FloorPlanEntry floor)
         {
-            List<RoomType> choices = FloorGenerator.GenerateRoomChoices(_runData);
-
-            // Boss floors skip the choice screen
-            if (choices.Count == 1 && choices[0] == RoomType.BossBattle)
-            {
-                _runData.CurrentRoom = RoomType.BossBattle;
-                yield break;
-            }
-
             bool firstShow = true;
             while (true)
             {
-                var choiceScreen = new RoomChoiceScreen(_runData, choices);
+                var choiceScreen = new RoomChoiceScreen(_runData, floor);
                 if (firstShow)
                 {
                     yield return FadeTransitionTo(choiceScreen);
@@ -179,6 +174,29 @@ namespace PixelWarriors
                 _runData.CurrentRoom = choiceScreen.SelectedRoom;
                 choiceScreen.Destroy();
                 break;
+            }
+        }
+
+        private IEnumerator ExecuteCurrentRoom()
+        {
+            RoomType room = _runData.CurrentRoom ?? RoomType.Battle;
+            switch (room)
+            {
+                case RoomType.Battle:
+                case RoomType.EliteBattle:
+                case RoomType.BossBattle:
+                    yield return BattlePhase();
+                    break;
+                case RoomType.Shop:
+                    yield return ShopPhase();
+                    break;
+                case RoomType.Rest:
+                    yield return RestPhase();
+                    break;
+                case RoomType.Smithy:
+                    // Stub: smithy not yet implemented, treat as shop for now
+                    yield return ShopPhase();
+                    break;
             }
         }
 
@@ -278,63 +296,6 @@ namespace PixelWarriors
                 shopScreen.Destroy();
                 break;
             }
-        }
-
-        private IEnumerator RecruitPhase()
-        {
-            // Generate 2 candidates with classes not already in party
-            List<CharacterClass> usedClasses = new();
-            foreach (CharacterData c in _runData.Party)
-                usedClasses.Add(c.Class);
-
-            List<CharacterClass> availableClasses = new();
-            CharacterClass[] allClasses = {
-                CharacterClass.Warrior, CharacterClass.Rogue, CharacterClass.Ranger,
-                CharacterClass.Priest, CharacterClass.Elementalist, CharacterClass.Warlock
-            };
-            foreach (CharacterClass cls in allClasses)
-            {
-                if (!usedClasses.Contains(cls))
-                    availableClasses.Add(cls);
-            }
-
-            ShuffleList(availableClasses);
-            int candidateCount = Mathf.Min(2, availableClasses.Count);
-
-            // Pick unused names
-            string[] allNames = { "Aldric", "Shade", "Elara", "Maren", "Zephyr", "Nyx" };
-            List<string> usedNames = new();
-            foreach (CharacterData c in _runData.Party)
-                usedNames.Add(c.Name);
-
-            List<string> freeNames = new();
-            foreach (string n in allNames)
-            {
-                if (!usedNames.Contains(n))
-                    freeNames.Add(n);
-            }
-
-            List<CharacterData> candidates = new();
-            for (int i = 0; i < candidateCount; i++)
-            {
-                string name = i < freeNames.Count ? freeNames[i] : $"Recruit_{i}";
-                CharacterData candidate = ClassDefinitions.CreateCharacter(name, availableClasses[i]);
-                EquipDefaultWeapon(candidate, availableClasses[i]);
-                candidates.Add(candidate);
-            }
-
-            var recruitScreen = new RecruitScreen(candidates, _runData);
-            yield return FadeTransitionTo(recruitScreen);
-
-            while (!recruitScreen.Done)
-                yield return null;
-
-            if (recruitScreen.RecruitedCharacter != null)
-            {
-                _runData.Party.Add(recruitScreen.RecruitedCharacter);
-            }
-
-            recruitScreen.Destroy();
         }
 
         private IEnumerator BattlePhase()

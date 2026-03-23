@@ -12,15 +12,15 @@ namespace PixelWarriors
         private bool _inventoryRequested;
 
         private RunData _runData;
-        private List<RoomType> _choices;
+        private FloorPlanEntry _floor;
 
         public RoomType? SelectedRoom => _selectedRoom;
         public bool InventoryRequested => _inventoryRequested;
 
-        public RoomChoiceScreen(RunData runData, List<RoomType> choices)
+        public RoomChoiceScreen(RunData runData, FloorPlanEntry floor)
         {
             _runData = runData;
-            _choices = choices;
+            _floor = floor;
         }
 
         public void Build(Transform canvasParent)
@@ -34,7 +34,7 @@ namespace PixelWarriors
             PanelBuilder.SetFill(rootRect);
 
             // --- Header ---
-            string headerText = $"Act {_runData.CurrentAct} - Floor {_runData.CurrentFloor}/{RunConfig.FloorsPerAct}";
+            string headerText = $"Act {_runData.CurrentAct} - Floor {_runData.CurrentFloor}/{RunConfig.BossFloor}";
             TextMeshProUGUI header = PanelBuilder.CreateText("Header", rootRect,
                 headerText, UIStyleConfig.FontSizeMedium,
                 TextAlignmentOptions.Center, UIStyleConfig.AccentCyan);
@@ -61,28 +61,14 @@ namespace PixelWarriors
             RectTransform partyRect = partyText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(partyRect, 0.05f, 0.73f, 0.95f, 0.79f);
 
-            // --- "Choose your path" ---
-            TextMeshProUGUI promptText = PanelBuilder.CreateText("Prompt", rootRect,
-                "Choose your path:", UIStyleConfig.FontSizeSmall,
-                TextAlignmentOptions.Center, UIStyleConfig.TextPrimary);
-            RectTransform promptRect = promptText.GetComponent<RectTransform>();
-            PanelBuilder.SetAnchored(promptRect, 0.1f, 0.65f, 0.9f, 0.73f);
-
-            // --- Room cards ---
-            if (_choices.Count == 1)
+            // --- Build content based on floor category ---
+            if (_floor.Category == FloorCategory.Battle)
             {
-                BuildRoomCard(rootRect, _choices[0], 0.25f, 0.15f, 0.75f, 0.63f);
+                BuildBattleFloor(rootRect);
             }
-            else
+            else if (_floor.Category == FloorCategory.Bonus)
             {
-                float gap = 0.02f;
-                float cardWidth = (0.9f - gap) / 2f;
-                float left = 0.05f;
-
-                BuildRoomCard(rootRect, _choices[0],
-                    left, 0.15f, left + cardWidth, 0.63f);
-                BuildRoomCard(rootRect, _choices[1],
-                    left + cardWidth + gap, 0.15f, left + cardWidth * 2 + gap, 0.63f);
+                BuildBonusFloor(rootRect);
             }
 
             // --- Inventory button ---
@@ -93,63 +79,79 @@ namespace PixelWarriors
             invBtn.onClick.AddListener(() => _inventoryRequested = true);
         }
 
+        private void BuildBattleFloor(RectTransform rootRect)
+        {
+            RoomType battleType = _floor.IsElite ? RoomType.EliteBattle : RoomType.Battle;
+
+            // Single centered card
+            BuildRoomCard(rootRect, battleType, 0.25f, 0.15f, 0.75f, 0.63f, battleType);
+
+            TextMeshProUGUI prompt = PanelBuilder.CreateText("Prompt", rootRect,
+                "Enemies block the path.", UIStyleConfig.FontSizeSmall,
+                TextAlignmentOptions.Center, UIStyleConfig.TextPrimary);
+            RectTransform promptRect = prompt.GetComponent<RectTransform>();
+            PanelBuilder.SetAnchored(promptRect, 0.1f, 0.65f, 0.9f, 0.73f);
+        }
+
+        private void BuildBonusFloor(RectTransform rootRect)
+        {
+            TextMeshProUGUI prompt = PanelBuilder.CreateText("Prompt", rootRect,
+                "Choose your path:", UIStyleConfig.FontSizeSmall,
+                TextAlignmentOptions.Center, UIStyleConfig.TextPrimary);
+            RectTransform promptRect = prompt.GetComponent<RectTransform>();
+            PanelBuilder.SetAnchored(promptRect, 0.1f, 0.65f, 0.9f, 0.73f);
+
+            float gap = 0.02f;
+            float cardWidth = (0.9f - gap) / 2f;
+            float left = 0.05f;
+
+            // Bonus card (left)
+            BuildRoomCard(rootRect, _floor.BonusType,
+                left, 0.15f, left + cardWidth, 0.63f, _floor.BonusType);
+
+            // Fight instead card (right)
+            BuildRoomCard(rootRect, RoomType.Battle,
+                left + cardWidth + gap, 0.15f, left + cardWidth * 2 + gap, 0.63f,
+                RoomType.Battle);
+        }
+
         private void BuildRoomCard(RectTransform parent, RoomType roomType,
-            float xMin, float yMin, float xMax, float yMax)
+            float xMin, float yMin, float xMax, float yMax, RoomType selectAs)
         {
             Color roomColor = FloorGenerator.GetRoomColor(roomType);
             string roomName = FloorGenerator.GetRoomName(roomType);
             string roomDesc = FloorGenerator.GetRoomDescription(roomType);
+            string symbol = FloorGenerator.GetRoomSymbol(roomType);
 
-            // Card panel
             RectTransform card = PanelBuilder.CreatePanel("Card_" + roomType, parent);
             PanelBuilder.SetAnchored(card, xMin, yMin, xMax, yMax);
 
-            // Make it a button
             Button cardButton = card.gameObject.AddComponent<Button>();
             ColorBlock colors = cardButton.colors;
             colors.normalColor = Color.white;
             colors.highlightedColor = UIStyleConfig.AccentCyan;
             colors.pressedColor = UIStyleConfig.AccentGreen;
             cardButton.colors = colors;
-            cardButton.onClick.AddListener(() => _selectedRoom = roomType);
+            cardButton.onClick.AddListener(() => _selectedRoom = selectAs);
 
-            // Room type icon/symbol
-            string symbol = GetRoomSymbol(roomType);
             TextMeshProUGUI symbolText = PanelBuilder.CreateText("Symbol", card,
                 symbol, UIStyleConfig.FontSizeLarge * 1.5f,
                 TextAlignmentOptions.Center, roomColor);
             RectTransform symbolRect = symbolText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(symbolRect, 0.05f, 0.55f, 0.95f, 0.90f);
 
-            // Room name
             TextMeshProUGUI nameText = PanelBuilder.CreateText("Name", card,
                 roomName, UIStyleConfig.FontSizeSmall,
                 TextAlignmentOptions.Center, roomColor);
             RectTransform nameRect = nameText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(nameRect, 0.05f, 0.38f, 0.95f, 0.55f);
 
-            // Description
             TextMeshProUGUI descText = PanelBuilder.CreateText("Desc", card,
                 roomDesc, UIStyleConfig.FontSizeTiny,
                 TextAlignmentOptions.Center, UIStyleConfig.TextDimmed);
             RectTransform descRect = descText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(descRect, 0.05f, 0.05f, 0.95f, 0.38f);
             descText.textWrappingMode = TextWrappingModes.Normal;
-        }
-
-        private static string GetRoomSymbol(RoomType roomType)
-        {
-            return roomType switch
-            {
-                RoomType.Battle => "X",
-                RoomType.EliteBattle => "XX",
-                RoomType.BossBattle => "!!!",
-                RoomType.Shop => "$",
-                RoomType.Rest => "+",
-                RoomType.Event => "?",
-                RoomType.Recruit => "@",
-                _ => "?"
-            };
         }
 
         public void Show()

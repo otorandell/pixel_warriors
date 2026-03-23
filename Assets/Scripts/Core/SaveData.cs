@@ -23,6 +23,8 @@ namespace PixelWarriors
         public int TotalBattles;
         public int TotalKills;
 
+        public List<FloorPlanEntry> FloorPlan;
+
         public static SaveData FromRunData(RunData run)
         {
             SaveData save = new SaveData
@@ -39,7 +41,8 @@ namespace PixelWarriors
                 CurrentRoomInt = run.CurrentRoom.HasValue ? (int)run.CurrentRoom.Value : -1,
                 PreviousRoomInt = run.PreviousRoom.HasValue ? (int)run.PreviousRoom.Value : -1,
                 TotalBattles = run.TotalBattles,
-                TotalKills = run.TotalKills
+                TotalKills = run.TotalKills,
+                FloorPlan = run.FloorPlan
             };
 
             return save;
@@ -61,7 +64,8 @@ namespace PixelWarriors
                 CurrentRoom = CurrentRoomInt >= 0 ? (RoomType)CurrentRoomInt : null,
                 PreviousRoom = PreviousRoomInt >= 0 ? (RoomType)PreviousRoomInt : null,
                 TotalBattles = TotalBattles,
-                TotalKills = TotalKills
+                TotalKills = TotalKills,
+                FloorPlan = FloorPlan ?? new List<FloorPlanEntry>()
             };
 
             // JsonUtility deserializes null array elements as default instances.

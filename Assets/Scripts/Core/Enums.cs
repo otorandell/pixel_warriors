@@ -390,7 +390,7 @@ namespace PixelWarriors
         Shop,
         Event,
         Rest,
-        Recruit,
+        Smithy,
         GameOver
     }
 
@@ -402,7 +402,19 @@ namespace PixelWarriors
         Shop,
         Rest,
         Event,
-        Recruit
+        Smithy
+    }
+
+    /// <summary>
+    /// High-level floor category used for floor plan generation.
+    /// Battle = mandatory fight. Bonus = choose bonus or fight. Event = narrative.
+    /// </summary>
+    public enum FloorCategory
+    {
+        Battle,
+        Bonus,
+        Event,
+        Boss
     }
 
     public enum BattleResult

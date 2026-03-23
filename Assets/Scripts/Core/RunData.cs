@@ -1,7 +1,16 @@
+using System;
 using System.Collections.Generic;
 
 namespace PixelWarriors
 {
+    [Serializable]
+    public class FloorPlanEntry
+    {
+        public FloorCategory Category;
+        public RoomType BonusType; // Only meaningful for Bonus floors (Shop/Rest/Smithy)
+        public bool IsElite;       // Only meaningful for Battle floors
+    }
+
     public class RunData
     {
         public int CurrentAct;
@@ -17,6 +26,10 @@ namespace PixelWarriors
 
         public RoomType? CurrentRoom;
         public RoomType? PreviousRoom;
+
+        // Pre-generated floor plan for the current act (index 0 = floor 1, etc.)
+        // Stores the bonus room type for Bonus floors, or null for Battle/Event floors
+        public List<FloorPlanEntry> FloorPlan;
 
         public int TotalBattles;
         public int TotalKills;
@@ -35,6 +48,7 @@ namespace PixelWarriors
             Consumables = new List<ConsumableStack>();
             DroppedUniques = new HashSet<string>();
             SeenEvents = new HashSet<string>();
+            FloorPlan = new List<FloorPlanEntry>();
         }
 
         public int TotalFloor => (CurrentAct - 1) * RunConfig.FloorsPerAct + CurrentFloor;
