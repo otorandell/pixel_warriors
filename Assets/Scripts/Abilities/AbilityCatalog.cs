@@ -6,6 +6,9 @@ namespace PixelWarriors
     {
         // --- Generic (all classes) ---
 
+        /// <summary>
+        /// Starting generic abilities given to every character at creation.
+        /// </summary>
         public static List<AbilityData> GetGenericAbilities()
         {
             return new List<AbilityData>
@@ -33,6 +36,46 @@ namespace PixelWarriors
                     Tag = AbilityTag.Swap,
                     ExcludeSelf = true
                 },
+                new AbilityData
+                {
+                    Name = "Hide",
+                    Description = "Decrease chance of being targeted next turn.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 1,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Hide
+                },
+                new AbilityData
+                {
+                    Name = "Pass",
+                    Description = "End your activation.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 0,
+                    TargetType = TargetType.Self,
+                    Tag = AbilityTag.Pass
+                },
+                new AbilityData
+                {
+                    Name = "Annihilation",
+                    Description = "[DEBUG] Instantly kill all enemies.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 0,
+                    TargetType = TargetType.AllEnemies,
+                    Tag = AbilityTag.Annihilation
+                }
+            };
+        }
+
+        /// <summary>
+        /// Generic abilities learnable via Combatant Manuals. Not given at start.
+        /// </summary>
+        public static List<AbilityData> GetManualAbilities()
+        {
+            return new List<AbilityData>
+            {
                 new AbilityData
                 {
                     Name = "Reposition",
@@ -65,16 +108,6 @@ namespace PixelWarriors
                 },
                 new AbilityData
                 {
-                    Name = "Hide",
-                    Description = "Decrease chance of being targeted next turn.",
-                    Tab = AbilityTab.Generic,
-                    ActionCost = ActionPointType.Short,
-                    ShortPointCost = 1,
-                    TargetType = TargetType.Self,
-                    Tag = AbilityTag.Hide
-                },
-                new AbilityData
-                {
                     Name = "Taunt",
                     Description = "Increase aggro for 2 turns. Frontline only.",
                     Tab = AbilityTab.Generic,
@@ -83,28 +116,16 @@ namespace PixelWarriors
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.Taunt,
                     RequiresFrontline = true
-                },
-                new AbilityData
-                {
-                    Name = "Pass",
-                    Description = "End your activation.",
-                    Tab = AbilityTab.Generic,
-                    ActionCost = ActionPointType.Short,
-                    ShortPointCost = 0,
-                    TargetType = TargetType.Self,
-                    Tag = AbilityTag.Pass
-                },
-                new AbilityData
-                {
-                    Name = "Annihilation",
-                    Description = "[DEBUG] Instantly kill all enemies.",
-                    Tab = AbilityTab.Generic,
-                    ActionCost = ActionPointType.Short,
-                    ShortPointCost = 0,
-                    TargetType = TargetType.AllEnemies,
-                    Tag = AbilityTag.Annihilation
                 }
             };
+        }
+
+        /// <summary>
+        /// Look up a manual-learnable ability by name.
+        /// </summary>
+        public static AbilityData GetManualAbility(string name)
+        {
+            return GetManualAbilities().Find(a => a.Name == name);
         }
 
         // --- Warrior ---

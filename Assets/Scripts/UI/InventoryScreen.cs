@@ -398,7 +398,7 @@ namespace PixelWarriors
 
                 hasAny = true;
 
-                if (data.Category == ConsumableCategory.Book)
+                if (data.Category == ConsumableCategory.Book || data.Category == ConsumableCategory.Manual)
                     BuildBookRow(content, data, stack);
                 else
                     BuildConsumableInfoRow(content, data, stack);
@@ -436,8 +436,10 @@ namespace PixelWarriors
 
         private void BuildBookRow(RectTransform parent, ConsumableData book, ConsumableStack stack)
         {
-            // Determine what ability this book teaches
-            AbilityData bookAbility = ConsumableCatalog.GetBookAbility(book);
+            // Determine what ability this book/manual teaches
+            AbilityData bookAbility = book.Category == ConsumableCategory.Manual
+                ? AbilityCatalog.GetManualAbility(book.ManualAbilityName)
+                : ConsumableCatalog.GetBookAbility(book);
             string abilityName = bookAbility != null ? bookAbility.Name : "???";
 
             RectTransform row = PanelBuilder.CreateContainer("Book_" + book.Id, parent);
@@ -504,7 +506,9 @@ namespace PixelWarriors
             ConsumableData book = ConsumableCatalog.Get(bookId);
             if (book == null) return;
 
-            AbilityData ability = ConsumableCatalog.GetBookAbility(book);
+            AbilityData ability = book.Category == ConsumableCategory.Manual
+                ? AbilityCatalog.GetManualAbility(book.ManualAbilityName)
+                : ConsumableCatalog.GetBookAbility(book);
             if (ability == null) return;
 
             CharacterData character = _runData.Party[charIndex];

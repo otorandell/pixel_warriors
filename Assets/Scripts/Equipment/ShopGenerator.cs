@@ -24,7 +24,8 @@ namespace PixelWarriors
 
             // Consumables: weighted random from catalog, no duplicate types
             List<ConsumableData> pool = ConsumableCatalog.GetAll()
-                .Where(c => c.UsableInBattle && c.MinAct <= runData.CurrentAct && c.Category != ConsumableCategory.Book)
+                .Where(c => c.UsableInBattle && c.MinAct <= runData.CurrentAct
+                    && c.Category != ConsumableCategory.Book && c.Category != ConsumableCategory.Manual)
                 .ToList();
 
             ShuffleList(pool);
@@ -48,16 +49,17 @@ namespace PixelWarriors
                 });
             }
 
-            // Book: 20% chance
+            // Book or Manual: 20% chance
             if (Random.value < ShopConfig.BookChance)
             {
-                List<ConsumableData> books = ConsumableCatalog.GetAll()
-                    .Where(c => c.Category == ConsumableCategory.Book && c.MinAct <= runData.CurrentAct)
+                List<ConsumableData> teachables = ConsumableCatalog.GetAll()
+                    .Where(c => (c.Category == ConsumableCategory.Book || c.Category == ConsumableCategory.Manual)
+                        && c.MinAct <= runData.CurrentAct)
                     .ToList();
 
-                if (books.Count > 0)
+                if (teachables.Count > 0)
                 {
-                    ConsumableData book = books[Random.Range(0, books.Count)];
+                    ConsumableData book = teachables[Random.Range(0, teachables.Count)];
                     stock.Book = new ShopBookEntry
                     {
                         Book = book,

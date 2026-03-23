@@ -363,6 +363,40 @@ namespace PixelWarriors
                     UsableOutOfBattle = true,
                     BookAbilityClass = CharacterClass.Warlock,
                     BookAbilityName = "Terror"
+                },
+
+                // === Combatant Manuals ===
+                new ConsumableData
+                {
+                    Id = "manual_reposition", Name = "Manual: Reposition",
+                    Description = "Teaches Reposition (move between rows).",
+                    Category = ConsumableCategory.Manual, BuyPrice = 40, MinAct = 1,
+                    UsableOutOfBattle = true,
+                    ManualAbilityName = "Reposition"
+                },
+                new ConsumableData
+                {
+                    Id = "manual_anticipate", Name = "Manual: Anticipate",
+                    Description = "Teaches Anticipate (act first next turn).",
+                    Category = ConsumableCategory.Manual, BuyPrice = 50, MinAct = 1,
+                    UsableOutOfBattle = true,
+                    ManualAbilityName = "Anticipate"
+                },
+                new ConsumableData
+                {
+                    Id = "manual_react", Name = "Manual: React",
+                    Description = "Teaches React (act last next turn).",
+                    Category = ConsumableCategory.Manual, BuyPrice = 45, MinAct = 1,
+                    UsableOutOfBattle = true,
+                    ManualAbilityName = "React"
+                },
+                new ConsumableData
+                {
+                    Id = "manual_taunt", Name = "Manual: Taunt",
+                    Description = "Teaches Taunt (increase aggro, frontline only).",
+                    Category = ConsumableCategory.Manual, BuyPrice = 45, MinAct = 1,
+                    UsableOutOfBattle = true,
+                    ManualAbilityName = "Taunt"
                 }
             };
 

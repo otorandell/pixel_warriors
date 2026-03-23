@@ -304,7 +304,8 @@ namespace PixelWarriors
         Bomb,
         Scroll,
         Book,
-        Utility
+        Utility,
+        Manual
     }
 
     public enum TargetType

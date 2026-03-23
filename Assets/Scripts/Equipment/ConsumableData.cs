@@ -18,5 +18,8 @@ namespace PixelWarriors
         // For books: class + ability name to teach permanently
         public CharacterClass? BookAbilityClass;
         public string BookAbilityName;
+
+        // For manuals: generic ability name to teach permanently
+        public string ManualAbilityName;
     }
 }
