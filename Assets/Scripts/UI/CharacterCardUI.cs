@@ -29,6 +29,7 @@ namespace PixelWarriors
         private CanvasGroup _canvasGroup;
         private LongPressHandler _longPress;
         private bool _isDead;
+        private bool _useSpriteIcons;
 
         public void Build(Transform parent, BattleCharacter character)
         {
@@ -78,6 +79,15 @@ namespace PixelWarriors
                 UIStyleConfig.TextDimmed);
             PanelBuilder.SetAnchored(_classLevelText.GetComponent<RectTransform>(), 0, 0.60f, 1, 0.80f);
 
+            // Enable sprite icons for status indicators if sprite asset is available
+            TMPro.TMP_SpriteAsset spriteAsset = IconConfig.GetSpriteAsset();
+            if (spriteAsset != null)
+            {
+                _classLevelText.richText = true;
+                _classLevelText.spriteAsset = spriteAsset;
+                _useSpriteIcons = true;
+            }
+
             // HP
             _hpText = PanelBuilder.CreateText("HP", content, "",
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
@@ -95,6 +105,17 @@ namespace PixelWarriors
                 UIStyleConfig.FontSizeTiny, TextAlignmentOptions.TopLeft,
                 UIStyleConfig.ManaBarColor);
             PanelBuilder.SetAnchored(_manaText.GetComponent<RectTransform>(), 0, 0.00f, 1, 0.20f);
+
+            // Enable rich text + sprite asset on resource lines for inline icons
+            if (spriteAsset != null)
+            {
+                _hpText.richText = true;
+                _hpText.spriteAsset = spriteAsset;
+                _energyText.richText = true;
+                _energyText.spriteAsset = spriteAsset;
+                _manaText.richText = true;
+                _manaText.spriteAsset = spriteAsset;
+            }
 
             // Hit chance % (right-aligned, top-right)
             _aggroText = PanelBuilder.CreateText("HitChance", content, "",
@@ -133,13 +154,17 @@ namespace PixelWarriors
 
             // HP line — append shield value if active
             StatusEffectInstance shield = _character.GetEffect(StatusEffect.Shield);
+            string hpPrefix = _useSpriteIcons ? IconConfig.HPIcon : "HP";
             if (shield != null)
-                _hpText.text = $"HP {_character.CurrentHP}/{_character.MaxHP} +{shield.Value}";
+                _hpText.text = $"{hpPrefix} {_character.CurrentHP}/{_character.MaxHP} +{shield.Value}";
             else
-                _hpText.text = $"HP {_character.CurrentHP}/{_character.MaxHP}";
+                _hpText.text = $"{hpPrefix} {_character.CurrentHP}/{_character.MaxHP}";
 
-            _energyText.text = $"EN {_character.CurrentEnergy}/{_character.MaxEnergy}";
-            _manaText.text = $"MP {_character.CurrentMana}/{_character.MaxMana}";
+            string enPrefix = _useSpriteIcons ? IconConfig.EnergyIcon : "EN";
+            _energyText.text = $"{enPrefix} {_character.CurrentEnergy}/{_character.MaxEnergy}";
+
+            string mpPrefix = _useSpriteIcons ? IconConfig.ManaIcon : "MP";
+            _manaText.text = $"{mpPrefix} {_character.CurrentMana}/{_character.MaxMana}";
 
             // Status indicators on class/level line
             string baseStr = _character.Side == TeamSide.Player
@@ -238,35 +263,91 @@ namespace PixelWarriors
             // Death animation: shrink + fade (handled by BattleAnimationController via event)
         }
 
+        private static readonly StatusEffect[] DisplayedEffects =
+        {
+            StatusEffect.Shield, StatusEffect.Mark, StatusEffect.Taunt,
+            StatusEffect.Hide, StatusEffect.Conceal,
+            StatusEffect.Bleed, StatusEffect.Poison, StatusEffect.Burn,
+            StatusEffect.Chilled, StatusEffect.Stun, StatusEffect.Silence,
+            StatusEffect.Terror,
+            StatusEffect.StanceDefensive, StatusEffect.StanceBrawling, StatusEffect.StanceBerserker,
+            StatusEffect.Block, StatusEffect.Regeneration, StatusEffect.Blessing,
+            StatusEffect.DivineIntervention, StatusEffect.Pin,
+            StatusEffect.HuntersFocus, StatusEffect.IronWill,
+            StatusEffect.FrozenTomb, StatusEffect.SoulLink,
+            StatusEffect.DrainSoul, StatusEffect.Trap,
+            StatusEffect.Envenom, StatusEffect.Imbue,
+            StatusEffect.UltimateReflexes, StatusEffect.Caltrops,
+            StatusEffect.Levitate, StatusEffect.Confusion,
+            StatusEffect.CorpseExplosion, StatusEffect.LeechLife,
+            StatusEffect.Bodyguard, StatusEffect.ElementalArmor,
+        };
+
         private string BuildStatusIndicators()
         {
+            // Use sprite icons if sprite asset is available, fall back to text codes
+            bool useSprites = _useSpriteIcons;
             string s = "";
-            if (_character.HasEffect(StatusEffect.Shield)) s += "[S]";
-            if (_character.HasEffect(StatusEffect.Mark)) s += "[M]";
-            if (_character.HasEffect(StatusEffect.Taunt)) s += "[T]";
-            if (_character.HasEffect(StatusEffect.Hide)) s += "[H]";
-            if (_character.HasEffect(StatusEffect.Conceal)) s += "[C]";
-            if (_character.HasEffect(StatusEffect.Bleed)) s += "[B]";
-            if (_character.HasEffect(StatusEffect.Poison)) s += "[Po]";
-            if (_character.HasEffect(StatusEffect.Burn)) s += "[Fi]";
-            if (_character.HasEffect(StatusEffect.Chilled)) s += "[Ch]";
-            if (_character.HasEffect(StatusEffect.Stun)) s += "[!]";
-            if (_character.HasEffect(StatusEffect.Silence)) s += "[X]";
-            if (_character.HasEffect(StatusEffect.StanceDefensive)) s += "[Df]";
-            if (_character.HasEffect(StatusEffect.StanceBrawling)) s += "[Br]";
-            if (_character.HasEffect(StatusEffect.StanceBerserker)) s += "[Bk]";
-            if (_character.HasEffect(StatusEffect.Block)) s += "[Bl]";
-            if (_character.HasEffect(StatusEffect.Regeneration)) s += "[Re]";
-            if (_character.HasEffect(StatusEffect.Blessing)) s += "[+]";
-            if (_character.HasEffect(StatusEffect.DivineIntervention)) s += "[DI]";
-            if (_character.HasEffect(StatusEffect.Pin)) s += "[Pi]";
-            if (_character.HasEffect(StatusEffect.HuntersFocus)) s += "[HF]";
-            if (_character.HasEffect(StatusEffect.IronWill)) s += "[IW]";
-            if (_character.HasEffect(StatusEffect.FrozenTomb)) s += "[FT]";
-            if (_character.HasEffect(StatusEffect.SoulLink)) s += "[SL]";
-            if (_character.HasEffect(StatusEffect.DrainSoul)) s += "[DS]";
-            if (_character.HasEffect(StatusEffect.Trap)) s += "[Tr]";
+
+            foreach (StatusEffect effect in DisplayedEffects)
+            {
+                if (!_character.HasEffect(effect)) continue;
+
+                if (useSprites)
+                {
+                    s += IconConfig.GetStatusSprite(effect);
+                }
+                else
+                {
+                    s += GetFallbackCode(effect);
+                }
+            }
+
             return s;
+        }
+
+        private static string GetFallbackCode(StatusEffect effect)
+        {
+            return effect switch
+            {
+                StatusEffect.Shield => "[S]",
+                StatusEffect.Mark => "[M]",
+                StatusEffect.Taunt => "[T]",
+                StatusEffect.Hide => "[H]",
+                StatusEffect.Conceal => "[C]",
+                StatusEffect.Bleed => "[B]",
+                StatusEffect.Poison => "[Po]",
+                StatusEffect.Burn => "[Fi]",
+                StatusEffect.Chilled => "[Ch]",
+                StatusEffect.Stun => "[!]",
+                StatusEffect.Silence => "[X]",
+                StatusEffect.Terror => "[!!]",
+                StatusEffect.StanceDefensive => "[Df]",
+                StatusEffect.StanceBrawling => "[Br]",
+                StatusEffect.StanceBerserker => "[Bk]",
+                StatusEffect.Block => "[Bl]",
+                StatusEffect.Regeneration => "[Re]",
+                StatusEffect.Blessing => "[+]",
+                StatusEffect.DivineIntervention => "[DI]",
+                StatusEffect.Pin => "[Pi]",
+                StatusEffect.HuntersFocus => "[HF]",
+                StatusEffect.IronWill => "[IW]",
+                StatusEffect.FrozenTomb => "[FT]",
+                StatusEffect.SoulLink => "[SL]",
+                StatusEffect.DrainSoul => "[DS]",
+                StatusEffect.Trap => "[Tr]",
+                StatusEffect.Envenom => "[Ev]",
+                StatusEffect.Imbue => "[Im]",
+                StatusEffect.UltimateReflexes => "[UR]",
+                StatusEffect.Caltrops => "[Ct]",
+                StatusEffect.Levitate => "[Lv]",
+                StatusEffect.Confusion => "[??]",
+                StatusEffect.CorpseExplosion => "[CE]",
+                StatusEffect.LeechLife => "[LL]",
+                StatusEffect.Bodyguard => "[BG]",
+                StatusEffect.ElementalArmor => "[EA]",
+                _ => ""
+            };
         }
     }
 }
