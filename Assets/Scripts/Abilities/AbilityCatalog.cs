@@ -10,7 +10,18 @@ namespace PixelWarriors
         {
             return new List<AbilityData>
             {
-                AbilityData.CreateAttack("Attack", "Basic weapon attack.", basePower: 0, range: AbilityRange.Weapon, damageMultiplier: 1.0f),
+                new AbilityData
+                {
+                    Name = "Attack",
+                    Description = "Basic weapon attack.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Long,
+                    LongPointCost = 1,
+                    DamageType = DamageType.Physical,
+                    DamageMultiplier = 1.0f,
+                    TargetType = TargetType.SingleEnemy,
+                    Range = AbilityRange.Weapon
+                },
                 new AbilityData
                 {
                     Name = "Swap Position",
@@ -82,8 +93,18 @@ namespace PixelWarriors
                     ShortPointCost = 0,
                     TargetType = TargetType.Self,
                     Tag = AbilityTag.Pass
+                },
+                new AbilityData
+                {
+                    Name = "Annihilation",
+                    Description = "[DEBUG] Instantly kill all enemies.",
+                    Tab = AbilityTab.Generic,
+                    ActionCost = ActionPointType.Short,
+                    ShortPointCost = 0,
+                    TargetType = TargetType.AllEnemies,
+                    Tag = AbilityTag.Annihilation
                 }
-};
+            };
         }
 
         // --- Warrior ---

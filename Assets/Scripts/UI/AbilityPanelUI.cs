@@ -16,7 +16,7 @@ namespace PixelWarriors
         private RectTransform _abilityListContent;
         private ScrollRect _abilityScrollRect;
         private BattleCharacter _activeCharacter;
-        private AbilityTab _activeTab = AbilityTab.Attacks;
+        private AbilityTab _activeTab = AbilityTab.Generic;
         private AbilityData _stagedAbility;
 
         // Consumable support
@@ -63,8 +63,8 @@ namespace PixelWarriors
 
         private void BuildTabs()
         {
-            AbilityTab[] tabs = { AbilityTab.Attacks, AbilityTab.Skills, AbilityTab.Spells, AbilityTab.Items, AbilityTab.Generic };
-            string[] labels = { "ATK", "SKL", "SPL", "ITM", "GEN" };
+            AbilityTab[] tabs = { AbilityTab.Generic, AbilityTab.Attacks, AbilityTab.Skills, AbilityTab.Spells };
+            string[] labels = { "GEN", "ATK", "SKL", "SPL" };
 
             for (int i = 0; i < tabs.Length; i++)
             {
@@ -87,7 +87,7 @@ namespace PixelWarriors
         public void SetCharacter(BattleCharacter character)
         {
             _activeCharacter = character;
-            _activeTab = AbilityTab.Attacks;
+            _activeTab = AbilityTab.Generic;
             RefreshAbilities();
         }
 
@@ -114,20 +114,25 @@ namespace PixelWarriors
 
             List<AbilityData> abilities;
 
-            if (_activeTab == AbilityTab.Items && _runData != null)
+            if (_activeTab == AbilityTab.Generic)
             {
-                // Items tab: build abilities from consumable inventory
-                abilities = new List<AbilityData>();
-                foreach (ConsumableStack stack in _runData.Consumables)
+                // Generic tab: generic abilities + consumable items
+                abilities = _activeCharacter.Data.Abilities.FindAll(a => a.Tab == AbilityTab.Generic && !a.IsPassive);
+
+                // Append consumables
+                if (_runData != null)
                 {
-                    ConsumableData consumable = ConsumableCatalog.Get(stack.ConsumableId);
-                    if (consumable == null || !consumable.UsableInBattle || stack.Quantity <= 0) continue;
+                    foreach (ConsumableStack stack in _runData.Consumables)
+                    {
+                        ConsumableData consumable = ConsumableCatalog.Get(stack.ConsumableId);
+                        if (consumable == null || !consumable.UsableInBattle || stack.Quantity <= 0) continue;
 
-                    AbilityData battleAbility = ConsumableCatalog.GetBattleAbility(consumable, _runData.CurrentAct);
-                    if (battleAbility == null) continue;
+                        AbilityData battleAbility = ConsumableCatalog.GetBattleAbility(consumable, _runData.CurrentAct);
+                        if (battleAbility == null) continue;
 
-                    abilities.Add(battleAbility);
-                    _consumableIdMap[battleAbility] = stack.ConsumableId;
+                        abilities.Add(battleAbility);
+                        _consumableIdMap[battleAbility] = stack.ConsumableId;
+                    }
                 }
             }
             else
@@ -199,7 +204,7 @@ namespace PixelWarriors
 
         private void UpdateTabHighlights()
         {
-            AbilityTab[] tabs = { AbilityTab.Attacks, AbilityTab.Skills, AbilityTab.Spells, AbilityTab.Items, AbilityTab.Generic };
+            AbilityTab[] tabs = { AbilityTab.Generic, AbilityTab.Attacks, AbilityTab.Skills, AbilityTab.Spells };
 
             for (int i = 0; i < _tabButtons.Count; i++)
             {

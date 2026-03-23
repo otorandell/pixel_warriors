@@ -100,6 +100,18 @@ namespace PixelWarriors
             Log($"{user.Data.Name} passes.");
         }
 
+        public static void ExecuteAnnihilation(BattleCharacter user, List<BattleCharacter> targets)
+        {
+            Log($"{user.Data.Name} unleashes ANNIHILATION!");
+            foreach (BattleCharacter target in targets)
+            {
+                if (!target.IsAlive) continue;
+                target.CurrentHP = 0;
+                GameEvents.RaiseDamageDealt(target, 9999, DamageType.Magical);
+                ActionExecutor.CheckDefeated(target);
+            }
+        }
+
         private static void Log(string message) => GameEvents.RaiseCombatLogMessage(message);
     }
 }

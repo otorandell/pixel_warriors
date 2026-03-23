@@ -74,6 +74,9 @@ namespace PixelWarriors
                 case AbilityTag.Pass:
                     GenericAbilityHandler.ExecutePass(user);
                     return;
+                case AbilityTag.Annihilation:
+                    GenericAbilityHandler.ExecuteAnnihilation(user, targets);
+                    return;
 
                 // --- Warrior ---
                 case AbilityTag.CrushArmor:
