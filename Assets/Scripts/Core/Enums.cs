@@ -378,7 +378,27 @@ namespace PixelWarriors
         DemonChampion,
         // Boss
         Lich,
-        ArchDemon
+        ArchDemon,
+
+        // ===== ACT 4: The Abyss =====
+        // Regular - Frontline
+        VoidStalker,
+        AbyssalKnight,
+        FleshGolem,
+        MindFlayer,
+        CrystalFiend,
+        // Regular - Backline
+        VoidWeaver,
+        Eyestalk,
+        EntropySeer,
+        AbyssalChanter,
+        // Elite
+        Behemoth,
+        MindLord,
+        VoidDragon,
+        // Boss
+        ElderVoid,
+        AbyssalSovereign
     }
 
     public enum GameScreen
@@ -410,6 +430,15 @@ namespace PixelWarriors
     /// High-level floor category used for floor plan generation.
     /// Battle = mandatory fight. Bonus = choose bonus or fight. Event = narrative.
     /// </summary>
+    public enum GemType
+    {
+        Ruby,     // Fire: +Burn on hit (weapon) / +3 ARM (armor)
+        Sapphire, // Water: +2 Mana regen per turn (weapon) / +4 MRS (armor)
+        Diamond,  // Pure: +5% crit chance (weapon) / +3 ARM +2 MRS (armor)
+        Emerald,  // Nature: +Poison on hit (weapon) / +2 END (armor)
+        Onyx      // Dark: +3 bonus damage (weapon) / +2 INI (armor)
+    }
+
     public enum FloorCategory
     {
         Battle,

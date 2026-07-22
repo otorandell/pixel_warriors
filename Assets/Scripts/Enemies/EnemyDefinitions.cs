@@ -53,6 +53,22 @@ namespace PixelWarriors
                 EnemyType.Lich => Act3Enemies.CreateLich(),
                 EnemyType.ArchDemon => Act3Enemies.CreateArchDemon(),
 
+                // === Act 4 ===
+                EnemyType.VoidStalker => Act4Enemies.CreateVoidStalker(),
+                EnemyType.AbyssalKnight => Act4Enemies.CreateAbyssalKnight(),
+                EnemyType.FleshGolem => Act4Enemies.CreateFleshGolem(),
+                EnemyType.MindFlayer => Act4Enemies.CreateMindFlayer(),
+                EnemyType.CrystalFiend => Act4Enemies.CreateCrystalFiend(),
+                EnemyType.VoidWeaver => Act4Enemies.CreateVoidWeaver(),
+                EnemyType.Eyestalk => Act4Enemies.CreateEyestalk(),
+                EnemyType.EntropySeer => Act4Enemies.CreateEntropySeer(),
+                EnemyType.AbyssalChanter => Act4Enemies.CreateAbyssalChanter(),
+                EnemyType.Behemoth => Act4Enemies.CreateBehemoth(),
+                EnemyType.MindLord => Act4Enemies.CreateMindLord(),
+                EnemyType.VoidDragon => Act4Enemies.CreateVoidDragon(),
+                EnemyType.ElderVoid => Act4Enemies.CreateElderVoid(),
+                EnemyType.AbyssalSovereign => Act4Enemies.CreateAbyssalSovereign(),
+
                 _ => Act1Enemies.CreateRatman()
             };
         }

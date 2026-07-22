@@ -45,7 +45,7 @@ namespace PixelWarriors
 
         public static EquipmentData GenerateProceduralItem(int act)
         {
-            int actIndex = Mathf.Clamp(act - 1, 0, 2);
+            int actIndex = Mathf.Clamp(act - 1, 0, 3);
 
             // Pick random slot (weighted)
             EquipmentSlot slot = PickRandomSlot();

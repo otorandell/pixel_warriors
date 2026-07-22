@@ -15,7 +15,7 @@ namespace PixelWarriors
         public const int StartingGold = 50;
         public const int BaseGoldPerBattle = 15;
         public const int GoldPerBattleVariance = 10;
-        public const float GoldFloorScaling = 0.10f;
+        public const float GoldFloorScaling = 0.05f;
 
         // --- Healing ---
         public const float HealBetweenBattlesPercent = 0.30f;
@@ -26,7 +26,7 @@ namespace PixelWarriors
         public const int MaxEnemies = 4;
         public const float EliteStatMultiplier = 1.4f;
         public const float BossStatMultiplier = 2.0f;
-        public const float FloorStatScaling = 0.08f;
+        public const float FloorStatScaling = 0.04f;
 
         // --- Reinforcements ---
         public const float NormalReinforcementChance = 0.40f;

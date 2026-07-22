@@ -10,7 +10,8 @@ namespace PixelWarriors
         {
             new[] { EnemyType.Ratman, EnemyType.Skeleton, EnemyType.ZombieShambler, EnemyType.FungusCreeper },
             new[] { EnemyType.Spider, EnemyType.Bandit, EnemyType.OrcWarrior, EnemyType.StoneSentinel, EnemyType.BerserkerCultist },
-            new[] { EnemyType.DarkKnight, EnemyType.AbyssalGolem, EnemyType.PlagueBringer, EnemyType.DeathCultist, EnemyType.ChainDevil }
+            new[] { EnemyType.DarkKnight, EnemyType.AbyssalGolem, EnemyType.PlagueBringer, EnemyType.DeathCultist, EnemyType.ChainDevil },
+            new[] { EnemyType.VoidStalker, EnemyType.AbyssalKnight, EnemyType.FleshGolem, EnemyType.MindFlayer, EnemyType.CrystalFiend }
         };
 
         // Backliner pools by act progression
@@ -18,7 +19,8 @@ namespace PixelWarriors
         {
             new[] { EnemyType.GoblinArcher, EnemyType.SwarmBat, EnemyType.TunnelRat },
             new[] { EnemyType.DarkMage, EnemyType.HerbalistShaman, EnemyType.CrossbowBandit, EnemyType.FireImp },
-            new[] { EnemyType.ShadowAssassin, EnemyType.LichAcolyte, EnemyType.BloodMage, EnemyType.VoidSpeaker }
+            new[] { EnemyType.ShadowAssassin, EnemyType.LichAcolyte, EnemyType.BloodMage, EnemyType.VoidSpeaker },
+            new[] { EnemyType.VoidWeaver, EnemyType.Eyestalk, EnemyType.EntropySeer, EnemyType.AbyssalChanter }
         };
 
         // Elite pools by act progression
@@ -26,7 +28,8 @@ namespace PixelWarriors
         {
             new[] { EnemyType.Minotaur, EnemyType.GiantSpider, EnemyType.BoneLord },
             new[] { EnemyType.OrcBrute, EnemyType.WyvernKnight, EnemyType.NecromancerAdept, EnemyType.BladeDancer },
-            new[] { EnemyType.VampireLord, EnemyType.TwinWraith, EnemyType.DemonChampion }
+            new[] { EnemyType.VampireLord, EnemyType.TwinWraith, EnemyType.DemonChampion },
+            new[] { EnemyType.Behemoth, EnemyType.MindLord, EnemyType.VoidDragon }
         };
 
         // Boss pools by act (2 per act for randomization)
@@ -34,14 +37,15 @@ namespace PixelWarriors
         {
             new[] { EnemyType.GoblinKing, EnemyType.CatacombGuardian },
             new[] { EnemyType.MinotaurLord, EnemyType.BanditWarlord },
-            new[] { EnemyType.Lich, EnemyType.ArchDemon }
+            new[] { EnemyType.Lich, EnemyType.ArchDemon },
+            new[] { EnemyType.ElderVoid, EnemyType.AbyssalSovereign }
         };
 
         public static EncounterData GenerateEncounter(RunData runData, RoomType roomType)
         {
             int partySize = runData.Party.Count;
             int floor = runData.TotalFloor;
-            int actIndex = Mathf.Clamp(runData.CurrentAct - 1, 0, 2);
+            int actIndex = Mathf.Clamp(runData.CurrentAct - 1, 0, 3);
 
             EncounterData encounter = roomType switch
             {

@@ -47,8 +47,13 @@ namespace PixelWarriors
             PanelBuilder.SetAnchored(headerRect, 0.1f, 0.88f, 0.9f, 0.96f);
 
             // --- Gold earned ---
+            string rewardStr = $"+{_result.GoldEarned} Gold";
+            if (_result.MetalScrapsGained > 0 || _result.LeatherScrapsGained > 0)
+                rewardStr += $"  +{_result.MetalScrapsGained}M +{_result.LeatherScrapsGained}L";
+            if (_result.GemGained.HasValue)
+                rewardStr += $"  +{SmithyConfig.GetGemName(_result.GemGained.Value)}";
             TextMeshProUGUI goldText = PanelBuilder.CreateText("GoldEarned", _rootRect,
-                $"+{_result.GoldEarned} Gold", UIStyleConfig.FontSizeSmall,
+                rewardStr, UIStyleConfig.FontSizeSmall,
                 TextAlignmentOptions.Center, UIStyleConfig.AccentYellow);
             RectTransform goldRect = goldText.GetComponent<RectTransform>();
             PanelBuilder.SetAnchored(goldRect, 0.1f, 0.82f, 0.9f, 0.88f);

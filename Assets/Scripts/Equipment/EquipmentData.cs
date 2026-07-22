@@ -20,6 +20,16 @@ namespace PixelWarriors
         public string FlavorText;
         public int ActLevel;
 
+        // Smithy fields
+        public int ImbuedGemInt = -1; // -1 = none, otherwise cast to GemType
+        public int UpgradeLevel;
+
+        public GemType? ImbuedGem
+        {
+            get => ImbuedGemInt >= 0 ? (GemType)ImbuedGemInt : null;
+            set => ImbuedGemInt = value.HasValue ? (int)value.Value : -1;
+        }
+
         public EquipmentData()
         {
             StatModifiers = new CharacterStats();

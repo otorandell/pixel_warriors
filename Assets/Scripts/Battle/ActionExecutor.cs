@@ -415,6 +415,10 @@ namespace PixelWarriors
             if (user != null && user.HasEffect(StatusEffect.HuntersFocus))
                 damage += GameplayConfig.HuntersFocusBonusDamage;
 
+            // Onyx gem: +3 bonus damage on weapon attacks
+            if (user != null && GetWeaponGem(user) == GemType.Onyx)
+                damage += 3;
+
             float markMult = StatusEffectProcessor.GetMarkBonus(target);
             damage = Mathf.RoundToInt(damage * markMult);
 
@@ -449,6 +453,26 @@ namespace PixelWarriors
                 target.AddEffect(poison);
                 GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Poison, 0);
                 Log($"{target.Data.Name} is poisoned by envenomed weapon!");
+            }
+
+            // Gem weapon on-hit effects (physical attacks only)
+            if (damageType == DamageType.Physical && target.IsAlive)
+            {
+                GemType? gem = GetWeaponGem(attacker);
+                if (gem == GemType.Ruby)
+                {
+                    var burn = new StatusEffectInstance(StatusEffect.Burn, GameplayConfig.BurnDuration, 0, attacker);
+                    target.AddEffect(burn);
+                    GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Burn, 0);
+                    Log($"{target.Data.Name} is burned by imbued weapon!");
+                }
+                else if (gem == GemType.Emerald && !attacker.HasEffect(StatusEffect.Envenom))
+                {
+                    var poison = new StatusEffectInstance(StatusEffect.Poison, GameplayConfig.PoisonDuration, 0, attacker);
+                    target.AddEffect(poison);
+                    GameEvents.RaiseStatusEffectApplied(target, StatusEffect.Poison, 0);
+                    Log($"{target.Data.Name} is poisoned by imbued weapon!");
+                }
             }
 
             // Soul Link: splash damage to other enemies on same side
@@ -507,6 +531,12 @@ namespace PixelWarriors
                 return ally;
             }
             return null;
+        }
+
+        private static GemType? GetWeaponGem(BattleCharacter character)
+        {
+            EquipmentData weapon = character.Data.Equipment[(int)EquipmentSlot.Hand1];
+            return weapon?.ImbuedGem;
         }
 
         // --- Hit Resolution ---
@@ -579,6 +609,11 @@ namespace PixelWarriors
             // Steady Aim passive: +5% crit on Reach attacks
             if (ability.Range == AbilityRange.Reach && user.HasPassiveEffect(PassiveEffect.SteadyAim))
                 critChance += GameplayConfig.SteadyAimCritBonus;
+
+            // Diamond gem: +5% crit on weapon attacks
+            if (ability.IsWeaponAttack && GetWeaponGem(user) == GemType.Diamond)
+                critChance += 0.05f;
+
             bool isCrit = Random.value < critChance;
             if (isCrit)
             {

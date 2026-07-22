@@ -25,6 +25,11 @@ namespace PixelWarriors
 
         public List<FloorPlanEntry> FloorPlan;
 
+        // Smithy materials
+        public int MetalScraps;
+        public int LeatherScraps;
+        public List<int> Gems; // GemType cast to int
+
         public static SaveData FromRunData(RunData run)
         {
             SaveData save = new SaveData
@@ -42,7 +47,10 @@ namespace PixelWarriors
                 PreviousRoomInt = run.PreviousRoom.HasValue ? (int)run.PreviousRoom.Value : -1,
                 TotalBattles = run.TotalBattles,
                 TotalKills = run.TotalKills,
-                FloorPlan = run.FloorPlan
+                FloorPlan = run.FloorPlan,
+                MetalScraps = run.MetalScraps,
+                LeatherScraps = run.LeatherScraps,
+                Gems = run.Gems.ConvertAll(g => (int)g)
             };
 
             return save;
@@ -65,7 +73,10 @@ namespace PixelWarriors
                 PreviousRoom = PreviousRoomInt >= 0 ? (RoomType)PreviousRoomInt : null,
                 TotalBattles = TotalBattles,
                 TotalKills = TotalKills,
-                FloorPlan = FloorPlan ?? new List<FloorPlanEntry>()
+                FloorPlan = FloorPlan ?? new List<FloorPlanEntry>(),
+                MetalScraps = MetalScraps,
+                LeatherScraps = LeatherScraps,
+                Gems = (Gems ?? new List<int>()).ConvertAll(g => (GemType)g)
             };
 
             // JsonUtility deserializes null array elements as default instances.

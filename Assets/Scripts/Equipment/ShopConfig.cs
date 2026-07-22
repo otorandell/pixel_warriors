@@ -12,11 +12,11 @@ namespace PixelWarriors
         public const int BaseWeaponPrice = 20;
         public const int BaseArmorPrice = 18;
         public const int BaseTrinketPrice = 15;
-        public const int StatPointValue = 3;
-        public const int WeaponDamageValue = 2;
+        public const int StatPointValue = 4;
+        public const int WeaponDamageValue = 3;
         public const int UniqueMarkup = 15;
 
         // Act price multipliers (index = act - 1)
-        public static readonly float[] ActPriceMultiplier = { 1.0f, 1.5f, 2.2f };
+        public static readonly float[] ActPriceMultiplier = { 1.0f, 1.5f, 2.2f, 3.0f };
     }
 }

@@ -308,13 +308,31 @@ Sword, Dagger, TwoHanded, Shield, Staff, Bow, Mace. Some abilities require speci
 | The Lich | Boss | Death bolt, soul drain AoE, dark pact |
 | Arch Demon | Boss | Cataclysm AoE, doom strike (2.2x), hellfire |
 
+### Act 4 (The Abyss) — 14 enemies
+| Type | Role | Identity |
+|------|------|----------|
+| Void Stalker | Frontline | Fast tentacle rogue, reach attack, 3-hit flurry |
+| Abyssal Knight | Frontline | High armor+MR tank, shield, guard stance |
+| Flesh Golem | Frontline | Massive HP, very slow, devastating hits |
+| Mind Flayer | Frontline | Psychic frontliner, AoE + single target spells |
+| Crystal Fiend | Frontline | High MRS, crystal AoE, self-shield |
+| Void Weaver | Backline | Heavy void caster, AoE unravel |
+| Eyestalk | Backline | Floating eye, death/fear/anti-magic gazes |
+| Entropy Seer | Backline | High WIL caster, doom prophecy, AoE decay |
+| Abyssal Chanter | Backline | Support, heals + shields allies |
+| Behemoth | Elite | Massive physical brute, AoE slam, crushing grip |
+| Mind Lord | Elite | Powerful psychic, dominate + psychic storm |
+| Void Dragon | Elite | Mixed physical/magical, void breath AoE |
+| Elder Void | Boss | Cosmic caster, annihilation beam, reality collapse |
+| Abyssal Sovereign | Boss | Final boss, oblivion strike (2.3x), AoE wrath + inferno |
+
 Enemy AI: 1-3 abilities per enemy, randomized selection and targeting. Bosses are flagged with `IsBoss` for HP-threshold reinforcement triggers.
 
 ### Reinforcement System
 Battles can have reinforcement waves that spawn mid-battle:
 - **Normal battles**: 40% chance of 1 wave (1-2 enemies) when alive enemies <= 1
 - **Elite battles**: 1-2 waves of regular adds when alive enemies <= 1 (gang leader pattern)
-- **Boss battles**: Waves at 75% and 40% boss HP thresholds (+ 20% for Act 3)
+- **Boss battles**: Waves at 75% and 40% boss HP thresholds (+ 20% for Act 3+)
 - Triggers: `OnEnemyCount`, `OnRoundNumber`, `OnBossHPPercent`
 - Reinforcements join next round's turn order (not current round)
 - UI shows wave count indicator `[+N]` in turn info panel
@@ -322,7 +340,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 
 ---
 
-## Current State (2026-03-23, Phase 6 — Systems Overhaul)
+## Current State (2026-04-03, Phase 7 — Act 4 + Smithy)
 
 ### What's Built
 - **Core layer:** Enums (expanded with AbilityRange, WeaponType, 29 StatusEffects, 50+ AbilityTags), CharacterStats, GameplayConfig (DoT constants, stance constants, block/assassination/confusion params), UIStyleConfig, GameEvents (event bus), StatCalculator
@@ -333,7 +351,7 @@ Battles can have reinforcement waves that spawn mid-battle:
   - PassiveProcessor (OnBattleStart, OnTurnStart, OnDamageTaken, OnCharacterDefeated hooks, PassiveEffect enum replaces string matching)
   - PassiveEffect enum: type-safe passive identification (Tough, Evasive, KenEye, Faith, ArcaneAffinity, DarkPact, Survivalist, Predator, SteadyAim, InnerLight, Martyr, Devotion, Strategist, EscapePlan, QuickHands, SoulHarvest, Frenzy)
   - Per-class ability handlers: WarriorAbilityHandler, RogueAbilityHandler, RangerAbilityHandler, PriestAbilityHandler, ElementalistAbilityHandler, WarlockAbilityHandler
-- **Enemy system:** EnemyDefinitions (router) → Act1Enemies/Act2Enemies/Act3Enemies (~46 types), EncounterGenerator (act-based pools, scaling, reinforcement waves), EncounterData + ReinforcementWave, EnemyAI (Mass Confusion redirect)
+- **Enemy system:** EnemyDefinitions (router) → Act1Enemies/Act2Enemies/Act3Enemies/Act4Enemies (~60 types), EncounterGenerator (act-based pools, scaling, reinforcement waves), EncounterData + ReinforcementWave, EnemyAI (Mass Confusion redirect)
 - **Status effect system:**
   - StatusEffectInstance (type, duration, value, source)
   - StatusEffectProcessor (DoT processing: Bleed/Poison/Burn/LeechLife, Stun/Silence/Chilled, stance energy drain, aggro modifiers for Conceal/Taunt/Levitate/Hide)
@@ -398,7 +416,7 @@ Battles can have reinforcement waves that spawn mid-battle:
   - GameStateManager uses EncounterData + GridSlotUtil flow
   - TurnInfoPanelUI shows wave count indicator [+N]
   - SFXType.Reinforcements + AudioManager subscription
-  - EnemyDefinitions split into Act1/Act2/Act3Enemies (~46 enemy types total)
+  - EnemyDefinitions split into Act1/Act2/Act3Enemies (~60 enemy types total)
   - 2 bosses per act for randomization (BossPools array)
 - **Phase F — Shop + Consumables:**
   - ConsumableData, ConsumableStack, ConsumableCatalog (~22 consumables: 3 potions, 2 curatives, 3 bombs, 2 utility, 6 scrolls, 6 books)
@@ -431,7 +449,7 @@ Battles can have reinforcement waves that spawn mid-battle:
   - EventCatalog (18 events: positive, negative, binary, 3-option, class-conditional, weird/unique)
   - EventScreen (IScreen: narrative, choice buttons, character pick phase, outcome display)
   - Rest sites use EventScreen with dedicated rest event (heal 50%, study triggers level-up pick, search for supplies)
-  - GameStateManager: RestPhase, EventPhase all wired with fade transitions
+  - GameStateManager: RestPhase, EventPhase, LevelUpPhase all wired with fade transitions
   - RunData.SeenEvents tracks unique event deduplication
 - **Phase 6 — Systems Overhaul:**
   - PassiveEffect enum system (replaces all string-based passive matching with type-safe enum)
@@ -475,7 +493,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Survivalist/Inner Light passives:** Energy/mana regen at turn start
 - **Predator/Steady Aim/Keen Eye passives:** Damage and accuracy bonuses wired into damage pipeline
 - **Reinforcement system:** Enemies spawn mid-battle based on triggers (enemy count, round, boss HP%). Waves join next round. UI shows [+N] indicator. SFX on spawn.
-- **~46 enemy types** across 3 acts with diverse stat profiles and mechanics
+- **~60 enemy types** across 4 acts with diverse stat profiles and mechanics
 - **2 bosses per act** for encounter randomization
 - **Equipment + Loot system:** Procedural item generation (8 stat profiles: Tank/Agile/Mighty/Arcane/Cunning/Resilient/Swift/Balanced), ~15 hand-crafted unique items with flavor text, 1-2 drops per battle, post-battle equip/stash UI, full inventory screen from room choice
 - Equipment with weapon types, block chances
@@ -486,6 +504,9 @@ Battles can have reinforcement waves that spawn mid-battle:
 - **Scrolls:** Execute actual class abilities (cloned from AbilityCatalog), any character can use, no resource cost, Range=Any
 - **Books:** Consumed from inventory Items tab, per-character Teach buttons, permanently adds ability, duplicate prevention
 - **Inventory Items tab:** Equipment/Items mode toggle, shows consumable stacks with quantities, book rows with per-character Teach buttons
+- **Smithy system:** 4 tabs (Upgrade/Craft/Dismantle/Imbue). Upgrade boosts primary stat + damage/block. Craft generates 3 random items per visit. Dismantle yields Metal/Leather scraps. Imbue attaches gems with fixed weapon/armor effects (Ruby=Burn/ARM, Sapphire=ManaRegen/MRS, Diamond=Crit/ARM+MRS, Emerald=Poison/END, Onyx=BonusDmg/INI)
+- **Material drops:** 40% chance per battle for Metal+Leather scraps. Gems (8%) from elite/boss battles only. Materials tracked in RunData, displayed in post-battle rewards
+- **Equipment upgrades:** Max +3 upgrade level, scales primary stat + damage/block per level. Cost scales by act and current level
 - **Visual feedback:** Directional lunge, squeeze/stretch on hit, color flash, death shrink+fade, floating damage numbers, screen shake on crit, turn pulse, stun wobble, low HP flicker, heal/shield/buff effects
 - **Inline sprite icons (TMP Sprite Assets):** 32 pixel art 16x16 icons generated programmatically (white on transparent, tinted at runtime). Used for status effect indicators on character cards and resource labels (HP heart, EN lightning, MP drop). Fallback to text codes `[S][B][Po]` if sprite asset not loaded. Editor tools: `Tools > Generate Status Icons Sprite Sheet` + `Tools > Create Status Icons TMP Sprite Asset`
 - **Game over screen:** Victory (green) or defeat (red), run stats, survivors, fallen memorial
@@ -507,7 +528,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - No visual feedback for status effect application/removal (no floating text, no animations)
 - Shield value not shown in character detail popup (only on card HP line)
 - Icon sizes/spacing may need tuning on actual mobile device (currently only tested in editor)
-- Smithy room type is stubbed (not yet implemented)
+- Gem weapon effects (Burn/Poison on hit, crit, bonus dmg, mana regen) are wired but untested in actual gameplay
 
 ## Decisions Made
 - All UI built in code (code-first)
@@ -544,7 +565,7 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Reinforcements join next round (not mid-turn) — simpler + gives player a round to react
 - Dead enemy cards replaced by reinforcements at same grid position
 - EncounterData wraps CharacterData (not BattleCharacter) — grid placement deferred to spawn time
-- EnemyDefinitions split by act (Act1/Act2/Act3Enemies) to keep files under 300 lines
+- EnemyDefinitions split by act (Act1/Act2/Act3/Act4Enemies) to keep files under 300 lines
 - Consumables are separate from equipment: stackable, consumed on use, live in RunData.Consumables
 - In battle, consumables create temporary AbilityData instances via ConsumableCatalog.GetBattleAbility() — executed through existing ability pipeline
 - Scrolls clone the real class ability from AbilityCatalog, removing resource costs (scroll IS the cost), setting Range=Any
@@ -584,9 +605,9 @@ Battles can have reinforcement waves that spawn mid-battle:
 ~~1. Death visuals~~ ~~2. Status effects~~ ~~3. Generic abilities~~ ~~4. Class abilities~~ ~~5. Advanced abilities~~
 ~~5b. Battle system rework~~ ~~5c. Combat formula rework (weapon damage, WIL scaling, unified hit, penetration)~~
 
-### Phase 2: Roguelike Loop (current)
+### Phase 2: Roguelike Loop — DONE
 - **A. Foundation** — Screen system, game state machine, main menu ← **DONE**
-- **B. Leveling + Post-Battle** — XP, Fire Emblem growth, ability unlocks, post-battle screen ← **DONE**
+- **B. Leveling + Post-Battle** — Pick-to-level, Fire Emblem growth, ability unlocks, post-battle screen ← **DONE**
 - **C. Room Choice + Floor Progression** — Room generation, floor/act advancement ← **DONE**
 - **D. Enemy Roster + Scaling + Reinforcements** — 46 enemies, reinforcement mechanic, 2 bosses/act ← **DONE**
 - **D2. Full Ability Kits** — 22 new abilities + 6 new passives across all 6 classes ← **DONE**
@@ -623,12 +644,30 @@ Battles can have reinforcement waves that spawn mid-battle:
 - Extracted GenericAbilityHandler, ConsumableAbilityHandler from ActionExecutor (985 → 682 lines)
 - Moved ExecuteMark → Ranger, ExecuteWordOfProtection → Priest, ExecuteRitual → Warlock
 
-### Future Rooms
-- **Smithy** — Separate room type (RoomType.Smithy). Upgrade equipment stats, craft items from materials. Material drops from battles (future). Stubbed but not implemented.
+### Phase 7: Act 4 + Smithy (2026-04-03) — DONE
+- Act 4 enemies (The Abyss): 14 types (5 front, 4 back, 3 elite, 2 boss) — eldritch/void theme
+- EncounterGenerator pools expanded to 4 acts, act clamp updated
+- Smithy room type: 4 tabs (Upgrade/Craft/Dismantle/Imbue)
+- Material system: Metal Scraps, Leather Scraps, 5 gem types (Ruby/Sapphire/Diamond/Emerald/Onyx)
+- Material drops from battles (40% scraps, 8% gems from elite/boss)
+- Equipment upgrades (max +3), gem imbuing (weapon/armor effects)
+- Loot/shop configs extended for act 4 (stats, damage, prefixes, prices)
 
-### Next Up
-- **Test SFX Exporter** — Editor script added at `Assets/Editor/SFXExporter.cs`. Menu item: **Tools > Export All SFX to WAV**. Exports all 17 procedural SFX as 16-bit PCM WAV files (44100 Hz, mono) to `ExportedSFX/` in project root. Not yet tested — run it next session and verify the output files sound correct. `Blocked` SFX type has no clip registered (will skip with warning).
-- Balance pass, mobile testing, and remaining polish
+### Next Up — Phase 8: Combat Depth Overhaul
+Combat feels like "button clicking" — most turns the correct play is "pick highest damage." Needs real decision-making.
+
+**Priority order:**
+1. **Enemy AI overhaul** — Replace random ability/target selection with priority-based behavior (healers heal, assassins focus low HP, tanks taunt, mages AoE when clustered). Biggest single impact.
+2. **Enemy threat abilities** — Charge-up attacks (telegraphed, must react), enrage on ally death, action point drain, team buffs, position displacement. Forces reactive play.
+3. **Ability synergies** — Status effect combos (Wet+Lightning=stun, Bleed+physical=bonus, Burn+Poison=explosion). Rewards planning over spamming.
+4. **Resource scarcity** — Reduce passive regen, increase powerful ability costs, add resource drain abilities. Creates "save mana or use it now?" tension.
+5. **Positioning depth** — Enemy movement abilities, frontline/backline tactical significance.
+
+Full design doc: `Docs/session-2026-04-03.md`
+
+**Also pending:**
+- Test SFX Exporter (`Assets/Editor/SFXExporter.cs`, menu: Tools > Export All SFX to WAV)
+- Mobile testing
 
 ---
 

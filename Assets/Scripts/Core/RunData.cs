@@ -24,6 +24,11 @@ namespace PixelWarriors
         public HashSet<string> DroppedUniques;
         public HashSet<string> SeenEvents;
 
+        // Smithy materials
+        public int MetalScraps;
+        public int LeatherScraps;
+        public List<GemType> Gems;
+
         public RoomType? CurrentRoom;
         public RoomType? PreviousRoom;
 
@@ -49,6 +54,7 @@ namespace PixelWarriors
             DroppedUniques = new HashSet<string>();
             SeenEvents = new HashSet<string>();
             FloorPlan = new List<FloorPlanEntry>();
+            Gems = new List<GemType>();
         }
 
         public int TotalFloor => (CurrentAct - 1) * RunConfig.FloorsPerAct + CurrentFloor;

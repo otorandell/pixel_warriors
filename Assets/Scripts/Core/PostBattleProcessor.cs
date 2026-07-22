@@ -9,6 +9,9 @@ namespace PixelWarriors
         public List<CharacterData> FallenCharacters;
         public List<EquipmentData> LootDrops;
         public bool IsBossBattle;
+        public int MetalScrapsGained;
+        public int LeatherScrapsGained;
+        public GemType? GemGained;
     }
 
     public static class PostBattleProcessor
@@ -58,6 +61,26 @@ namespace PixelWarriors
 
             // --- Generate loot ---
             result.LootDrops = LootGenerator.GenerateLoot(runData.CurrentAct, roomType, runData);
+
+            // --- Generate material drops ---
+            if (Random.value < SmithyConfig.MaterialDropChance)
+            {
+                int metalDrop = Random.Range(SmithyConfig.MaterialDropMin, SmithyConfig.MaterialDropMax + 1);
+                int leatherDrop = Random.Range(SmithyConfig.MaterialDropMin, SmithyConfig.MaterialDropMax + 1);
+                result.MetalScrapsGained = metalDrop;
+                result.LeatherScrapsGained = leatherDrop;
+                runData.MetalScraps += metalDrop;
+                runData.LeatherScraps += leatherDrop;
+            }
+
+            // Gem drop: elite/boss only
+            if ((roomType == RoomType.EliteBattle || roomType == RoomType.BossBattle)
+                && Random.value < SmithyConfig.GemDropChance)
+            {
+                GemType gem = (GemType)Random.Range(0, 5);
+                result.GemGained = gem;
+                runData.Gems.Add(gem);
+            }
 
             // --- Partial heal surviving party ---
             foreach (CharacterData character in runData.Party)

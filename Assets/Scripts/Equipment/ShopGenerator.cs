@@ -74,7 +74,7 @@ namespace PixelWarriors
 
         public static int CalculateEquipmentPrice(EquipmentData item)
         {
-            int actIndex = Mathf.Clamp(item.ActLevel - 1, 0, 2);
+            int actIndex = Mathf.Clamp(item.ActLevel - 1, 0, ShopConfig.ActPriceMultiplier.Length - 1);
             float actMult = ShopConfig.ActPriceMultiplier[actIndex];
 
             int slotBase = item.Slot switch

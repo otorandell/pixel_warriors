@@ -43,6 +43,18 @@ namespace PixelWarriors
                 if (actual > 0)
                     GameEvents.RaiseCombatLogMessage($"{character.Data.Name} recovers {actual} mana (Inner Light).");
             }
+
+            // Sapphire gem: +2 mana regen per turn
+            EquipmentData weapon = character.Data.Equipment[(int)EquipmentSlot.Hand1];
+            if (weapon?.ImbuedGem == GemType.Sapphire)
+            {
+                int gain = 2;
+                int prev = character.CurrentMana;
+                character.CurrentMana = Mathf.Min(character.CurrentMana + gain, character.MaxMana);
+                int actual = character.CurrentMana - prev;
+                if (actual > 0)
+                    GameEvents.RaiseCombatLogMessage($"{character.Data.Name} recovers {actual} mana (Sapphire).");
+            }
         }
 
         public static void OnDamageTaken(BattleCharacter target, int damage, List<BattleCharacter> allCharacters)

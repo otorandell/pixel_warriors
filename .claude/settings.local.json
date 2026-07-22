@@ -3,7 +3,10 @@
     "allow": [
       "Bash(gh api:*)",
       "Bash(git -C \"C:/Users/oscar/Documents/Repos/pixel_warriors\" init)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(find:*)",
+      "Bash(sort -k2)",
+      "Bash(grep:*)"
     ]
   }
 }

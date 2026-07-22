@@ -194,8 +194,7 @@ namespace PixelWarriors
                     yield return RestPhase();
                     break;
                 case RoomType.Smithy:
-                    // Stub: smithy not yet implemented, treat as shop for now
-                    yield return ShopPhase();
+                    yield return SmithyPhase();
                     break;
             }
         }
@@ -294,6 +293,44 @@ namespace PixelWarriors
                 }
 
                 shopScreen.Destroy();
+                break;
+            }
+        }
+
+        private IEnumerator SmithyPhase()
+        {
+            bool firstShow = true;
+            while (true)
+            {
+                var smithyScreen = new SmithyScreen(_runData);
+                if (firstShow)
+                {
+                    yield return FadeTransitionTo(smithyScreen);
+                    firstShow = false;
+                }
+                else
+                {
+                    _screenManager.TransitionTo(smithyScreen);
+                }
+
+                while (!smithyScreen.ExitRequested && !smithyScreen.InventoryRequested)
+                    yield return null;
+
+                if (smithyScreen.InventoryRequested)
+                {
+                    smithyScreen.Destroy();
+
+                    var inventoryScreen = new InventoryScreen(_runData);
+                    _screenManager.TransitionTo(inventoryScreen);
+
+                    while (!inventoryScreen.ClosePressed)
+                        yield return null;
+
+                    inventoryScreen.Destroy();
+                    continue;
+                }
+
+                smithyScreen.Destroy();
                 break;
             }
         }
